@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  # ── PostgreSQL Database ──
+  db:
+    image: postgres:16-alpine
+    container_name: tazelenme-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tazelenme
+      POSTGRES_PASSWORD: tazelenme_secret
+      POSTGRES_DB: tazelenme_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tazelenme -d tazelenme_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend API (Node.js + Express) ──
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tazelenme-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://tazelenme:tazelenme_secret@db:5432/tazelenme_db?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
+      JWT_EXPIRES_IN: 24h
+      JWT_REFRESH_EXPIRES_IN: 7d
+      IOT_API_KEY: ${IOT_API_KEY:-iot_secret_change_me}
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "4000:4000"
+
+  # ── Frontend (Next.js + PWA) ──
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tazelenme-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+    driver: local

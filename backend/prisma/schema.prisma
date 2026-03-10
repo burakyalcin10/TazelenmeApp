@@ -1,0 +1,254 @@
+// ╔══════════════════════════════════════════════════╗
+// ║  TazelenmeApp — Prisma Database Schema            ║
+// ║  Tazelenme Üniversitesi Yoklama Otomasyon Sistemi ║
+// ╚══════════════════════════════════════════════════╝
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────
+// ENUMS
+// ─────────────────────────────────
+
+enum Role {
+  ADMIN   // Koordinatörler
+  STUDENT // 60+ Yaş Öğrenciler
+}
+
+enum CardStatus {
+  ACTIVE  // Aktif Kart
+  LOST    // Kayıp/Çalıntı
+  REVOKED // İptal Edilmiş
+}
+
+enum AttendanceStatus {
+  PRESENT // Geldi
+  ABSENT  // Gelmedi
+  EXCUSED // İzinli/Raporlu
+}
+
+enum AttendanceMethod {
+  RFID   // Kapıdan kart okutarak
+  MANUAL // Koordinatör elle işaretledi
+}
+
+enum HealthCondition {
+  DIABETES       // Şeker
+  HYPERTENSION   // Tansiyon
+  HEART_DISEASE  // Kalp
+  DEMENTIA       // Unutkanlık/Nörolojik
+  PHYSICAL_ISSUE // Fiziksel Engel
+  OTHER          // Diğer
+}
+
+enum NotificationType {
+  ISOLATION_RISK  // 3 haftalık devamsızlık uyarısı
+  LOST_CARD       // Kayıp kart uyarısı
+  SYSTEM          // Sistem bildirimi
+}
+
+// ─────────────────────────────────
+// MODELS
+// ─────────────────────────────────
+
+/// 1. KULLANICI (Admin ve Öğrenci ortak tablo)
+model User {
+  id        String   @id @default(uuid())
+  tcNo      String   @unique // Sisteme giriş için kullanılan TC
+  pinHash   String   // 4 haneli PIN'in hash'lenmiş hali
+  role      Role     @default(STUDENT)
+
+  firstName String
+  lastName  String
+  phone     String?
+  email     String?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // İlişkiler
+  studentProfile StudentProfile?
+  auditLogs      AuditLog[]
+
+  @@map("users")
+}
+
+/// 2. ÖĞRENCİ DETAY VE SAĞLIK PROFİLİ
+model StudentProfile {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  address               String?
+  emergencyContactName  String?  // Acil durumlarda aranacak kişi
+  emergencyContactPhone String?  // Acil kişi telefonu
+
+  // Sağlık Verileri
+  healthConditions      HealthCondition[]
+  otherHealthNotes      String?  // "Diğer" seçilirse serbest metin
+
+  // 3 Hafta İzolasyon Uyarısı bayrağı
+  isAtRisk              Boolean  @default(false)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // İlişkiler
+  rfidCards    RfidCard[]
+  enrollments  Enrollment[]
+  attendances  Attendance[]
+
+  @@map("student_profiles")
+}
+
+/// 3. FİZİKSEL KART (RFID)
+model RfidCard {
+  id         String       @id @default(uuid())
+  uid        String       @unique // Kartın fiziksel çip numarası
+  studentId  String
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  status     CardStatus   @default(ACTIVE)
+  assignedAt DateTime     @default(now())
+  revokedAt  DateTime?
+
+  @@map("rfid_cards")
+}
+
+/// 4. SINIF / LOKASYON [YENİ]
+model Classroom {
+  id       String  @id @default(uuid())
+  name     String  // Örn: "Amfi 1", "Sınıf B-201"
+  code     String  @unique // Örn: "AMFI_1" — IoT cihazının gönderdiği konum kodu
+  capacity Int?
+
+  // İlişkiler
+  sessions LessonSession[]
+
+  @@map("classrooms")
+}
+
+/// 5. DERSLER
+model Course {
+  id       String  @id @default(uuid())
+  name     String  // Örn: "Miras Hukuku", "Teknoloji Okuryazarlığı"
+  term     String  // Örn: "2024-Güz", "2025-Bahar"
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // İlişkiler
+  enrollments Enrollment[]
+  sessions    LessonSession[]
+  materials   CourseMaterial[]
+
+  @@map("courses")
+}
+
+/// 6. ÖĞRENCİ-DERS KAYDI
+model Enrollment {
+  id        String         @id @default(uuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseId   String
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  enrolledAt DateTime     @default(now())
+
+  @@unique([studentId, courseId]) // Bir öğrenci bir derse bir kez kayıt olabilir
+  @@map("enrollments")
+}
+
+/// 7. DERS OTURUMU (Yoklama alınacak gün/saat)
+model LessonSession {
+  id          String    @id @default(uuid())
+  courseId     String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  classroomId String    // [YENİ] Hangi sınıfta yapılıyor
+  classroom   Classroom @relation(fields: [classroomId], references: [id])
+
+  sessionDate DateTime  // Dersin yapıldığı tarih
+  startTime   DateTime  // [YENİ] Ders başlangıç saati
+  endTime     DateTime  // [YENİ] Ders bitiş saati
+  weekNumber  Int       // Örn: 3. Hafta
+
+  // İlişkiler
+  attendances Attendance[]
+
+  @@map("lesson_sessions")
+}
+
+/// 8. YOKLAMA (Sistemin Kalbi)
+model Attendance {
+  id        String           @id @default(uuid())
+  sessionId String
+  session   LessonSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   StudentProfile   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  status    AttendanceStatus @default(ABSENT)
+  method    AttendanceMethod? // PRESENT ise RFID mi, MANUAL mı?
+
+  timestamp DateTime         @default(now())
+
+  @@unique([sessionId, studentId]) // Anti-Passback: Bir öğrenci bir derste tek kayıt
+  @@map("attendances")
+}
+
+/// 9. DERS MATERYALLERİ (Mini-LMS)
+model CourseMaterial {
+  id       String  @id @default(uuid())
+  courseId  String
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  title    String  // Örn: "1. Hafta Sunumu"
+  url      String  // PDF dosya yolu veya harici link
+  type     String  // "PDF", "LINK", "VIDEO"
+
+  uploadedAt DateTime @default(now())
+
+  @@map("course_materials")
+}
+
+/// 10. BİLDİRİMLER [YENİ]
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  actionTaken String?        // "Arandı", "Ziyaret edildi" vb.
+
+  // İlgili öğrenci (opsiyonel)
+  studentProfileId String?
+
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+
+  @@map("notifications")
+}
+
+/// 11. DENETİM KAYITLARI (AuditLog) [YENİ] — KVKK Uyumu
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String   // İşlemi yapan kullanıcı
+  user      User     @relation(fields: [userId], references: [id])
+
+  action    String   // "CREATE", "UPDATE", "DELETE", "LOGIN"
+  entity    String   // "User", "Attendance", "RfidCard" vb.
+  entityId  String?  // İlgili kaydın ID'si
+  details   String?  // JSON formatında ek detaylar
+
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
