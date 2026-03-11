@@ -1,5 +1,6 @@
 import prisma from '../utils/prisma';
 import logger from '../utils/logger';
+import { hashPin } from '../utils/pin';
 
 /**
  * Seed Data — Demo/Geliştirme verileri
@@ -22,7 +23,7 @@ async function main() {
   const admin = await prisma.user.create({
     data: {
       tcNo: '11111111111',
-      pinHash: '$argon2id$placeholder_admin_pin_hash', // Gerçek hash Epic 2'de
+      pinHash: await hashPin('1234'), // Admin PIN: 1234
       role: 'ADMIN',
       firstName: 'Koordinatör',
       lastName: 'Demo',
@@ -52,7 +53,7 @@ async function main() {
     const user = await prisma.user.create({
       data: {
         tcNo: s.tcNo,
-        pinHash: '$argon2id$placeholder_pin_hash', // Gerçek hash Epic 2'de
+        pinHash: await hashPin('4921'), // Tüm öğrencilerin demo PIN'i: 4921
         role: 'STUDENT',
         firstName: s.firstName,
         lastName: s.lastName,

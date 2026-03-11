@@ -31,14 +31,14 @@
 
 | # | Görev | Öncelik | SP | Durum | Bağımlılık |
 |---|-------|---------|----|----|------------|
-| 2.1 | `POST /api/v1/auth/login` — TC + PIN ile giriş, JWT döndür | 🔴 | 3 | 📋 Backlog | 1.6 |
-| 2.2 | PIN hash'leme (argon2) ve doğrulama utility fonksiyonları | 🔴 | 2 | 📋 Backlog | 1.4 |
-| 2.3 | JWT token oluşturma, doğrulama ve refresh token mekanizması | 🔴 | 3 | 📋 Backlog | 1.4 |
-| 2.4 | Auth middleware (role-based: `ADMIN`, `STUDENT`) | 🔴 | 2 | 📋 Backlog | 2.3 |
-| 2.5 | `POST /api/v1/auth/logout` — Token invalidation | 🟠 | 1 | 📋 Backlog | 2.3 |
-| 2.6 | **[YENİ]** IoT cihaz kimlik doğrulama (API Key / Bearer Token) | 🟠 | 2 | 📋 Backlog | 2.4 |
-| 2.7 | **[YENİ]** Rate limiting middleware (express-rate-limit) | 🟠 | 1 | 📋 Backlog | 1.4 |
-| 2.8 | **[YENİ]** CORS politikası (Frontend + IoT origins) | 🟠 | 1 | 📋 Backlog | 1.4 |
+| 2.1 | `POST /api/v1/auth/login` — TC + PIN ile giriş, JWT döndür | 🔴 | 3 | ✅ Done | 1.6 |
+| 2.2 | PIN hash'leme (argon2) ve doğrulama utility fonksiyonları | 🔴 | 2 | ✅ Done | 1.4 |
+| 2.3 | JWT token oluşturma, doğrulama ve refresh token mekanizması | 🔴 | 3 | ✅ Done | 1.4 |
+| 2.4 | Auth middleware (role-based: `ADMIN`, `STUDENT`) | 🔴 | 2 | ✅ Done | 2.3 |
+| 2.5 | `POST /api/v1/auth/logout` — Token invalidation | 🟠 | 1 | ✅ Done | 2.3 |
+| 2.6 | **[YENİ]** IoT cihaz kimlik doğrulama (API Key / Bearer Token) | 🟠 | 2 | ✅ Done | 2.4 |
+| 2.7 | **[YENİ]** Rate limiting middleware (express-rate-limit) | 🟠 | 1 | ✅ Done | 1.4 |
+| 2.8 | **[YENİ]** CORS politikası (Frontend + IoT origins) | 🟠 | 1 | ✅ Done | 1.4 |
 
 ---
 
@@ -241,3 +241,19 @@ gantt
 | 1.3 | Next.js + Tailwind CSS + shadcn/ui | ✅ 02:38 |
 
 > **Not:** Prisma v7'de `datasource` bloğunda `url` alanı kaldırıldı — `prisma.config.ts` yapısına uyarlandı.
+
+### 2026-03-11 — Epic 2: Auth ✅
+
+| # | Görev | Tamamlanma |
+|---|-------|------------|
+| 2.2 | PIN hash (argon2id) — `pin.ts` | ✅ 02:55 |
+| 2.3 | JWT token (access + refresh) — `jwt.ts` | ✅ 02:55 |
+| 2.4 | Auth middleware (authenticate, authorize) — `auth.ts` | ✅ 02:56 |
+| 2.6 | IoT cihaz auth (API Key) — `auth.ts` | ✅ 02:56 |
+| 2.7 | Rate limiting (general/auth/IoT) — `rateLimiter.ts` | ✅ 02:57 |
+| 2.1 | Login endpoint — `auth.controller.ts` + `auth.routes.ts` | ✅ 02:58 |
+| 2.5 | Logout endpoint + Audit log | ✅ 02:58 |
+| 2.8 | CORS güncelleme (`x-api-key` header) — `server.ts` | ✅ 02:59 |
+
+> **Demo Giriş Bilgileri:** Admin TC: `11111111111` PIN: `1234` · Öğrenci TC: `22222222221` PIN: `4921`
+

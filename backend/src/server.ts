@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
+import { generalLimiter } from './middlewares/rateLimiter';
+import authRoutes from './routes/auth.routes';
 
 // Load env
 dotenv.config();
@@ -17,10 +19,15 @@ app.use(
   cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ── Rate Limiting ──
+app.use(generalLimiter);
 
 // ── Request Logging ──
 app.use((req, _res, next) => {
@@ -37,8 +44,8 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// ── Routes (will be added in next tasks) ──
-// app.use('/api/v1/auth', authRoutes);
+// ── Routes ──
+app.use('/api/v1/auth', authRoutes);
 // app.use('/api/v1/students', studentRoutes);
 // app.use('/api/v1/attendance', attendanceRoutes);
 // app.use('/api/v1/courses', courseRoutes);
