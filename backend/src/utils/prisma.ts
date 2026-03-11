@@ -1,7 +1,16 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import logger from '../utils/logger';
 
+// Prisma v7: client engine requires a driver adapter
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+const adapter = new PrismaPg(pool);
+
 const prisma = new PrismaClient({
+  adapter,
   log:
     process.env.NODE_ENV === 'development'
       ? [
@@ -19,3 +28,4 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export default prisma;
+
