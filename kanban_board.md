@@ -48,14 +48,14 @@
 
 | # | Görev | Öncelik | SP | Durum | Bağımlılık |
 |---|-------|---------|----|----|------------|
-| 3.1 | `POST /api/v1/attendance/scan` — RFID kart okutma endpoint'i | 🔴 | 5 | 📋 Backlog | 2.6, 1.10 |
-| 3.2 | Anti-Passback kontrolü (`@@unique` seviyesinde + uygulama katmanı) | 🔴 | 2 | 📋 Backlog | 3.1 |
-| 3.3 | `findActiveSessionForLocation()` — Saat + sınıf bazlı otomatik ders eşleme | 🔴 | 3 | 📋 Backlog | 1.10, 3.1 |
-| 3.4 | `POST /api/v1/cards` — Kart atama (Koordinatör) | 🔴 | 2 | 📋 Backlog | 2.4 |
-| 3.5 | `PATCH /api/v1/cards/:id/status` — Kart iptal/pasif yapma | 🔴 | 2 | 📋 Backlog | 3.4 |
-| 3.6 | Kayıp/iptal kart okutulduğunda 403 + uyarı kaydı oluşturma | 🟠 | 2 | 📋 Backlog | 3.1, 1.8 |
-| 3.7 | `POST /api/v1/attendance/manual` — Manuel yoklama (Geldi/Gelmedi/İzinli) | 🟠 | 2 | 📋 Backlog | 2.4 |
-| 3.8 | `GET /api/v1/attendance/session/:id` — Ders seansı yoklama listesi | 🟠 | 2 | 📋 Backlog | 2.4 |
+| 3.1 | `POST /api/v1/attendance/scan` — RFID kart okutma endpoint'i | 🔴 | 5 | ✅ Done | 2.6, 1.10 |
+| 3.2 | Anti-Passback kontrolü (`@@unique` seviyesinde + uygulama katmanı) | 🔴 | 2 | ✅ Done | 3.1 |
+| 3.3 | `findActiveSessionForLocation()` — Saat + sınıf bazlı otomatik ders eşleme | 🔴 | 3 | ✅ Done | 1.10, 3.1 |
+| 3.4 | `POST /api/v1/cards` — Kart atama (Koordinatör) | 🔴 | 2 | ✅ Done | 2.4 |
+| 3.5 | `PATCH /api/v1/cards/:id/status` — Kart iptal/pasif yapma | 🔴 | 2 | ✅ Done | 3.4 |
+| 3.6 | Kayıp/iptal kart okutulduğunda 403 + uyarı kaydı oluşturma | 🟠 | 2 | ✅ Done | 3.1, 1.8 |
+| 3.7 | `POST /api/v1/attendance/manual` — Manuel yoklama (Geldi/Gelmedi/İzinli) | 🟠 | 2 | ✅ Done | 2.4 |
+| 3.8 | `GET /api/v1/attendance/session/:id` — Ders seansı yoklama listesi | 🟠 | 2 | ✅ Done | 2.4 |
 
 ---
 
@@ -63,13 +63,13 @@
 
 | # | Görev | Öncelik | SP | Durum | Bağımlılık |
 |---|-------|---------|----|----|------------|
-| 4.1 | `POST /api/v1/students` — Öğrenci oluşturma (demografik + sağlık) | 🔴 | 3 | 📋 Backlog | 2.4 |
-| 4.2 | `GET /api/v1/students` — Öğrenci listesi (filtreleme, pagination) | 🟠 | 2 | 📋 Backlog | 2.4 |
-| 4.3 | `GET /api/v1/students/:id` — Öğrenci detay (profil + sağlık + kart + yoklama) | 🟠 | 2 | 📋 Backlog | 2.4 |
-| 4.4 | `PUT /api/v1/students/:id` — Öğrenci güncelleme | 🟠 | 2 | 📋 Backlog | 2.4 |
-| 4.5 | `DELETE /api/v1/students/:id` — Öğrenci silme (soft delete) | 🟡 | 1 | 📋 Backlog | 2.4 |
-| 4.6 | **[YENİ]** `POST /api/v1/students/import` — Excel/CSV toplu import | 🟡 | 3 | 📋 Backlog | 4.1 |
-| 4.7 | **[YENİ]** TC Kimlik No veritabanı seviyesinde AES şifreleme (KVKK) | 🟠 | 3 | 📋 Backlog | 1.6 |
+| 4.1 | `POST /api/v1/students` — Öğrenci oluşturma (demografik + sağlık) | 🔴 | 3 | ✅ Done | 2.4 |
+| 4.2 | `GET /api/v1/students` — Öğrenci listesi (filtreleme, pagination) | 🟠 | 2 | ✅ Done | 2.4 |
+| 4.3 | `GET /api/v1/students/:id` — Öğrenci detay (profil + sağlık + kart + yoklama) | 🟠 | 2 | ✅ Done | 2.4 |
+| 4.4 | `PUT /api/v1/students/:id` — Öğrenci güncelleme | 🟠 | 2 | ✅ Done | 2.4 |
+| 4.5 | `DELETE /api/v1/students/:id` — Öğrenci silme (soft delete) | 🟡 | 1 | ✅ Done | 2.4 |
+| 4.6 | **[YENİ]** `POST /api/v1/students/import` — Excel/CSV toplu import | 🟡 | 3 | ✅ Done | 4.1 |
+| 4.7 | **[YENİ]** TC Kimlik No veritabanı seviyesinde AES şifreleme (KVKK) | 🟠 | 3 | ✅ Done | 1.6 |
 
 ---
 
@@ -177,12 +177,12 @@ gantt
     axisFormat  %d %b
 
     section Sprint 1
-    Proje Altyapısı (Epic 1)     :s1e1, 2026-03-16, 7d
-    Auth (Epic 2)                :s1e2, after s1e1, 7d
+    Proje Altyapısı (Epic 1)     :done, s1e1, 2026-03-16, 7d
+    Auth (Epic 2)                :done, s1e2, after s1e1, 7d
 
     section Sprint 2
-    Yoklama & Kart (Epic 3)      :s2e3, after s1e2, 7d
-    Öğrenci & Sağlık (Epic 4)    :s2e4, after s1e2, 7d
+    Yoklama & Kart (Epic 3)      :done, s2e3, after s1e2, 7d
+    Öğrenci & Sağlık (Epic 4)    :done, s2e4, after s1e2, 7d
 
     section Sprint 3
     Otomasyon (Epic 5)           :s3e5, after s2e3, 7d
@@ -203,10 +203,10 @@ gantt
 
 | Epic | Toplam SP | Sprint |
 |------|-----------|--------|
-| 1 — Proje Altyapısı | ~23 SP | Sprint 1 |
-| 2 — Auth | ~15 SP | Sprint 1 |
-| 3 — Yoklama & Kart | ~20 SP | Sprint 2 |
-| 4 — Öğrenci & Sağlık | ~16 SP | Sprint 2 |
+| 1 — Proje Altyapısı | ~23 SP | Sprint 1 ✅ |
+| 2 — Auth | ~15 SP | Sprint 1 ✅ |
+| 3 — Yoklama & Kart | ~20 SP | Sprint 2 ✅ |
+| 4 — Öğrenci & Sağlık | ~16 SP | Sprint 2 ✅ |
 | 5 — Otomasyon | ~13 SP | Sprint 3 |
 | 6 — Mini-LMS | ~15 SP | Sprint 3 |
 | 7 — Admin Panel | ~43 SP | Sprint 4 |
@@ -256,4 +256,31 @@ gantt
 | 2.8 | CORS güncelleme (`x-api-key` header) — `server.ts` | ✅ 02:59 |
 
 > **Demo Giriş Bilgileri:** Admin TC: `11111111111` PIN: `1234` · Öğrenci TC: `22222222221` PIN: `4921`
+
+### 2026-03-17 — Epic 3: Yoklama & Kart Yönetimi ✅
+
+| # | Görev | Tamamlanma |
+|---|-------|------------|
+| 3.1 | RFID kart okutma — `attendance.controller.ts` | ✅ 04:15 |
+| 3.2 | Anti-Passback (@@unique + uygulama katmanı) | ✅ 04:15 |
+| 3.3 | `findActiveSessionForLocation()` — otomatik ders eşleme | ✅ 04:15 |
+| 3.4 | Kart atama — `card.controller.ts` | ✅ 04:18 |
+| 3.5 | Kart durumu güncelleme (LOST/REVOKED) | ✅ 04:18 |
+| 3.6 | Kayıp kart → 403 + Notification kaydı | ✅ 04:15 |
+| 3.7 | Manuel yoklama (upsert ile) | ✅ 04:15 |
+| 3.8 | Seans yoklama listesi + istatistikler | ✅ 04:15 |
+
+### 2026-03-17 — Epic 4: Öğrenci & Sağlık Verisi ✅
+
+| # | Görev | Tamamlanma |
+|---|-------|------------|
+| 4.1 | Öğrenci oluşturma (otomatik PIN) — `student.controller.ts` | ✅ 04:20 |
+| 4.2 | Öğrenci listesi (search, filter, pagination) | ✅ 04:20 |
+| 4.3 | Öğrenci detay (profil, kartlar, yoklama, istatistikler) | ✅ 04:20 |
+| 4.4 | Öğrenci güncelleme (User + StudentProfile) | ✅ 04:20 |
+| 4.5 | Öğrenci soft delete (isActive + kart iptal) | ✅ 04:20 |
+| 4.6 | CSV toplu import (multer memory storage) | ✅ 04:22 |
+| 4.7 | AES-256-GCM şifreleme utility — `encryption.ts` | ✅ 04:22 |
+
+> **Not:** KVKK şifreleme utility'si hazır, şema entegrasyonu (tcNo → tcNoEncrypted) Sprint 3'e bırakıldı.
 

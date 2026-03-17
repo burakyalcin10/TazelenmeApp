@@ -6,6 +6,9 @@ import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import { generalLimiter } from './middlewares/rateLimiter';
 import authRoutes from './routes/auth.routes';
+import attendanceRoutes from './routes/attendance.routes';
+import cardRoutes from './routes/card.routes';
+import studentRoutes from './routes/student.routes';
 
 // Load env
 dotenv.config();
@@ -46,10 +49,10 @@ app.get('/api/health', (_req, res) => {
 
 // ── Routes ──
 app.use('/api/v1/auth', authRoutes);
-// app.use('/api/v1/students', studentRoutes);
-// app.use('/api/v1/attendance', attendanceRoutes);
+app.use('/api/v1/students', studentRoutes);
+app.use('/api/v1/attendance', attendanceRoutes);
+app.use('/api/v1/cards', cardRoutes);
 // app.use('/api/v1/courses', courseRoutes);
-// app.use('/api/v1/cards', cardRoutes);
 // app.use('/api/v1/materials', materialRoutes);
 // app.use('/api/v1/notifications', notificationRoutes);
 
