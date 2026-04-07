@@ -11,7 +11,7 @@ import { FormField } from "@/components/app/form-field";
 import { LoadingBlock } from "@/components/app/loading-block";
 import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -153,7 +153,7 @@ export default function CardsPage() {
       <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
         <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
           <CardTitle className="text-2xl font-semibold">Kart listesi</CardTitle>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value || "ALL")}>
             <SelectTrigger className="h-12 w-full max-w-xs rounded-xl bg-white">
               <SelectValue placeholder="Duruma gore filtrele" />
             </SelectTrigger>
@@ -211,12 +211,13 @@ export default function CardsPage() {
                         {card.revokedAt ? ` · Son degisim: ${formatDate(card.revokedAt)}` : ""}
                       </div>
                       {linkedStudent ? (
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/admin/students/${linkedStudent.id}`}>
-                            <Link2 className="size-4" />
-                            Ogrenci detayina git
-                          </Link>
-                        </Button>
+                        <Link
+                          href={`/admin/students/${linkedStudent.id}`}
+                          className={buttonVariants({ size: "sm", variant: "outline" })}
+                        >
+                          <Link2 className="size-4" />
+                          Ogrenci detayina git
+                        </Link>
                       ) : null}
                     </div>
 
@@ -274,7 +275,7 @@ export default function CardsPage() {
               />
             </FormField>
             <FormField label="Ogrenci secimi" htmlFor="student-profile-id">
-              <Select value={studentProfileId} onValueChange={setStudentProfileId}>
+              <Select value={studentProfileId} onValueChange={(value) => setStudentProfileId(value || "")}>
                 <SelectTrigger id="student-profile-id" className="h-12 w-full rounded-xl bg-white">
                   <SelectValue placeholder="Kartin atanacagi ogrenciyi secin" />
                 </SelectTrigger>

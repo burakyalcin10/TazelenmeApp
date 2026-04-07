@@ -10,7 +10,7 @@ import { FormField } from "@/components/app/form-field";
 import { LoadingBlock } from "@/components/app/loading-block";
 import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -296,7 +296,7 @@ export default function CoursesPage() {
         description="Dersler, siniflar, oturumlar, kayitlar ve materyalleri tek ekrandan yonetin."
       />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value || "courses")}>
         <TabsList className="h-auto flex-wrap rounded-[1.5rem] bg-white/90 p-2 shadow-sm ring-1 ring-foreground/10">
           <TabsTrigger className="min-h-11 px-4 text-base" value="courses">Dersler</TabsTrigger>
           <TabsTrigger className="min-h-11 px-4 text-base" value="sessions">Oturumlar</TabsTrigger>
@@ -458,7 +458,14 @@ export default function CoursesPage() {
                           Indir
                         </Button>
                       ) : (
-                        <Button asChild size="sm" variant="outline"><a href={material.url} target="_blank" rel="noreferrer">Ac</a></Button>
+                        <a
+                          href={material.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={buttonVariants({ size: "sm", variant: "outline" })}
+                        >
+                          Ac
+                        </a>
                       )}
                       <Button size="sm" variant="destructive" onClick={() => setPendingAction({ kind: "material-delete", payload: { id: material.id, title: material.title } })}>
                         <Trash2 className="size-4" />
@@ -512,8 +519,8 @@ export default function CoursesPage() {
         <DialogContent className="max-w-3xl rounded-[2rem] p-6 sm:max-w-3xl">
           <DialogHeader><DialogTitle className="text-3xl font-semibold">Tek oturum olustur</DialogTitle><DialogDescription className="text-base leading-7">Ders, sinif, tarih ve saat secerek tekil bir oturum planlayin.</DialogDescription></DialogHeader>
           <div className="grid gap-5 lg:grid-cols-2">
-            <FormField label="Ders"><Select value={sessionForm.courseId} onValueChange={(value) => setSessionForm((current) => ({ ...current, courseId: value }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
-            <FormField label="Sinif"><Select value={sessionForm.classroomId} onValueChange={(value) => setSessionForm((current) => ({ ...current, classroomId: value }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Sinif secin" /></SelectTrigger><SelectContent>{classrooms.map((classroom) => <SelectItem key={classroom.id} value={classroom.id}>{classroom.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Ders"><Select value={sessionForm.courseId} onValueChange={(value) => setSessionForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Sinif"><Select value={sessionForm.classroomId} onValueChange={(value) => setSessionForm((current) => ({ ...current, classroomId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Sinif secin" /></SelectTrigger><SelectContent>{classrooms.map((classroom) => <SelectItem key={classroom.id} value={classroom.id}>{classroom.name}</SelectItem>)}</SelectContent></Select></FormField>
             <FormField label="Tarih"><Input type="date" value={sessionForm.sessionDate} onChange={(event) => setSessionForm((current) => ({ ...current, sessionDate: event.target.value }))} /></FormField>
             <FormField label="Hafta numarasi"><Input value={sessionForm.weekNumber} onChange={(event) => setSessionForm((current) => ({ ...current, weekNumber: event.target.value.replace(/\D/g, "") }))} /></FormField>
             <FormField label="Baslangic saati"><Input type="time" value={sessionForm.startClock} onChange={(event) => setSessionForm((current) => ({ ...current, startClock: event.target.value }))} /></FormField>
@@ -530,9 +537,9 @@ export default function CoursesPage() {
         <DialogContent className="max-w-3xl rounded-[2rem] p-6 sm:max-w-3xl">
           <DialogHeader><DialogTitle className="text-3xl font-semibold">Toplu oturum uret</DialogTitle><DialogDescription className="text-base leading-7">Haftalik plana gore toplu oturumlar olusturun.</DialogDescription></DialogHeader>
           <div className="grid gap-5 lg:grid-cols-2">
-            <FormField label="Ders"><Select value={generateForm.courseId} onValueChange={(value) => setGenerateForm((current) => ({ ...current, courseId: value }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
-            <FormField label="Sinif"><Select value={generateForm.classroomId} onValueChange={(value) => setGenerateForm((current) => ({ ...current, classroomId: value }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Sinif secin" /></SelectTrigger><SelectContent>{classrooms.map((classroom) => <SelectItem key={classroom.id} value={classroom.id}>{classroom.name}</SelectItem>)}</SelectContent></Select></FormField>
-            <FormField label="Haftanin gunu"><Select value={generateForm.dayOfWeek} onValueChange={(value) => setGenerateForm((current) => ({ ...current, dayOfWeek: value }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="0">Pazar</SelectItem><SelectItem value="1">Pazartesi</SelectItem><SelectItem value="2">Sali</SelectItem><SelectItem value="3">Carsamba</SelectItem><SelectItem value="4">Persembe</SelectItem><SelectItem value="5">Cuma</SelectItem><SelectItem value="6">Cumartesi</SelectItem></SelectContent></Select></FormField>
+            <FormField label="Ders"><Select value={generateForm.courseId} onValueChange={(value) => setGenerateForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Sinif"><Select value={generateForm.classroomId} onValueChange={(value) => setGenerateForm((current) => ({ ...current, classroomId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Sinif secin" /></SelectTrigger><SelectContent>{classrooms.map((classroom) => <SelectItem key={classroom.id} value={classroom.id}>{classroom.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Haftanin gunu"><Select value={generateForm.dayOfWeek} onValueChange={(value) => setGenerateForm((current) => ({ ...current, dayOfWeek: value || "1" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="0">Pazar</SelectItem><SelectItem value="1">Pazartesi</SelectItem><SelectItem value="2">Sali</SelectItem><SelectItem value="3">Carsamba</SelectItem><SelectItem value="4">Persembe</SelectItem><SelectItem value="5">Cuma</SelectItem><SelectItem value="6">Cumartesi</SelectItem></SelectContent></Select></FormField>
             <FormField label="Donem baslangici"><Input type="date" value={generateForm.semesterStart} onChange={(event) => setGenerateForm((current) => ({ ...current, semesterStart: event.target.value }))} /></FormField>
             <FormField label="Baslangic saati"><Input type="time" value={generateForm.startTime} onChange={(event) => setGenerateForm((current) => ({ ...current, startTime: event.target.value }))} /></FormField>
             <FormField label="Bitis saati"><Input type="time" value={generateForm.endTime} onChange={(event) => setGenerateForm((current) => ({ ...current, endTime: event.target.value }))} /></FormField>
@@ -549,8 +556,8 @@ export default function CoursesPage() {
         <DialogContent className="max-w-3xl rounded-[2rem] p-6 sm:max-w-3xl">
           <DialogHeader><DialogTitle className="text-3xl font-semibold">Yeni ders kaydi</DialogTitle><DialogDescription className="text-base leading-7">Bir ogrenciyi secili derse ekleyin.</DialogDescription></DialogHeader>
           <div className="grid gap-5 lg:grid-cols-2">
-            <FormField label="Ders"><Select value={enrollmentForm.courseId} onValueChange={(value) => setEnrollmentForm((current) => ({ ...current, courseId: value }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.filter((course) => course.isActive).map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
-            <FormField label="Ogrenci"><Select value={enrollmentForm.studentId} onValueChange={(value) => setEnrollmentForm((current) => ({ ...current, studentId: value }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ogrenci secin" /></SelectTrigger><SelectContent>{students.map((student) => <SelectItem key={student.id} value={student.profileId || student.id}>{student.firstName} {student.lastName}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Ders"><Select value={enrollmentForm.courseId} onValueChange={(value) => setEnrollmentForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.filter((course) => course.isActive).map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Ogrenci"><Select value={enrollmentForm.studentId} onValueChange={(value) => setEnrollmentForm((current) => ({ ...current, studentId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ogrenci secin" /></SelectTrigger><SelectContent>{students.map((student) => <SelectItem key={student.id} value={student.profileId || student.id}>{student.firstName} {student.lastName}</SelectItem>)}</SelectContent></Select></FormField>
           </div>
           <DialogFooter className="gap-3 bg-transparent px-0 pb-0">
             <Button type="button" size="lg" variant="outline" onClick={() => setEnrollmentDialogOpen(false)}>Vazgec</Button>
@@ -564,8 +571,8 @@ export default function CoursesPage() {
           <DialogHeader><DialogTitle className="text-3xl font-semibold">Yeni materyal</DialogTitle><DialogDescription className="text-base leading-7">PDF dosyasi veya baglanti tipi materyali secili derse baglayin.</DialogDescription></DialogHeader>
           <form className="space-y-6" onSubmit={submitMaterial}>
             <div className="grid gap-5 lg:grid-cols-2">
-              <FormField label="Ders"><Select value={materialForm.courseId} onValueChange={(value) => setMaterialForm((current) => ({ ...current, courseId: value }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
-              <FormField label="Tur"><Select value={materialForm.type} onValueChange={(value) => setMaterialForm((current) => ({ ...current, type: value as "PDF" | "LINK" | "VIDEO" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="PDF">PDF</SelectItem><SelectItem value="LINK">Link</SelectItem><SelectItem value="VIDEO">Video</SelectItem></SelectContent></Select></FormField>
+              <FormField label="Ders"><Select value={materialForm.courseId} onValueChange={(value) => setMaterialForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
+              <FormField label="Tur"><Select value={materialForm.type} onValueChange={(value) => setMaterialForm((current) => ({ ...current, type: (value as "PDF" | "LINK" | "VIDEO") || "PDF" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="PDF">PDF</SelectItem><SelectItem value="LINK">Link</SelectItem><SelectItem value="VIDEO">Video</SelectItem></SelectContent></Select></FormField>
             </div>
             <FormField label="Baslik"><Input value={materialForm.title} onChange={(event) => setMaterialForm((current) => ({ ...current, title: event.target.value }))} /></FormField>
             {materialForm.type === "PDF" ? <FormField label="PDF dosyasi"><Input type="file" accept="application/pdf" onChange={(event) => setMaterialForm((current) => ({ ...current, file: event.target.files?.[0] || null }))} /></FormField> : <FormField label="Baglanti adresi"><Textarea value={materialForm.url} onChange={(event) => setMaterialForm((current) => ({ ...current, url: event.target.value }))} /></FormField>}

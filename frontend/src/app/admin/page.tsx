@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
                 Dashboard grafikleri secili derse gore yenilenir.
               </p>
             </div>
-            <Select value={selectedCourseId} onValueChange={handleCourseChange}>
+            <Select value={selectedCourseId} onValueChange={(value) => void handleCourseChange(value || "")}>
               <SelectTrigger className="h-12 w-full max-w-sm rounded-xl bg-white text-base">
                 <SelectValue placeholder="Bir ders secin" />
               </SelectTrigger>

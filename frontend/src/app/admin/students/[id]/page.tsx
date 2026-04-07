@@ -13,7 +13,7 @@ import { LoadingBlock } from "@/components/app/loading-block";
 import { PageHeader } from "@/components/app/page-header";
 import { StatCard } from "@/components/app/stat-card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -45,7 +45,34 @@ export default function StudentDetailPage() {
       return;
     }
 
-    void loadStudent();
+    let ignore = false;
+
+    async function bootstrap() {
+      setLoading(true);
+      try {
+        const data = await apiRequest<StudentDetail>(`/api/v1/students/${params.id}`);
+        if (ignore) {
+          return;
+        }
+
+        setStudent(data);
+        setCardStatusDraft(Object.fromEntries(data.rfidCards.map((card) => [card.id, card.status])));
+      } catch (error) {
+        if (!ignore) {
+          toast.error(error instanceof Error ? error.message : "Ogrenci detayi yuklenemedi.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void bootstrap();
+
+    return () => {
+      ignore = true;
+    };
   }, [params?.id]);
 
   async function loadStudent() {
@@ -154,12 +181,10 @@ export default function StudentDetailPage() {
         description="Iletisim, saglik, yoklama, ders kaydi ve kart yonetimini tek ekrandan takip edin."
         actions={
           <>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/admin/students">
-                <ArrowLeft className="size-5" />
-                Listeye don
-              </Link>
-            </Button>
+            <Link href="/admin/students" className={buttonVariants({ size: "lg", variant: "outline" })}>
+              <ArrowLeft className="size-5" />
+              Listeye don
+            </Link>
             <Button size="lg" onClick={openCardDialog}>
               <Plus className="size-5" />
               Kart ata

@@ -40,68 +40,91 @@ export default function AttendancePage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    void loadFiltersAndSessions();
+    let ignore = false;
+
+    async function bootstrap() {
+      setLoading(true);
+      try {
+        const [courseData, classroomData] = await Promise.all([
+          apiRequest<{ courses: CourseListItem[] }>("/api/v1/courses?limit=100"),
+          apiRequest<{ classrooms: ClassroomItem[] }>("/api/v1/classrooms?limit=100"),
+        ]);
+
+        if (ignore) {
+          return;
+        }
+
+        setCourses(courseData.courses);
+        setClassrooms(classroomData.classrooms);
+      } catch (error) {
+        if (!ignore) {
+          toast.error(error instanceof Error ? error.message : "Yoklama filtreleri yuklenemedi.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+
+    bootstrap();
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   useEffect(() => {
-    void loadSessions();
-  }, [courseFilter, classroomFilter]);
-
-  async function loadFiltersAndSessions() {
-    setLoading(true);
-    try {
-      const [courseData, classroomData] = await Promise.all([
-        apiRequest<{ courses: CourseListItem[] }>("/api/v1/courses?limit=100"),
-        apiRequest<{ classrooms: ClassroomItem[] }>("/api/v1/classrooms?limit=100"),
-      ]);
-      setCourses(courseData.courses);
-      setClassrooms(classroomData.classrooms);
-      await loadSessions(courseData.courses, classroomData.classrooms);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Yoklama filtreleri yuklenemedi.");
-      setLoading(false);
-    }
-  }
-
-  async function loadSessions(
-    existingCourses?: CourseListItem[],
-    existingClassrooms?: ClassroomItem[]
-  ) {
-    const activeCourses = existingCourses || courses;
-    const activeClassrooms = existingClassrooms || classrooms;
-
-    if (!activeCourses.length && !activeClassrooms.length && !existingCourses && !existingClassrooms) {
+    if (!courses.length && !classrooms.length) {
       return;
     }
 
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ limit: "100" });
-      if (courseFilter !== "ALL") {
-        params.set("courseId", courseFilter);
-      }
-      if (classroomFilter !== "ALL") {
-        params.set("classroomId", classroomFilter);
-      }
+    let ignore = false;
 
-      const data = await apiRequest<{ sessions: SessionListItem[] }>(`/api/v1/sessions?${params.toString()}`);
-      setSessions(data.sessions);
+    async function loadSessionsForFilters() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ limit: "100" });
+        if (courseFilter !== "ALL") {
+          params.set("courseId", courseFilter);
+        }
+        if (classroomFilter !== "ALL") {
+          params.set("classroomId", classroomFilter);
+        }
 
-      const nextSessionId =
-        data.sessions.find((session) => session.id === selectedSessionId)?.id || data.sessions[0]?.id || "";
-      setSelectedSessionId(nextSessionId);
+        const data = await apiRequest<{ sessions: SessionListItem[] }>(`/api/v1/sessions?${params.toString()}`);
+        if (ignore) {
+          return;
+        }
 
-      if (nextSessionId) {
+        setSessions(data.sessions);
+        const nextSessionId =
+          data.sessions.find((session) => session.id === selectedSessionId)?.id || data.sessions[0]?.id || "";
+        setSelectedSessionId(nextSessionId);
+
+        if (!nextSessionId) {
+          setSessionDetail(null);
+          return;
+        }
+
         await loadSessionDetail(nextSessionId);
-      } else {
-        setSessionDetail(null);
+      } catch (error) {
+        if (!ignore) {
+          toast.error(error instanceof Error ? error.message : "Oturum listesi yuklenemedi.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Oturum listesi yuklenemedi.");
-    } finally {
-      setLoading(false);
     }
-  }
+
+    loadSessionsForFilters();
+
+    return () => {
+      ignore = true;
+    };
+  }, [classroomFilter, classrooms.length, courseFilter, courses.length, selectedSessionId]);
 
   async function loadSessionDetail(sessionId: string) {
     setDetailLoading(true);
@@ -157,7 +180,7 @@ export default function AttendancePage() {
         <CardHeader className="gap-4">
           <CardTitle className="text-2xl font-semibold">Oturum filtreleri</CardTitle>
           <div className="grid gap-4 xl:grid-cols-[1fr_1fr_1.2fr]">
-            <Select value={courseFilter} onValueChange={setCourseFilter}>
+            <Select value={courseFilter} onValueChange={(value) => setCourseFilter(value || "ALL")}>
               <SelectTrigger className="h-12 w-full rounded-xl bg-white">
                 <SelectValue placeholder="Derse gore filtrele" />
               </SelectTrigger>
@@ -170,7 +193,7 @@ export default function AttendancePage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={classroomFilter} onValueChange={setClassroomFilter}>
+            <Select value={classroomFilter} onValueChange={(value) => setClassroomFilter(value || "ALL")}>
               <SelectTrigger className="h-12 w-full rounded-xl bg-white">
                 <SelectValue placeholder="Sinifa gore filtrele" />
               </SelectTrigger>
@@ -186,6 +209,9 @@ export default function AttendancePage() {
             <Select
               value={selectedSessionId}
               onValueChange={(value) => {
+                if (!value) {
+                  return;
+                }
                 setSelectedSessionId(value);
                 void loadSessionDetail(value);
               }}

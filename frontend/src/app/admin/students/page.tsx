@@ -11,7 +11,7 @@ import { FormField } from "@/components/app/form-field";
 import { LoadingBlock } from "@/components/app/loading-block";
 import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -265,7 +265,7 @@ export default function StudentsPage() {
                 onChange={(event) => setSearch(event.target.value)}
               />
             </div>
-            <Select value={riskFilter} onValueChange={setRiskFilter}>
+            <Select value={riskFilter} onValueChange={(value) => setRiskFilter(value || "ALL")}>
               <SelectTrigger className="h-12 w-full rounded-xl bg-white">
                 <SelectValue placeholder="Risk durumu" />
               </SelectTrigger>
@@ -275,7 +275,7 @@ export default function StudentsPage() {
                 <SelectItem value="SAFE">Riskte olmayanlar</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={healthFilter} onValueChange={setHealthFilter}>
+            <Select value={healthFilter} onValueChange={(value) => setHealthFilter(value || "ALL")}>
               <SelectTrigger className="h-12 w-full rounded-xl bg-white">
                 <SelectValue placeholder="Saglik filtresi" />
               </SelectTrigger>
@@ -363,12 +363,13 @@ export default function StudentsPage() {
                     </TableCell>
                     <TableCell className="px-4 py-5 align-top">
                       <div className="flex justify-end gap-2">
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/admin/students/${student.id}`}>
-                            <Eye className="size-4" />
-                            Detay
-                          </Link>
-                        </Button>
+                        <Link
+                          href={`/admin/students/${student.id}`}
+                          className={buttonVariants({ size: "sm", variant: "outline" })}
+                        >
+                          <Eye className="size-4" />
+                          Detay
+                        </Link>
                         <Button size="sm" variant="outline" onClick={() => openEditDialog(student)}>
                           <Pencil className="size-4" />
                           Duzenle

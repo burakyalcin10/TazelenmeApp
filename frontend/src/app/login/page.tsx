@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { KeyRound, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField } from "@/components/app/form-field";
 import { Input } from "@/components/ui/input";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const { login, status } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -129,5 +129,13 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="panel-shell min-h-screen bg-background" />}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
