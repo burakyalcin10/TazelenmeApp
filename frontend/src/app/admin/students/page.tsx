@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Eye, Pencil, Plus, Search, ShieldAlert, Trash2 } from "lucide-react";
+import { Download, Eye, Pencil, Plus, Search, ShieldAlert, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
@@ -52,6 +52,35 @@ const emptyForm: StudentCreatePayload = {
   otherHealthNotes: "",
 };
 
+interface StudentImportSuccessItem {
+  line: number;
+  userId: string;
+  tcNo: string;
+  firstName: string;
+  lastName: string;
+  generatedPin: string;
+}
+
+interface StudentImportErrorItem {
+  line: number;
+  error: string;
+  data?: {
+    tcNo?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+}
+
+interface StudentImportResult {
+  success: StudentImportSuccessItem[];
+  errors: StudentImportErrorItem[];
+}
+
+function escapeCsvCell(value: string | number | boolean | null | undefined) {
+  const normalized = String(value ?? "").replace(/"/g, "\"\"");
+  return `"${normalized}"`;
+}
+
 export default function StudentsPage() {
   const [students, setStudents] = useState<StudentListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,11 +88,15 @@ export default function StudentsPage() {
   const [riskFilter, setRiskFilter] = useState("ALL");
   const [healthFilter, setHealthFilter] = useState("ALL");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<StudentListItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<StudentListItem | null>(null);
   const [pendingSave, setPendingSave] = useState(false);
+  const [pendingImport, setPendingImport] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [generatedPin, setGeneratedPin] = useState<string | null>(null);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importResult, setImportResult] = useState<StudentImportResult | null>(null);
   const [form, setForm] = useState<StudentCreatePayload>(emptyForm);
 
   const filteredStudents = useMemo(() => {
@@ -111,6 +144,63 @@ export default function StudentsPage() {
   function openCreateDialog() {
     resetForm();
     setDialogOpen(true);
+  }
+
+  function exportStudentsCsv() {
+    if (!filteredStudents.length) {
+      toast.error("Disa aktarilacak ogrenci bulunmuyor.");
+      return;
+    }
+
+    const rows = [
+      [
+        "tcNo",
+        "firstName",
+        "lastName",
+        "phone",
+        "email",
+        "riskStatus",
+        "healthConditions",
+        "activeCardUid",
+        "createdAt",
+      ],
+      ...filteredStudents.map((student) => [
+        student.tcNo || "",
+        student.firstName,
+        student.lastName,
+        student.phone || "",
+        student.email || "",
+        student.isAtRisk ? "Riskli" : "Normal",
+        student.healthConditions.map((condition) => healthConditionLabel(condition)).join(" | "),
+        student.activeCard?.uid || "",
+        formatDate(student.createdAt),
+      ]),
+    ];
+
+    const csvContent = rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(",")).join("\n");
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ogrenciler-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Ogrenci listesi CSV olarak indirildi.");
+  }
+
+  function downloadImportTemplate() {
+    const template = [
+      "tcNo,firstName,lastName,phone,email,emergencyContactName,emergencyContactPhone",
+      "11111111111,Ayse,Yilmaz,05551234567,ayse@example.com,Fatma Yilmaz,05557654321",
+    ].join("\n");
+
+    const blob = new Blob([`\uFEFF${template}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "ogrenci-import-sablonu.csv";
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   function openEditDialog(student: StudentListItem) {
@@ -227,6 +317,35 @@ export default function StudentsPage() {
     }
   }
 
+  async function handleConfirmedImport() {
+    if (!importFile) {
+      toast.error("Once bir CSV dosyasi secin.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.set("file", importFile);
+
+      const response = await apiRequest<StudentImportResult>("/api/v1/students/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      setImportResult(response);
+      setPendingImport(false);
+      setImportDialogOpen(false);
+      setImportFile(null);
+      await loadStudents();
+      toast.success("Toplu ogrenci import islemi tamamlandi.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "CSV import islemi tamamlanamadi.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!validateForm()) {
@@ -245,12 +364,62 @@ export default function StudentsPage() {
         title="Ogrenci Yonetimi"
         description="Ogrenci kayitlarini arayin, yeni ogrenci ekleyin ve riskli profilleri rahat bir ekrandan yonetin."
         actions={
-          <Button size="xl" onClick={openCreateDialog}>
-            <Plus className="size-5" />
-            Yeni ogrenci ekle
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button size="xl" variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="size-5" />
+              CSV import
+            </Button>
+            <Button size="xl" variant="outline" onClick={exportStudentsCsv}>
+              <Download className="size-5" />
+              CSV disa aktar
+            </Button>
+            <Button size="xl" onClick={openCreateDialog}>
+              <Plus className="size-5" />
+              Yeni ogrenci ekle
+            </Button>
+          </div>
         }
       />
+
+      <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
+        <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <CardTitle className="text-2xl font-semibold">Toplu islemler</CardTitle>
+            <p className="text-base leading-7 text-muted-foreground">
+              Ogrenci listesini CSV olarak disa aktarabilir veya hazir sablon ile toplu import yapabilirsiniz.
+            </p>
+          </div>
+          <Button size="lg" variant="outline" onClick={downloadImportTemplate}>
+            <Download className="size-5" />
+            Import sablonunu indir
+          </Button>
+        </CardHeader>
+        {importResult ? (
+          <CardContent className="grid gap-4 xl:grid-cols-[0.75fr_1.25fr]">
+            <div className="rounded-[1.5rem] bg-secondary/60 p-5">
+              <div className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">Son import ozeti</div>
+              <div className="mt-3 text-3xl font-semibold">{importResult.success.length} basarili</div>
+              <div className="mt-2 text-base text-muted-foreground">{importResult.errors.length} satir hata ile karsilasti.</div>
+            </div>
+            <div className="space-y-3">
+              {importResult.success.slice(0, 4).map((item) => (
+                <div key={`${item.userId}-${item.line}`} className="rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-4">
+                  <div className="text-base font-semibold">
+                    Satir {item.line}: {item.firstName} {item.lastName}
+                  </div>
+                  <div className="mt-1 text-sm text-emerald-800">Olusan ilk PIN: {item.generatedPin}</div>
+                </div>
+              ))}
+              {importResult.errors.slice(0, 3).map((item) => (
+                <div key={`error-${item.line}`} className="rounded-[1.25rem] border border-amber-200 bg-amber-50 p-4">
+                  <div className="text-base font-semibold">Satir {item.line}</div>
+                  <div className="mt-1 text-sm text-amber-900">{item.error}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        ) : null}
+      </Card>
 
       <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
         <CardHeader className="gap-4">
@@ -535,6 +704,47 @@ export default function StudentsPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="max-w-2xl rounded-[2rem] p-6 sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-semibold">CSV ile toplu ogrenci import</DialogTitle>
+            <DialogDescription className="text-base leading-7">
+              Dosya yuklenmeden once ikinci bir onay istenir. Ilk satir baslik olmali ve alanlar virgulle ayrilmalidir.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="rounded-[1.5rem] bg-secondary/60 p-5 text-base leading-7 text-muted-foreground">
+              Beklenen kolonlar: <span className="font-semibold text-foreground">tcNo, firstName, lastName, phone, email, emergencyContactName, emergencyContactPhone</span>
+            </div>
+
+            <FormField label="CSV dosyasi" htmlFor="student-import-file">
+              <Input
+                id="student-import-file"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(event) => setImportFile(event.target.files?.[0] || null)}
+              />
+            </FormField>
+
+            {importFile ? (
+              <div className="rounded-[1.5rem] border border-border bg-white p-4 text-base">
+                Secilen dosya: <span className="font-semibold">{importFile.name}</span>
+              </div>
+            ) : null}
+
+            <DialogFooter className="gap-3 bg-transparent px-0 pb-0">
+              <Button type="button" size="lg" variant="outline" onClick={() => setImportDialogOpen(false)}>
+                Vazgec
+              </Button>
+              <Button type="button" size="lg" onClick={() => setPendingImport(true)} disabled={!importFile}>
+                Onay adimina gec
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <ConfirmDialog
         open={pendingSave}
         onOpenChange={setPendingSave}
@@ -566,6 +776,20 @@ export default function StudentsPage() {
         }
         confirmLabel="Pasif yap"
         onConfirm={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={pendingImport}
+        onOpenChange={setPendingImport}
+        loading={submitting}
+        title="CSV import onayi"
+        description={
+          importFile
+            ? `${importFile.name} dosyasindaki ogrenciler sisteme aktarilacak. Gecerli satirlarda yeni ogrenci ve ilk PIN kodu olusturulur. Devam etmek istiyor musunuz?`
+            : ""
+        }
+        confirmLabel="Import islemini baslat"
+        onConfirm={handleConfirmedImport}
       />
     </div>
   );
