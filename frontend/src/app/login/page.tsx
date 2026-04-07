@@ -27,6 +27,17 @@ function LoginPageContent() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (tcNo.length !== 11) {
+      toast.error("TC kimlik numarasi 11 haneli olmalidir.");
+      return;
+    }
+
+    if (pin.length !== 4) {
+      toast.error("PIN kodu 4 haneli olmalidir.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -121,7 +132,7 @@ function LoginPageContent() {
                 />
               </FormField>
 
-              <Button className="w-full" size="xl" disabled={submitting || tcNo.length !== 11 || pin.length !== 4}>
+              <Button className="w-full" size="xl" type="submit" disabled={submitting}>
                 {submitting ? "Giris yapiliyor..." : "Panele giris yap"}
               </Button>
             </form>
