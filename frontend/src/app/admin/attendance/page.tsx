@@ -23,6 +23,7 @@ import type {
 } from "@/lib/types";
 
 export default function AttendancePage() {
+  const autoRefreshIntervalMs = 15000;
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [classrooms, setClassrooms] = useState<ClassroomItem[]>([]);
   const [sessions, setSessions] = useState<SessionListItem[]>([]);
@@ -32,6 +33,9 @@ export default function AttendancePage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [courseFilter, setCourseFilter] = useState("ALL");
   const [classroomFilter, setClassroomFilter] = useState("ALL");
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+  const [liveRefreshing, setLiveRefreshing] = useState(false);
   const [pendingAttendance, setPendingAttendance] = useState<{
     studentId: string;
     studentName: string;
@@ -126,15 +130,45 @@ export default function AttendancePage() {
     };
   }, [classroomFilter, classrooms.length, courseFilter, courses.length, selectedSessionId]);
 
-  async function loadSessionDetail(sessionId: string) {
-    setDetailLoading(true);
+  useEffect(() => {
+    if (!autoRefreshEnabled || !selectedSessionId) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+
+      void loadSessionDetail(selectedSessionId, { silent: true });
+    }, autoRefreshIntervalMs);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [autoRefreshEnabled, selectedSessionId]);
+
+  async function loadSessionDetail(sessionId: string, options?: { silent?: boolean }) {
+    if (options?.silent) {
+      setLiveRefreshing(true);
+    } else {
+      setDetailLoading(true);
+    }
+
     try {
       const data = await apiRequest<AttendanceSessionDetail>(`/api/v1/attendance/session/${sessionId}`);
       setSessionDetail(data);
+      setLastUpdatedAt(new Date().toISOString());
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Oturum detaylari yuklenemedi.");
+      if (!options?.silent) {
+        toast.error(error instanceof Error ? error.message : "Oturum detaylari yuklenemedi.");
+      }
     } finally {
-      setDetailLoading(false);
+      if (options?.silent) {
+        setLiveRefreshing(false);
+      } else {
+        setDetailLoading(false);
+      }
     }
   }
 
@@ -174,6 +208,29 @@ export default function AttendancePage() {
       <PageHeader
         title="Yoklama Yonetimi"
         description="Oturumu secin, ogrenci listesini gorun ve geldi, gelmedi veya izinli durumunu onayli sekilde guncelleyin."
+        actions={
+          <div className="flex flex-wrap gap-3">
+            <Button
+              size="lg"
+              variant={autoRefreshEnabled ? "secondary" : "outline"}
+              onClick={() => setAutoRefreshEnabled((current) => !current)}
+            >
+              {autoRefreshEnabled ? "Canli izleme acik" : "Canli izlemeyi ac"}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => {
+                if (selectedSessionId) {
+                  void loadSessionDetail(selectedSessionId);
+                }
+              }}
+              disabled={!selectedSessionId}
+            >
+              Listeyi yenile
+            </Button>
+          </div>
+        }
       />
 
       <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
@@ -268,7 +325,8 @@ export default function AttendancePage() {
           </div>
 
           <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-            <CardHeader>
+            <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
               <CardTitle className="text-2xl font-semibold">
                 {sessionDetail.session.courseName} · {sessionDetail.session.classroom}
               </CardTitle>
@@ -276,6 +334,14 @@ export default function AttendancePage() {
                 {formatDate(sessionDetail.session.sessionDate)} · {formatDateTime(sessionDetail.session.startTime)} · Hafta{" "}
                 {sessionDetail.session.weekNumber}
               </p>
+              </div>
+              <div className="rounded-[1.5rem] bg-secondary/60 px-4 py-3 text-sm font-medium text-muted-foreground">
+                {autoRefreshEnabled ? "Canli yenileme 15 sn" : "Canli yenileme kapali"}
+                <div className="mt-1 text-foreground">
+                  Son guncelleme: {lastUpdatedAt ? formatDateTime(lastUpdatedAt) : "Henuz veri alinmadi"}
+                </div>
+                {liveRefreshing ? <div className="mt-1 text-primary">Liste arka planda yenileniyor...</div> : null}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {detailLoading ? (
