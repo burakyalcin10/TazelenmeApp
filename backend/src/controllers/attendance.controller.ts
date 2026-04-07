@@ -240,6 +240,22 @@ export const manualAttendance = async (req: Request, res: Response, next: NextFu
     }
 
     // Upsert: Varsa güncelle, yoksa oluştur
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        studentId_courseId: {
+          studentId,
+          courseId: session.courseId,
+        },
+      },
+    });
+
+    if (!enrollment) {
+      throw new AppError(
+        `"${studentProfile.user.firstName} ${studentProfile.user.lastName}" bu derse kayÄ±tlÄ± deÄŸil.`,
+        400
+      );
+    }
+
     const attendance = await prisma.attendance.upsert({
       where: {
         sessionId_studentId: {
@@ -331,7 +347,7 @@ export const getSessionAttendance = async (req: Request, res: Response, next: Ne
         student: {
           include: {
             user: {
-              select: { firstName: true, lastName: true, tcNo: true },
+              select: { firstName: true, lastName: true },
             },
             rfidCards: {
               where: { status: 'ACTIVE' },
@@ -359,7 +375,7 @@ export const getSessionAttendance = async (req: Request, res: Response, next: Ne
         studentId: enrollment.studentId,
         firstName: enrollment.student.user.firstName,
         lastName: enrollment.student.user.lastName,
-        tcNo: enrollment.student.user.tcNo,
+
         activeCard: enrollment.student.rfidCards[0]?.uid || null,
         status: attendance?.status || 'ABSENT',
         method: attendance?.method || null,

@@ -48,8 +48,5 @@ next-env.d.ts
 # Docker
 docker-compose.override.yml
 
-# Prisma
-backend/prisma/migrations/
-
 # Uploaded files
 backend/uploads/

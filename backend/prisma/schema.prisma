@@ -58,10 +58,11 @@ enum NotificationType {
 
 /// 1. KULLANICI (Admin ve Öğrenci ortak tablo)
 model User {
-  id        String   @id @default(uuid())
-  tcNo      String   @unique // Sisteme giriş için kullanılan TC
-  pinHash   String   // 4 haneli PIN'in hash'lenmiş hali
-  role      Role     @default(STUDENT)
+  id              String   @id @default(uuid())
+  tcNoEncrypted   String   // AES-256-GCM ile şifrelenmiş TC Kimlik No (KVKK)
+  tcNoHash        String   @unique // SHA-256 hash — login araması için
+  pinHash         String   // 4 haneli PIN'in hash'lenmiş hali
+  role            Role     @default(STUDENT)
 
   firstName String
   lastName  String
@@ -213,6 +214,7 @@ model CourseMaterial {
   title    String  // Örn: "1. Hafta Sunumu"
   url      String  // PDF dosya yolu veya harici link
   type     String  // "PDF", "LINK", "VIDEO"
+  fileSize Int?    // Dosya boyutu (byte) — sadece PDF için
 
   uploadedAt DateTime @default(now())
 

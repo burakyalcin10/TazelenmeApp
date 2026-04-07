@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../utils/prisma';
 import { hashPin, generatePin } from '../utils/pin';
+import { encryptField, hashForLookup, decryptField } from '../utils/encryption';
 import { AppError } from '../middlewares/errorHandler';
 import logger from '../utils/logger';
 
@@ -46,9 +47,13 @@ export const createStudent = async (req: Request, res: Response, next: NextFunct
       throw new AppError('TC Kimlik No 11 haneli olmalıdır.', 400);
     }
 
+    // TC'yi şifrele ve hash'le
+    const tcNoEncrypted = encryptField(tcNo);
+    const tcNoHash = hashForLookup(tcNo);
+
     // TC zaten var mı?
     const existingUser = await prisma.user.findUnique({
-      where: { tcNo },
+      where: { tcNoHash },
     });
 
     if (existingUser) {
@@ -62,7 +67,8 @@ export const createStudent = async (req: Request, res: Response, next: NextFunct
     // User + StudentProfile oluştur (transaction)
     const user = await prisma.user.create({
       data: {
-        tcNo,
+        tcNoEncrypted,
+        tcNoHash,
         pinHash,
         role: 'STUDENT',
         firstName,
@@ -112,7 +118,7 @@ export const createStudent = async (req: Request, res: Response, next: NextFunct
       data: {
         user: {
           id: user.id,
-          tcNo: user.tcNo,
+          tcNo, // Orijinal TC (sadece oluşturma yanıtında göster)
           firstName: user.firstName,
           lastName: user.lastName,
           phone: user.phone,
@@ -158,10 +164,12 @@ export const getStudents = async (req: Request, res: Response, next: NextFunctio
 
     // İsim/soyisim/TC araması
     if (search) {
+      // TC araması: tam eşleşme (hash ile)
+      const searchHash = /^\d{11}$/.test(search) ? hashForLookup(search) : null;
       userWhere.OR = [
         { firstName: { contains: search, mode: 'insensitive' } },
         { lastName: { contains: search, mode: 'insensitive' } },
-        { tcNo: { contains: search } },
+        ...(searchHash ? [{ tcNoHash: searchHash }] : []),
       ];
     }
 
@@ -208,9 +216,12 @@ export const getStudents = async (req: Request, res: Response, next: NextFunctio
     ]);
 
     // Yanıtı formatla
-    const students = users.map((u) => ({
+    const students = users.map((u) => {
+      let tcNo: string | null = null;
+      try { tcNo = decryptField(u.tcNoEncrypted); } catch { tcNo = '***'; }
+      return {
       id: u.id,
-      tcNo: u.tcNo,
+      tcNo,
       firstName: u.firstName,
       lastName: u.lastName,
       phone: u.phone,
@@ -220,7 +231,7 @@ export const getStudents = async (req: Request, res: Response, next: NextFunctio
       healthConditions: u.studentProfile?.healthConditions || [],
       activeCard: u.studentProfile?.rfidCards[0] || null,
       createdAt: u.createdAt,
-    }));
+    };});
 
     res.json({
       success: true,
@@ -320,7 +331,7 @@ export const getStudentById = async (req: Request, res: Response, next: NextFunc
       data: {
         user: {
           id: user.id,
-          tcNo: user.tcNo,
+          tcNo: (() => { try { return decryptField(user.tcNoEncrypted); } catch { return '***'; } })(),
           firstName: user.firstName,
           lastName: user.lastName,
           phone: user.phone,
@@ -436,7 +447,7 @@ export const updateStudent = async (req: Request, res: Response, next: NextFunct
       data: {
         user: {
           id: updatedUser.id,
-          tcNo: updatedUser.tcNo,
+          tcNo: (() => { try { return decryptField(updatedUser.tcNoEncrypted); } catch { return '***'; } })(),
           firstName: updatedUser.firstName,
           lastName: updatedUser.lastName,
           phone: updatedUser.phone,
@@ -581,7 +592,8 @@ export const importStudents = async (req: Request, res: Response, next: NextFunc
 
       try {
         // TC zaten var mı?
-        const existing = await prisma.user.findUnique({ where: { tcNo } });
+        const importTcHash = hashForLookup(tcNo);
+        const existing = await prisma.user.findUnique({ where: { tcNoHash: importTcHash } });
         if (existing) {
           results.errors.push({
             line: i + 2,
@@ -596,7 +608,8 @@ export const importStudents = async (req: Request, res: Response, next: NextFunc
 
         const user = await prisma.user.create({
           data: {
-            tcNo,
+            tcNoEncrypted: encryptField(tcNo),
+            tcNoHash: hashForLookup(tcNo),
             pinHash,
             role: 'STUDENT',
             firstName,

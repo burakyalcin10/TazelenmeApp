@@ -39,8 +39,11 @@ services:
       JWT_REFRESH_EXPIRES_IN: 7d
       IOT_API_KEY: ${IOT_API_KEY:-iot_secret_change_me}
       FRONTEND_URL: http://localhost:3000
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
     ports:
       - "4000:4000"
+    volumes:
+      - tazelenme-uploads:/app/uploads
 
   # ── Frontend (Next.js + PWA) ──
   frontend:
@@ -58,4 +61,6 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  tazelenme-uploads:
     driver: local

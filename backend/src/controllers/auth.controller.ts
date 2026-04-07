@@ -3,10 +3,12 @@ import prisma from '../utils/prisma';
 import { verifyPin, hashPin, generatePin } from '../utils/pin';
 import { generateTokenPair, verifyToken, TokenPayload } from '../utils/jwt';
 import { AppError } from '../middlewares/errorHandler';
+import { hashForLookup, decryptField } from '../utils/encryption';
 import logger from '../utils/logger';
 
 /**
  * Auth Controller — Giriş, Çıkış, Token Yenileme
+ * Sprint 3: tcNo artık hash ile aranıyor (KVKK uyumu)
  */
 
 /** POST /api/v1/auth/login — TC + PIN ile giriş */
@@ -18,9 +20,10 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       throw new AppError('TC Kimlik No ve PIN zorunludur.', 400);
     }
 
-    // TC ile kullanıcıyı bul
+    // TC'nin hash'ini hesapla ve veritabanında ara
+    const tcHash = hashForLookup(tcNo);
     const user = await prisma.user.findUnique({
-      where: { tcNo },
+      where: { tcNoHash: tcHash },
       include: { studentProfile: true },
     });
 
@@ -34,10 +37,10 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       throw new AppError('TC Kimlik No veya PIN hatalı.', 401);
     }
 
-    // Token payload
+    // Token payload — tcNo'yu şifreli formdan çöz (veya düz geçir)
     const payload: TokenPayload = {
       userId: user.id,
-      tcNo: user.tcNo,
+      tcNo: tcNo, // Orijinal TC (token'da kullanılabilir)
       role: user.role,
       profileId: user.studentProfile?.id,
     };
@@ -97,10 +100,18 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
       throw new AppError('Kullanıcı bulunamadı veya hesap devre dışı.', 401);
     }
 
+    // TC'yi şifreli alandan çöz
+    let tcNo: string;
+    try {
+      tcNo = decryptField(user.tcNoEncrypted);
+    } catch {
+      tcNo = decoded.tcNo; // Fallback: token'daki TC'yi kullan
+    }
+
     // Yeni token çifti üret
     const payload: TokenPayload = {
       userId: user.id,
-      tcNo: user.tcNo,
+      tcNo,
       role: user.role,
       profileId: user.studentProfile?.id,
     };

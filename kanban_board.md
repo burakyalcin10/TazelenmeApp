@@ -1,192 +1,191 @@
-# TazelenmeApp — Detaylı Kanban Board
+# TazelenmeApp - Detailed Kanban Board
 
-> **Öncelik Kodları**: 🔴 Kritik (Blocker) · 🟠 Yüksek · 🟡 Orta · 🟢 Düşük
-> **Efor**: SP (Story Point) — 1 SP ≈ 4 saat
-
----
-
-## Sprint 1 — Temel Altyapı & Auth (2 hafta)
-
-### Epic 1: Proje Altyapısı (Foundation)
-
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 1.1 | Git repo oluştur, `.gitignore`, `README.md` | 🔴 | 1 | ✅ Done | — |
-| 1.2 | `docker-compose.yml` yaz (frontend, backend, postgres containers) | 🔴 | 3 | ✅ Done | — |
-| 1.3 | Next.js projesi başlat (`next-pwa`, Tailwind CSS, shadcn/ui kurulumu) | 🔴 | 3 | ✅ Done | 1.1 |
-| 1.4 | Node.js + Express (TypeScript) backend projesi başlat | 🔴 | 2 | ✅ Done | 1.1 |
-| 1.5 | PostgreSQL container + Prisma ORM bağlantısı | 🔴 | 2 | ✅ Done | 1.2, 1.4 |
-| 1.6 | Prisma şeması yaz (`schema.prisma` — tüm modeller) | 🔴 | 3 | ✅ Done | 1.5 |
-| 1.7 | **[YENİ]** `Classroom` modeli ekle (id, name, code — e.g. `"AMFI_1"`) | 🟠 | 1 | ✅ Done | 1.6 |
-| 1.8 | **[YENİ]** `Notification` modeli ekle (type, message, isRead, actionTaken) | 🟠 | 1 | ✅ Done | 1.6 |
-| 1.9 | **[YENİ]** `AuditLog` modeli ekle (userId, action, entity, details, timestamp) | 🟡 | 1 | ✅ Done | 1.6 |
-| 1.10 | **[YENİ]** `LessonSession`'a `startTime`, `endTime`, `classroomId` alanları ekle | 🔴 | 1 | ✅ Done | 1.7 |
-| 1.11 | Seed data script'i (10 öğrenci, 3 ders, demo yoklama) | 🟡 | 2 | ✅ Done | 1.6 |
-| 1.12 | Merkezi hata yönetimi middleware'i (Error Handler) | 🟠 | 2 | ✅ Done | 1.4 |
-| 1.13 | Structured logging kurulumu (Pino / Winston) | 🟡 | 1 | ✅ Done | 1.4 |
+> **Oncelik Kodlari**: Kritk · Yuksek · Orta · Dusuk
+> **Efor**: SP (Story Point) - 1 SP ~= 4 saat
 
 ---
 
-### Epic 2: Kimlik Doğrulama & Yetkilendirme (Auth)
+## Sprint 1 - Temel Altyapi & Auth
 
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 2.1 | `POST /api/v1/auth/login` — TC + PIN ile giriş, JWT döndür | 🔴 | 3 | ✅ Done | 1.6 |
-| 2.2 | PIN hash'leme (argon2) ve doğrulama utility fonksiyonları | 🔴 | 2 | ✅ Done | 1.4 |
-| 2.3 | JWT token oluşturma, doğrulama ve refresh token mekanizması | 🔴 | 3 | ✅ Done | 1.4 |
-| 2.4 | Auth middleware (role-based: `ADMIN`, `STUDENT`) | 🔴 | 2 | ✅ Done | 2.3 |
-| 2.5 | `POST /api/v1/auth/logout` — Token invalidation | 🟠 | 1 | ✅ Done | 2.3 |
-| 2.6 | **[YENİ]** IoT cihaz kimlik doğrulama (API Key / Bearer Token) | 🟠 | 2 | ✅ Done | 2.4 |
-| 2.7 | **[YENİ]** Rate limiting middleware (express-rate-limit) | 🟠 | 1 | ✅ Done | 1.4 |
-| 2.8 | **[YENİ]** CORS politikası (Frontend + IoT origins) | 🟠 | 1 | ✅ Done | 1.4 |
+### Epic 1: Proje Altyapisi
 
----
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 1.1 | Git repo, `.gitignore`, `README.md` | Kritik | 1 | Done | - |
+| 1.2 | `docker-compose.yml` (frontend, backend, postgres) | Kritik | 3 | Done | - |
+| 1.3 | Next.js, Tailwind CSS, shadcn/ui kurulumu | Kritik | 3 | Done | 1.1 |
+| 1.4 | Node.js + Express (TypeScript) backend | Kritik | 2 | Done | 1.1 |
+| 1.5 | PostgreSQL + Prisma baglantisi | Kritik | 2 | Done | 1.2, 1.4 |
+| 1.6 | `schema.prisma` tum modeller | Kritik | 3 | Done | 1.5 |
+| 1.7 | `[YENI]` `Classroom` modeli | Yuksek | 1 | Done | 1.6 |
+| 1.8 | `[YENI]` `Notification` modeli | Yuksek | 1 | Done | 1.6 |
+| 1.9 | `[YENI]` `AuditLog` modeli | Orta | 1 | Done | 1.6 |
+| 1.10 | `LessonSession` alanlari: `startTime`, `endTime`, `classroomId` | Kritik | 1 | Done | 1.7 |
+| 1.11 | Seed data script'i | Orta | 2 | Done | 1.6 |
+| 1.12 | Merkezi hata yonetimi middleware'i | Yuksek | 2 | Done | 1.4 |
+| 1.13 | Structured logging | Orta | 1 | Done | 1.4 |
 
-## Sprint 2 — Core Business Logic (2 hafta)
+### Epic 2: Kimlik Dogrulama & Yetkilendirme
 
-### Epic 3: Hızlı Yoklama & Kart Yönetimi (Core)
-
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 3.1 | `POST /api/v1/attendance/scan` — RFID kart okutma endpoint'i | 🔴 | 5 | ✅ Done | 2.6, 1.10 |
-| 3.2 | Anti-Passback kontrolü (`@@unique` seviyesinde + uygulama katmanı) | 🔴 | 2 | ✅ Done | 3.1 |
-| 3.3 | `findActiveSessionForLocation()` — Saat + sınıf bazlı otomatik ders eşleme | 🔴 | 3 | ✅ Done | 1.10, 3.1 |
-| 3.4 | `POST /api/v1/cards` — Kart atama (Koordinatör) | 🔴 | 2 | ✅ Done | 2.4 |
-| 3.5 | `PATCH /api/v1/cards/:id/status` — Kart iptal/pasif yapma | 🔴 | 2 | ✅ Done | 3.4 |
-| 3.6 | Kayıp/iptal kart okutulduğunda 403 + uyarı kaydı oluşturma | 🟠 | 2 | ✅ Done | 3.1, 1.8 |
-| 3.7 | `POST /api/v1/attendance/manual` — Manuel yoklama (Geldi/Gelmedi/İzinli) | 🟠 | 2 | ✅ Done | 2.4 |
-| 3.8 | `GET /api/v1/attendance/session/:id` — Ders seansı yoklama listesi | 🟠 | 2 | ✅ Done | 2.4 |
-
----
-
-### Epic 4: Öğrenci & Sağlık Verisi Yönetimi
-
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 4.1 | `POST /api/v1/students` — Öğrenci oluşturma (demografik + sağlık) | 🔴 | 3 | ✅ Done | 2.4 |
-| 4.2 | `GET /api/v1/students` — Öğrenci listesi (filtreleme, pagination) | 🟠 | 2 | ✅ Done | 2.4 |
-| 4.3 | `GET /api/v1/students/:id` — Öğrenci detay (profil + sağlık + kart + yoklama) | 🟠 | 2 | ✅ Done | 2.4 |
-| 4.4 | `PUT /api/v1/students/:id` — Öğrenci güncelleme | 🟠 | 2 | ✅ Done | 2.4 |
-| 4.5 | `DELETE /api/v1/students/:id` — Öğrenci silme (soft delete) | 🟡 | 1 | ✅ Done | 2.4 |
-| 4.6 | **[YENİ]** `POST /api/v1/students/import` — Excel/CSV toplu import | 🟡 | 3 | ✅ Done | 4.1 |
-| 4.7 | **[YENİ]** TC Kimlik No veritabanı seviyesinde AES şifreleme (KVKK) | 🟠 | 3 | ✅ Done | 1.6 |
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 2.1 | `POST /api/v1/auth/login` | Kritik | 3 | Done | 1.6 |
+| 2.2 | PIN hashleme ve dogrulama | Kritik | 2 | Done | 1.4 |
+| 2.3 | JWT access + refresh token | Kritik | 3 | Done | 1.4 |
+| 2.4 | Auth middleware (`ADMIN`, `STUDENT`) | Kritik | 2 | Done | 2.3 |
+| 2.5 | `POST /api/v1/auth/logout` | Yuksek | 1 | Done | 2.3 |
+| 2.6 | `[YENI]` IoT cihaz auth (API Key) | Yuksek | 2 | Done | 2.4 |
+| 2.7 | `[YENI]` Rate limiting | Yuksek | 1 | Done | 1.4 |
+| 2.8 | `[YENI]` CORS politikasi | Yuksek | 1 | Done | 1.4 |
 
 ---
 
-## Sprint 3 — Otomasyon, Mini-LMS & Dashboard API (2 hafta)
+## Sprint 2 - Core Business Logic
 
-### Epic 5: Otomasyon & İzolasyon Alarmları
+### Epic 3: Hizli Yoklama & Kart Yonetimi
 
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 5.1 | Cron job: 3 haftalık devamsızlık tarama (node-cron, her Cuma 18:00) | 🔴 | 3 | 📋 Backlog | 3.1, 1.6 |
-| 5.2 | `isAtRisk` flag güncelleme + `Notification` kaydı oluşturma | 🔴 | 2 | 📋 Backlog | 5.1, 1.8 |
-| 5.3 | `GET /api/v1/notifications` — Koordinatör bildirim listesi | 🟠 | 2 | 📋 Backlog | 1.8, 2.4 |
-| 5.4 | `PATCH /api/v1/notifications/:id` — Bildirim okundu/aksiyon alındı | 🟡 | 1 | 📋 Backlog | 5.3 |
-| 5.5 | Dönem sonu Geçti/Kaldı otomatik hesaplama (%70 katılım kuralı) | 🟠 | 3 | 📋 Backlog | 3.1 |
-| 5.6 | `GET /api/v1/reports/pass-fail?courseId=&term=` — Geçti/Kaldı raporu | 🟠 | 2 | 📋 Backlog | 5.5, 2.4 |
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 3.1 | `POST /api/v1/attendance/scan` | Kritik | 5 | Done | 2.6, 1.10 |
+| 3.2 | Anti-passback kontrolu | Kritik | 2 | Done | 3.1 |
+| 3.3 | `findActiveSessionForLocation()` | Kritik | 3 | Done | 1.10, 3.1 |
+| 3.4 | `POST /api/v1/cards` | Kritik | 2 | Done | 2.4 |
+| 3.5 | `PATCH /api/v1/cards/:id/status` | Kritik | 2 | Done | 3.4 |
+| 3.6 | Kayip/iptal kart icin 403 + bildirim | Yuksek | 2 | Done | 3.1, 1.8 |
+| 3.7 | `POST /api/v1/attendance/manual` | Yuksek | 2 | Done | 2.4 |
+| 3.8 | `GET /api/v1/attendance/session/:id` | Yuksek | 2 | Done | 2.4 |
 
----
+### Epic 4: Ogrenci & Saglik Verisi Yonetimi
 
-### Epic 6: Ders & Materyal Yönetimi (Mini-LMS)
-
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 6.1 | `CRUD /api/v1/courses` — Ders oluşturma, güncelleme, silme | 🔴 | 3 | 📋 Backlog | 2.4 |
-| 6.2 | `POST /api/v1/enrollments` — Öğrenci-ders kaydı | 🔴 | 2 | 📋 Backlog | 6.1, 4.1 |
-| 6.3 | `CRUD /api/v1/sessions` — Ders oturumu (hafta/saat) yönetimi | 🟠 | 2 | 📋 Backlog | 6.1, 1.10 |
-| 6.4 | `POST /api/v1/materials` — PDF/Link yükleme (multer ile dosya upload) | 🟠 | 3 | 📋 Backlog | 6.1, 2.4 |
-| 6.5 | `GET /api/v1/materials?courseId=` — Materyal listeleme | 🟠 | 1 | 📋 Backlog | 6.4 |
-| 6.6 | `GET /api/v1/student/my-courses` — Öğrencinin kayıtlı dersleri + materyalleri | 🟠 | 2 | 📋 Backlog | 6.2, 2.4 |
-| 6.7 | **[YENİ]** Dosya depolama stratejisi (local disk → Docker volume) | 🟡 | 2 | 📋 Backlog | 1.2 |
-
----
-
-## Sprint 4 — Frontend (Admin Panel & PWA) (3 hafta)
-
-### Epic 7: Koordinatör Dashboard (Admin Panel)
-
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 7.1 | Admin layout (Sidebar + Header + Content area — shadcn/ui) | 🔴 | 3 | 📋 Backlog | 1.3 |
-| 7.2 | Dashboard Ana Ekran: Günlük istatistikler, yoklama oranları, alarm kutusu | 🔴 | 5 | 📋 Backlog | 7.1, 5.3 |
-| 7.3 | Öğrenci Yönetimi sayfası: DataTable (filtreleme, arama, sıralama) | 🔴 | 5 | 📋 Backlog | 7.1, 4.2 |
-| 7.4 | Öğrenci Detay sayfası: Profil, Sağlık, Kartlar, Yoklama geçmişi | 🟠 | 4 | 📋 Backlog | 7.3, 4.3 |
-| 7.5 | Öğrenci Ekleme/Düzenleme formu (sağlık checkbox'ları dahil) | 🟠 | 3 | 📋 Backlog | 7.3, 4.1 |
-| 7.6 | Yoklama Yönetimi: Aktif ders listesi, canlı yoklama ekranı | 🔴 | 5 | 📋 Backlog | 7.1, 3.8 |
-| 7.7 | Manuel yoklama: Öğrenci listesinde tek tıkla Geldi/Gelmedi/İzinli | 🟠 | 3 | 📋 Backlog | 7.6, 3.7 |
-| 7.8 | Ders & Materyal Yönetimi sayfası | 🟠 | 3 | 📋 Backlog | 7.1, 6.1 |
-| 7.9 | Excel/CSV export (öğrenci listesi, yoklama raporu, geçti/kaldı) | 🟡 | 3 | 📋 Backlog | 7.3, 5.6 |
-| 7.10 | **[YENİ]** Real-time yoklama güncellemeleri (WebSocket / SSE) | 🟡 | 4 | 📋 Backlog | 7.6, 3.1 |
-| 7.11 | Kart yönetimi: Atama, iptal, geçmiş kartlar | 🟠 | 3 | 📋 Backlog | 7.4, 3.4 |
-| 7.12 | **[YENİ]** Dashboard grafikleri (Recharts: haftalık trend, ders bazlı katılım) | 🟡 | 3 | 📋 Backlog | 7.2 |
-| 7.13 | **[YENİ]** Excel/CSV toplu öğrenci import UI | 🟡 | 2 | 📋 Backlog | 7.3, 4.6 |
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 4.1 | `POST /api/v1/students` | Kritik | 3 | Done | 2.4 |
+| 4.2 | `GET /api/v1/students` | Yuksek | 2 | Done | 2.4 |
+| 4.3 | `GET /api/v1/students/:id` | Yuksek | 2 | Done | 2.4 |
+| 4.4 | `PUT /api/v1/students/:id` | Yuksek | 2 | Done | 2.4 |
+| 4.5 | `DELETE /api/v1/students/:id` | Orta | 1 | Done | 2.4 |
+| 4.6 | `[YENI]` `POST /api/v1/students/import` | Orta | 3 | Done | 4.1 |
+| 4.7 | `[YENI]` AES sifreleme (`tcNoEncrypted`, `tcNoHash`) | Yuksek | 3 | Done | 1.6 |
 
 ---
 
-### Epic 8: Öğrenci PWA (60+ Yaş Arayüzü)
+## Sprint 3 - Otomasyon, Mini-LMS & Dashboard API
 
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 8.1 | PWA kurulumu (`next-pwa`, manifest, service worker, icons) | 🔴 | 3 | 📋 Backlog | 1.3 |
-| 8.2 | Giriş ekranı: Büyük numpad ile TC + PIN girişi | 🔴 | 3 | 📋 Backlog | 8.1, 2.1 |
-| 8.3 | Ana ekran: 2-3 devasa buton (Derslerim, Ders Notlarım) | 🔴 | 2 | 📋 Backlog | 8.1 |
-| 8.4 | "Derslerim ve Devamsızlığım" sayfası: Ders listesi + yoklama durumu | 🟠 | 3 | 📋 Backlog | 8.3, 6.6 |
-| 8.5 | "Ders Notlarım" sayfası: Materyal indirme/görüntüleme | 🟠 | 2 | 📋 Backlog | 8.3, 6.6 |
-| 8.6 | Erişilebilirlik (A11Y): min 18px font, yüksek kontrast, focus yönetimi | 🔴 | 3 | 📋 Backlog | 8.2, 8.3, 8.4, 8.5 |
-| 8.7 | **[YENİ]** PWA offline desteği (materyaller cache'leme) | 🟢 | 3 | 📋 Backlog | 8.5 |
+### Epic 5: Otomasyon & Izolasyon Alarmlari
 
----
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 5.1 | Haftalik devamsizlik cron job | Kritik | 3 | Done | 3.1, 1.6 |
+| 5.2 | `isAtRisk` guncelleme + `Notification` olusturma | Kritik | 2 | Done | 5.1, 1.8 |
+| 5.3 | `GET /api/v1/notifications` | Yuksek | 2 | Done | 1.8, 2.4 |
+| 5.4 | `PATCH /api/v1/notifications/:id` | Orta | 1 | Done | 5.3 |
+| 5.5 | `%70` kurali ile gecti/kaldi hesaplama | Yuksek | 3 | Done | 3.1 |
+| 5.6 | `GET /api/v1/reports/pass-fail` | Yuksek | 2 | Done | 5.5, 2.4 |
 
-## Sprint 5 — IoT, Test & Dağıtım (2 hafta)
+### Epic 6: Ders & Materyal Yonetimi
 
-### Epic 9: IoT / Donanım Entegrasyonu
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 6.0 | `[YENI]` `CRUD /api/v1/classrooms` | Yuksek | 2 | Done | 1.7, 2.4 |
+| 6.1 | `CRUD /api/v1/courses` | Kritik | 3 | Done | 2.4 |
+| 6.2 | `POST /api/v1/enrollments` | Kritik | 2 | Done | 6.1, 4.1 |
+| 6.3 | `CRUD /api/v1/sessions` | Yuksek | 2 | Done | 6.1, 1.10 |
+| 6.4 | `POST /api/v1/materials` | Yuksek | 3 | Done | 6.1, 2.4 |
+| 6.5 | `GET /api/v1/materials?courseId=` | Yuksek | 1 | Done | 6.4 |
+| 6.6 | `GET /api/v1/student/my-courses` | Yuksek | 2 | Done | 6.2, 2.4 |
+| 6.7 | `[YENI]` Local disk -> Docker volume depolama | Orta | 2 | Done | 1.2 |
 
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 9.1 | ESP8266 firmware: Wi-Fi bağlantısı + RC522 kart okuma | 🟠 | 3 | 📋 Backlog | — |
-| 9.2 | HTTP POST isteği atma (cardUid + deviceLocation JSON) | 🟠 | 2 | 📋 Backlog | 9.1, 3.1 |
-| 9.3 | LED geri bildirim: Yeşil (başarılı) / Kırmızı (hata) | 🟡 | 1 | 📋 Backlog | 9.2 |
-| 9.4 | Buzzer geri bildirim: Bip (OK) / Uzun bip (hata) | 🟡 | 1 | 📋 Backlog | 9.2 |
-| 9.5 | **[YENİ]** API Key'i cihaz firmware'ine güvenli şekilde gömme | 🟠 | 1 | 📋 Backlog | 2.6, 9.1 |
-| 9.6 | **[YENİ]** Bağlantı kopması durumu: Offline buffer + retry mekanizması | 🟢 | 3 | 📋 Backlog | 9.2 |
+### Sprint 3 Hardening
 
----
-
-### Epic 10: Test & Dağıtım (QA + DevOps)
-
-| # | Görev | Öncelik | SP | Durum | Bağımlılık |
-|---|-------|---------|----|----|------------|
-| 10.1 | Backend unit testleri (Jest — Auth, Attendance, Card servisleri) | 🟠 | 5 | 📋 Backlog | Epic 2, 3 |
-| 10.2 | Backend integration testleri (Supertest — API endpoint'leri) | 🟠 | 4 | 📋 Backlog | 10.1 |
-| 10.3 | Frontend component testleri (Vitest — shadcn/ui bileşenleri) | 🟡 | 3 | 📋 Backlog | Epic 7, 8 |
-| 10.4 | E2E testleri (Playwright/Cypress — kritik akışlar) | 🟡 | 5 | 📋 Backlog | 10.1, 10.3 |
-| 10.5 | Docker production build doğrulama (`docker-compose up` ile tam test) | 🔴 | 2 | 📋 Backlog | Tüm Epics |
-| 10.6 | Load testing: 200 eşzamanlı kart okutma simulasyonu (k6 / Artillery) | 🟠 | 3 | 📋 Backlog | 3.1, 10.5 |
-| 10.7 | API dökümantasyonu (Swagger / OpenAPI) | 🟡 | 3 | 📋 Backlog | Tüm API'ler |
-| 10.8 | Kullanıcı kılavuzu (Koordinatör + Öğrenci) | 🟢 | 2 | 📋 Backlog | Epic 7, 8 |
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| H.1 | Docker rebuild + migration deploy dogrulama | Yuksek | 1 | Done | 5.x, 6.x |
+| H.2 | Smoke test: auth, attendance, reports, notifications | Yuksek | 2 | Done | H.1 |
+| H.3 | Manuel yoklama icin enrollment guard | Kritik | 1 | Done | 3.7 |
 
 ---
 
-## Özet Dashboard
+## Sprint 4 - Frontend (Admin Panel & PWA)
+
+### Epic 7: Koordinator Dashboard
+
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 7.1 | Admin layout | Kritik | 3 | Backlog | 1.3 |
+| 7.2 | Dashboard ana ekran | Kritik | 5 | Backlog | 7.1, 5.3 |
+| 7.3 | Ogrenci yonetimi DataTable | Kritik | 5 | Backlog | 7.1, 4.2 |
+| 7.4 | Ogrenci detay sayfasi | Yuksek | 4 | Backlog | 7.3, 4.3 |
+| 7.5 | Ogrenci ekleme/duzenleme formu | Yuksek | 3 | Backlog | 7.3, 4.1 |
+| 7.6 | Yoklama yonetimi ekranlari | Kritik | 5 | Backlog | 7.1, 3.8 |
+| 7.7 | Manuel yoklama UI | Yuksek | 3 | Backlog | 7.6, 3.7 |
+| 7.8 | Ders & materyal yonetimi sayfasi | Yuksek | 3 | Backlog | 7.1, 6.1 |
+| 7.9 | Excel/CSV export | Orta | 3 | Backlog | 7.3, 5.6 |
+| 7.10 | `[YENI]` Realtime yoklama (WebSocket / SSE) | Orta | 4 | Backlog | 7.6, 3.1 |
+| 7.11 | Kart yonetimi | Yuksek | 3 | Backlog | 7.4, 3.4 |
+| 7.12 | `[YENI]` Dashboard grafikleri | Orta | 3 | Backlog | 7.2 |
+| 7.13 | `[YENI]` Ogrenci import UI | Orta | 2 | Backlog | 7.3, 4.6 |
+
+### Epic 8: Ogrenci PWA
+
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 8.1 | PWA kurulumu | Kritik | 3 | Backlog | 1.3 |
+| 8.2 | Buyuk numpad ile giris ekrani | Kritik | 3 | Backlog | 8.1, 2.1 |
+| 8.3 | Ana ekran: buyuk butonlar | Kritik | 2 | Backlog | 8.1 |
+| 8.4 | Derslerim ve devamsizligim sayfasi | Yuksek | 3 | Backlog | 8.3, 6.6 |
+| 8.5 | Ders notlarim / materyal sayfasi | Yuksek | 2 | Backlog | 8.3, 6.6 |
+| 8.6 | A11Y: font, kontrast, focus | Kritik | 3 | Backlog | 8.2, 8.3, 8.4, 8.5 |
+| 8.7 | `[YENI]` Offline materyal cache | Dusuk | 3 | Backlog | 8.5 |
+
+---
+
+## Sprint 5 - IoT, Test & Dagitim
+
+### Epic 9: IoT / Donanim Entegrasyonu
+
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 9.1 | ESP8266 firmware + RC522 | Yuksek | 3 | Backlog | - |
+| 9.2 | HTTP POST ile cardUid + deviceLocation | Yuksek | 2 | Backlog | 9.1, 3.1 |
+| 9.3 | LED geri bildirim | Orta | 1 | Backlog | 9.2 |
+| 9.4 | Buzzer geri bildirim | Orta | 1 | Backlog | 9.2 |
+| 9.5 | `[YENI]` API Key'i firmware'e guvenli gom | Yuksek | 1 | Backlog | 2.6, 9.1 |
+| 9.6 | `[YENI]` Offline buffer + retry | Dusuk | 3 | Backlog | 9.2 |
+
+### Epic 10: Test & Dagitim
+
+| # | Gorev | Oncelik | SP | Durum | Bagimlilik |
+|---|-------|---------|----|-------|------------|
+| 10.1 | Backend unit testleri | Yuksek | 5 | Backlog | Epic 2, 3 |
+| 10.2 | Backend integration testleri | Yuksek | 4 | Backlog | 10.1 |
+| 10.3 | Frontend component testleri | Orta | 3 | Backlog | Epic 7, 8 |
+| 10.4 | E2E testleri | Orta | 5 | Backlog | 10.1, 10.3 |
+| 10.5 | Docker production build dogrulama | Kritik | 2 | In Progress | Tum epics |
+| 10.6 | Load testing | Yuksek | 3 | Backlog | 3.1, 10.5 |
+| 10.7 | API dokumantasyonu | Orta | 3 | Backlog | Tum API'ler |
+| 10.8 | Kullanici kilavuzu | Dusuk | 2 | Backlog | Epic 7, 8 |
+
+---
+
+## Ozet Dashboard
 
 ```mermaid
 gantt
-    title TazelenmeApp Sprint Planı
+    title TazelenmeApp Sprint Plani
     dateFormat  YYYY-MM-DD
     axisFormat  %d %b
 
     section Sprint 1
-    Proje Altyapısı (Epic 1)     :done, s1e1, 2026-03-16, 7d
+    Proje Altyapisi (Epic 1)     :done, s1e1, 2026-03-16, 7d
     Auth (Epic 2)                :done, s1e2, after s1e1, 7d
 
     section Sprint 2
     Yoklama & Kart (Epic 3)      :done, s2e3, after s1e2, 7d
-    Öğrenci & Sağlık (Epic 4)    :done, s2e4, after s1e2, 7d
+    Ogrenci & Saglik (Epic 4)    :done, s2e4, after s1e2, 7d
 
     section Sprint 3
-    Otomasyon (Epic 5)           :s3e5, after s2e3, 7d
-    Mini-LMS (Epic 6)            :s3e6, after s2e4, 7d
+    Otomasyon (Epic 5)           :done, s3e5, after s2e3, 7d
+    Mini-LMS (Epic 6)            :done, s3e6, after s2e4, 7d
 
     section Sprint 4
     Admin Panel (Epic 7)         :s4e7, after s3e5, 14d
@@ -194,93 +193,118 @@ gantt
 
     section Sprint 5
     IoT (Epic 9)                 :s5e9, after s4e7, 7d
-    Test & Deploy (Epic 10)      :s5e10, after s5e9, 7d
+    Test & Deploy (Epic 10)      :active, s5e10, after s5e9, 7d
 ```
 
 ---
 
-## Toplam Efor Özeti
+## Toplam Efor Ozeti
 
 | Epic | Toplam SP | Sprint |
 |------|-----------|--------|
-| 1 — Proje Altyapısı | ~23 SP | Sprint 1 ✅ |
-| 2 — Auth | ~15 SP | Sprint 1 ✅ |
-| 3 — Yoklama & Kart | ~20 SP | Sprint 2 ✅ |
-| 4 — Öğrenci & Sağlık | ~16 SP | Sprint 2 ✅ |
-| 5 — Otomasyon | ~13 SP | Sprint 3 |
-| 6 — Mini-LMS | ~15 SP | Sprint 3 |
-| 7 — Admin Panel | ~43 SP | Sprint 4 |
-| 8 — PWA | ~19 SP | Sprint 4 |
-| 9 — IoT | ~11 SP | Sprint 5 |
-| 10 — Test & Deploy | ~27 SP | Sprint 5 |
-| **Toplam** | **~202 SP** | **~11 hafta** |
+| 1 - Proje Altyapisi | ~23 SP | Sprint 1 Done |
+| 2 - Auth | ~15 SP | Sprint 1 Done |
+| 3 - Yoklama & Kart | ~20 SP | Sprint 2 Done |
+| 4 - Ogrenci & Saglik | ~16 SP | Sprint 2 Done |
+| 5 - Otomasyon | ~13 SP | Sprint 3 Done |
+| 6 - Mini-LMS | ~17 SP | Sprint 3 Done |
+| 7 - Admin Panel | ~43 SP | Sprint 4 |
+| 8 - PWA | ~19 SP | Sprint 4 |
+| 9 - IoT | ~11 SP | Sprint 5 |
+| 10 - Test & Deploy | ~27 SP | Sprint 5 |
+| **Toplam** | **~204 SP** | **~11 hafta** |
 
-> [!TIP]
-> `[YENİ]` etiketli görevler orijinal gereksinimlerde olmayıp benim önerimle eklenen görevlerdir. Bunları önceliklendirirken ihtiyacınıza göre kapsam dışı (out of scope) bırakabilirsiniz.
+> `[YENI]` etiketli gorevler orijinal gereksinimlerden sonra eklenen iyilestirmelerdir.
 
 ---
 
-## 📝 Tamamlanan Görevler Logu
+## Tamamlanan Gorevler Logu
 
-### 2026-03-11 — Epic 1: Proje Altyapısı ✅
+### 2026-03-11 - Epic 1: Proje Altyapisi
 
-| # | Görev | Tamamlanma |
+| # | Gorev | Tamamlanma |
 |---|-------|------------|
-| 1.1 | Git repo, `.gitignore`, `README.md` | ✅ 02:19 |
-| 1.4 | Express + TypeScript backend projesi | ✅ 02:22 |
-| 1.12 | Merkezi hata yönetimi (`AppError` + `errorHandler`) | ✅ 02:24 |
-| 1.13 | Pino structured logging | ✅ 02:24 |
-| 1.5 | Prisma ORM bağlantısı + `prisma.config.ts` | ✅ 02:27 |
-| 1.6 | Prisma şeması — 11 model, 7 enum | ✅ 02:30 |
-| 1.7 | `Classroom` modeli | ✅ 02:30 |
-| 1.8 | `Notification` modeli | ✅ 02:30 |
-| 1.9 | `AuditLog` modeli | ✅ 02:30 |
-| 1.10 | `LessonSession` — startTime, endTime, classroomId | ✅ 02:30 |
-| 1.11 | Seed data (10 öğrenci, 3 ders, RFID kartlar, yoklama) | ✅ 02:32 |
-| 1.2 | `docker-compose.yml` + Dockerfile'lar | ✅ 02:33 |
-| 1.3 | Next.js + Tailwind CSS + shadcn/ui | ✅ 02:38 |
+| 1.1 | Git repo, `.gitignore`, `README.md` | 02:19 |
+| 1.4 | Express + TypeScript backend | 02:22 |
+| 1.12 | Error handler | 02:24 |
+| 1.13 | Pino logging | 02:24 |
+| 1.5 | Prisma baglantisi + `prisma.config.ts` | 02:27 |
+| 1.6 | Prisma schema | 02:30 |
+| 1.7 | `Classroom` modeli | 02:30 |
+| 1.8 | `Notification` modeli | 02:30 |
+| 1.9 | `AuditLog` modeli | 02:30 |
+| 1.10 | `LessonSession` alanlari | 02:30 |
+| 1.11 | Seed data | 02:32 |
+| 1.2 | `docker-compose.yml` + Dockerfile'lar | 02:33 |
+| 1.3 | Next.js + Tailwind + shadcn/ui | 02:38 |
 
-> **Not:** Prisma v7'de `datasource` bloğunda `url` alanı kaldırıldı — `prisma.config.ts` yapısına uyarlandı.
+### 2026-03-11 - Epic 2: Auth
 
-### 2026-03-11 — Epic 2: Auth ✅
-
-| # | Görev | Tamamlanma |
+| # | Gorev | Tamamlanma |
 |---|-------|------------|
-| 2.2 | PIN hash (argon2id) — `pin.ts` | ✅ 02:55 |
-| 2.3 | JWT token (access + refresh) — `jwt.ts` | ✅ 02:55 |
-| 2.4 | Auth middleware (authenticate, authorize) — `auth.ts` | ✅ 02:56 |
-| 2.6 | IoT cihaz auth (API Key) — `auth.ts` | ✅ 02:56 |
-| 2.7 | Rate limiting (general/auth/IoT) — `rateLimiter.ts` | ✅ 02:57 |
-| 2.1 | Login endpoint — `auth.controller.ts` + `auth.routes.ts` | ✅ 02:58 |
-| 2.5 | Logout endpoint + Audit log | ✅ 02:58 |
-| 2.8 | CORS güncelleme (`x-api-key` header) — `server.ts` | ✅ 02:59 |
+| 2.2 | PIN hash | 02:55 |
+| 2.3 | JWT access + refresh | 02:55 |
+| 2.4 | Auth middleware | 02:56 |
+| 2.6 | IoT API key auth | 02:56 |
+| 2.7 | Rate limiting | 02:57 |
+| 2.1 | Login endpoint | 02:58 |
+| 2.5 | Logout + audit log | 02:58 |
+| 2.8 | CORS guncelleme | 02:59 |
 
-> **Demo Giriş Bilgileri:** Admin TC: `11111111111` PIN: `1234` · Öğrenci TC: `22222222221` PIN: `4921`
+### 2026-03-17 - Epic 3: Yoklama & Kart Yonetimi
 
-### 2026-03-17 — Epic 3: Yoklama & Kart Yönetimi ✅
-
-| # | Görev | Tamamlanma |
+| # | Gorev | Tamamlanma |
 |---|-------|------------|
-| 3.1 | RFID kart okutma — `attendance.controller.ts` | ✅ 04:15 |
-| 3.2 | Anti-Passback (@@unique + uygulama katmanı) | ✅ 04:15 |
-| 3.3 | `findActiveSessionForLocation()` — otomatik ders eşleme | ✅ 04:15 |
-| 3.4 | Kart atama — `card.controller.ts` | ✅ 04:18 |
-| 3.5 | Kart durumu güncelleme (LOST/REVOKED) | ✅ 04:18 |
-| 3.6 | Kayıp kart → 403 + Notification kaydı | ✅ 04:15 |
-| 3.7 | Manuel yoklama (upsert ile) | ✅ 04:15 |
-| 3.8 | Seans yoklama listesi + istatistikler | ✅ 04:15 |
+| 3.1 | RFID kart okutma | 04:15 |
+| 3.2 | Anti-passback | 04:15 |
+| 3.3 | `findActiveSessionForLocation()` | 04:15 |
+| 3.4 | Kart atama | 04:18 |
+| 3.5 | Kart durumu guncelleme | 04:18 |
+| 3.6 | Kayip kart bildirimi | 04:15 |
+| 3.7 | Manuel yoklama | 04:15 |
+| 3.8 | Seans yoklama listesi | 04:15 |
 
-### 2026-03-17 — Epic 4: Öğrenci & Sağlık Verisi ✅
+### 2026-03-17 - Epic 4: Ogrenci & Saglik Verisi
 
-| # | Görev | Tamamlanma |
+| # | Gorev | Tamamlanma |
 |---|-------|------------|
-| 4.1 | Öğrenci oluşturma (otomatik PIN) — `student.controller.ts` | ✅ 04:20 |
-| 4.2 | Öğrenci listesi (search, filter, pagination) | ✅ 04:20 |
-| 4.3 | Öğrenci detay (profil, kartlar, yoklama, istatistikler) | ✅ 04:20 |
-| 4.4 | Öğrenci güncelleme (User + StudentProfile) | ✅ 04:20 |
-| 4.5 | Öğrenci soft delete (isActive + kart iptal) | ✅ 04:20 |
-| 4.6 | CSV toplu import (multer memory storage) | ✅ 04:22 |
-| 4.7 | AES-256-GCM şifreleme utility — `encryption.ts` | ✅ 04:22 |
+| 4.1 | Ogrenci olusturma | 04:20 |
+| 4.2 | Ogrenci listesi | 04:20 |
+| 4.3 | Ogrenci detay | 04:20 |
+| 4.4 | Ogrenci guncelleme | 04:20 |
+| 4.5 | Ogrenci soft delete | 04:20 |
+| 4.6 | CSV import | 04:22 |
+| 4.7 | AES-256-GCM sifreleme utility | 04:22 |
 
-> **Not:** KVKK şifreleme utility'si hazır, şema entegrasyonu (tcNo → tcNoEncrypted) Sprint 3'e bırakıldı.
+### 2026-04-08 - Epic 5: Otomasyon & Izolasyon
 
+| # | Gorev | Tamamlanma |
+|---|-------|------------|
+| 5.1 | Haftalik izolasyon cron job | 00:41 |
+| 5.2 | `isAtRisk` + Notification guncelleme | 00:41 |
+| 5.3 | Bildirim listeleme | 00:41 |
+| 5.4 | Bildirim guncelleme | 00:41 |
+| 5.5 | `%70` gecme/kalma kurali | 00:41 |
+| 5.6 | `GET /api/v1/reports/pass-fail` | 00:41 |
+
+### 2026-04-08 - Epic 6: Ders & Materyal
+
+| # | Gorev | Tamamlanma |
+|---|-------|------------|
+| 6.0 | `CRUD /api/v1/classrooms` | 01:05 |
+| 6.1 | Ders CRUD | 00:41 |
+| 6.2 | Enrollment endpoint'leri | 00:41 |
+| 6.3 | Session CRUD + toplu uretim | 00:41 |
+| 6.4 | Materyal upload | 00:41 |
+| 6.5 | Materyal listeleme/detail/download | 00:41 |
+| 6.6 | Student portal endpoint'leri | 00:41 |
+| 6.7 | Docker volume upload depolama | 00:41 |
+
+### 2026-04-08 - Sprint 3 Smoke Test & Hardening
+
+| # | Gorev | Tamamlanma |
+|---|-------|------------|
+| T1 | Migration deploy dogrulama | 00:44 |
+| T2 | Auth, attendance, reports, notifications smoke test | 00:59 |
+| T3 | Manuel yoklama icin enrollment guard | 01:05 |
+| T4 | Classroom API ile bootstrap eksiginin giderilmesi | 01:05 |

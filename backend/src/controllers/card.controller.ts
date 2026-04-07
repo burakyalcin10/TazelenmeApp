@@ -223,7 +223,7 @@ export const listCards = async (req: Request, res: Response, next: NextFunction)
         include: {
           student: {
             include: {
-              user: { select: { firstName: true, lastName: true, tcNo: true } },
+              user: { select: { firstName: true, lastName: true } },
             },
           },
         },

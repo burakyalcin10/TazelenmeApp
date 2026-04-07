@@ -3,3 +3,7 @@ node_modules
 .env
 
 /src/generated/prisma
+
+# Uploaded materials (persist via Docker volume, not git)
+/uploads/*
+!/uploads/.gitkeep

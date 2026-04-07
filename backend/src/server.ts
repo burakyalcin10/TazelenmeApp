@@ -5,10 +5,25 @@ import dotenv from 'dotenv';
 import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import { generalLimiter } from './middlewares/rateLimiter';
+import { startIsolationCheckJob } from './jobs/isolationCheck';
+
+// Route imports
 import authRoutes from './routes/auth.routes';
 import attendanceRoutes from './routes/attendance.routes';
 import cardRoutes from './routes/card.routes';
 import studentRoutes from './routes/student.routes';
+import notificationRoutes from './routes/notification.routes';
+import courseRoutes from './routes/course.routes';
+import classroomRoutes from './routes/classroom.routes';
+import sessionRoutes from './routes/session.routes';
+import enrollmentRoutes from './routes/enrollment.routes';
+import materialRoutes from './routes/material.routes';
+import reportRoutes from './routes/report.routes';
+import studentPortalRoutes from './routes/student-portal.routes';
+
+// Admin endpoints (isolation check manual trigger)
+import { runIsolationCheck } from './jobs/isolationCheck';
+import { authenticate, authorize } from './middlewares/auth';
 
 // Load env
 dotenv.config();
@@ -48,13 +63,38 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ── Routes ──
+
+// Sprint 1 — Auth
 app.use('/api/v1/auth', authRoutes);
+
+// Sprint 2 — Yoklama & Kart & Öğrenci
 app.use('/api/v1/students', studentRoutes);
 app.use('/api/v1/attendance', attendanceRoutes);
 app.use('/api/v1/cards', cardRoutes);
-// app.use('/api/v1/courses', courseRoutes);
-// app.use('/api/v1/materials', materialRoutes);
-// app.use('/api/v1/notifications', notificationRoutes);
+
+// Sprint 3 — Otomasyon & Mini-LMS
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/courses', courseRoutes);
+app.use('/api/v1/classrooms', classroomRoutes);
+app.use('/api/v1/sessions', sessionRoutes);
+app.use('/api/v1/enrollments', enrollmentRoutes);
+app.use('/api/v1/materials', materialRoutes);
+app.use('/api/v1/reports', reportRoutes);
+app.use('/api/v1/student', studentPortalRoutes);
+
+// ── Admin — Manuel İzolasyon Tarama Tetikleme ──
+app.get('/api/v1/admin/run-isolation-check', authenticate, authorize('ADMIN'), async (_req, res, next) => {
+  try {
+    const result = await runIsolationCheck();
+    res.json({
+      success: true,
+      message: 'İzolasyon taraması manuel olarak tamamlandı.',
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // ── Error Handling ──
 app.use(notFoundHandler);
@@ -64,6 +104,9 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   logger.info(`🎓 TazelenmeApp Backend listening on port ${PORT}`);
   logger.info(`📡 Health check: http://localhost:${PORT}/api/health`);
+
+  // Cron Job'ları başlat
+  startIsolationCheckJob();
 });
 
 export default app;

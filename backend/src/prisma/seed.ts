@@ -1,9 +1,11 @@
 import prisma from '../utils/prisma';
 import logger from '../utils/logger';
 import { hashPin } from '../utils/pin';
+import { encryptField, hashForLookup } from '../utils/encryption';
 
 /**
  * Seed Data — Demo/Geliştirme verileri
+ * Sprint 3: tcNo artık AES-256-GCM ile şifrelenip, SHA-256 hash ile saklanıyor
  * 10 öğrenci, 2 koordinatör, 3 ders, 2 sınıf, haftalık yoklama
  */
 async function main() {
@@ -20,9 +22,11 @@ async function main() {
   logger.info(`✅ ${2} Sınıf oluşturuldu`);
 
   // ── 2. Admin Kullanıcı ──
+  const adminTcNo = '11111111111';
   const admin = await prisma.user.create({
     data: {
-      tcNo: '11111111111',
+      tcNoEncrypted: encryptField(adminTcNo),
+      tcNoHash: hashForLookup(adminTcNo),
       pinHash: await hashPin('1234'), // Admin PIN: 1234
       role: 'ADMIN',
       firstName: 'Koordinatör',
@@ -52,7 +56,8 @@ async function main() {
   for (const s of studentData) {
     const user = await prisma.user.create({
       data: {
-        tcNo: s.tcNo,
+        tcNoEncrypted: encryptField(s.tcNo),
+        tcNoHash: hashForLookup(s.tcNo),
         pinHash: await hashPin('4921'), // Tüm öğrencilerin demo PIN'i: 4921
         role: 'STUDENT',
         firstName: s.firstName,
@@ -261,6 +266,9 @@ async function main() {
 
   logger.info(`✅ Demo bildirim oluşturuldu`);
   logger.info('🎉 Seed tamamlandı!');
+  logger.info('📋 Demo Giriş Bilgileri:');
+  logger.info('   Admin  → TC: 11111111111, PIN: 1234');
+  logger.info('   Öğrenci → TC: 22222222221, PIN: 4921');
 }
 
 main()
