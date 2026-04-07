@@ -111,19 +111,19 @@
 
 | # | Gorev | Oncelik | SP | Durum | Bagimlilik |
 |---|-------|---------|----|-------|------------|
-| 7.1 | Admin layout | Kritik | 3 | Backlog | 1.3 |
-| 7.2 | Dashboard ana ekran | Kritik | 5 | Backlog | 7.1, 5.3 |
-| 7.3 | Ogrenci yonetimi DataTable | Kritik | 5 | Backlog | 7.1, 4.2 |
-| 7.4 | Ogrenci detay sayfasi | Yuksek | 4 | Backlog | 7.3, 4.3 |
-| 7.5 | Ogrenci ekleme/duzenleme formu | Yuksek | 3 | Backlog | 7.3, 4.1 |
-| 7.6 | Yoklama yonetimi ekranlari | Kritik | 5 | Backlog | 7.1, 3.8 |
-| 7.7 | Manuel yoklama UI | Yuksek | 3 | Backlog | 7.6, 3.7 |
-| 7.8 | Ders & materyal yonetimi sayfasi | Yuksek | 3 | Backlog | 7.1, 6.1 |
-| 7.9 | Excel/CSV export | Orta | 3 | Backlog | 7.3, 5.6 |
-| 7.10 | `[YENI]` Realtime yoklama (WebSocket / SSE) | Orta | 4 | Backlog | 7.6, 3.1 |
-| 7.11 | Kart yonetimi | Yuksek | 3 | Backlog | 7.4, 3.4 |
-| 7.12 | `[YENI]` Dashboard grafikleri | Orta | 3 | Backlog | 7.2 |
-| 7.13 | `[YENI]` Ogrenci import UI | Orta | 2 | Backlog | 7.3, 4.6 |
+| 7.1 | Admin layout | Kritik | 3 | Done | 1.3 |
+| 7.2 | Dashboard ana ekran | Kritik | 5 | Done | 7.1, 5.3 |
+| 7.3 | Ogrenci yonetimi DataTable | Kritik | 5 | Done | 7.1, 4.2 |
+| 7.4 | Ogrenci detay sayfasi | Yuksek | 4 | Done | 7.3, 4.3 |
+| 7.5 | Ogrenci ekleme/duzenleme formu | Yuksek | 3 | Done | 7.3, 4.1 |
+| 7.6 | Yoklama yonetimi ekranlari | Kritik | 5 | Done | 7.1, 3.8 |
+| 7.7 | Manuel yoklama UI | Yuksek | 3 | Done | 7.6, 3.7 |
+| 7.8 | Ders & materyal yonetimi sayfasi | Yuksek | 3 | Done | 7.1, 6.1 |
+| 7.9 | Excel/CSV export | Orta | 3 | Done | 7.3, 5.6 |
+| 7.10 | `[YENI]` Realtime yoklama (WebSocket / SSE) | Orta | 4 | Done | 7.6, 3.1 |
+| 7.11 | Kart yonetimi | Yuksek | 3 | Done | 7.4, 3.4 |
+| 7.12 | `[YENI]` Dashboard grafikleri | Orta | 3 | Done | 7.2 |
+| 7.13 | `[YENI]` Ogrenci import UI | Orta | 2 | Done | 7.3, 4.6 |
 
 ### Epic 8: Ogrenci PWA
 
