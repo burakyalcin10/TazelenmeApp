@@ -88,6 +88,39 @@ function descriptionForAction(action: PendingAction | null) {
   return "Islem sisteme kaydedilecek. Devam etmek istiyor musunuz?";
 }
 
+interface PassFailReportData {
+  course: {
+    id: string;
+    name: string;
+    term: string;
+  };
+  totalSessions: number;
+  passThreshold: number;
+  report: {
+    studentId: string;
+    firstName: string;
+    lastName: string;
+    totalSessions: number;
+    present: number;
+    excused: number;
+    absent: number;
+    attendedCount: number;
+    attendanceRate: number;
+    result: "PASSED" | "FAILED";
+  }[];
+  summary: {
+    totalStudents: number;
+    passed: number;
+    failed: number;
+    passRate: number;
+  };
+}
+
+function escapeCsvCell(value: string | number | boolean | null | undefined) {
+  const normalized = String(value ?? "").replace(/"/g, "\"\"");
+  return `"${normalized}"`;
+}
+
 export default function CoursesPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -98,6 +131,8 @@ export default function CoursesPage() {
   const [enrollments, setEnrollments] = useState<EnrollmentItem[]>([]);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [students, setStudents] = useState<StudentListItem[]>([]);
+  const [reportCourseId, setReportCourseId] = useState("");
+  const [reportExporting, setReportExporting] = useState(false);
   const [courseDialogOpen, setCourseDialogOpen] = useState(false);
   const [classroomDialogOpen, setClassroomDialogOpen] = useState(false);
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
@@ -128,6 +163,7 @@ export default function CoursesPage() {
         apiRequest<{ students: StudentListItem[] }>("/api/v1/students?limit=100"),
       ]);
       setCourses(courseData.courses);
+      setReportCourseId((current) => current || courseData.courses[0]?.id || "");
       setClassrooms(classroomData.classrooms);
       setSessions(sessionData.sessions);
       setEnrollments(enrollmentData.enrollments);
@@ -260,6 +296,70 @@ export default function CoursesPage() {
     setPendingAction({ kind: "material-upload", payload: formData });
   }
 
+  async function exportPassFailCsv() {
+    if (!reportCourseId) {
+      toast.error("Rapor almak icin once bir ders secin.");
+      return;
+    }
+
+    setReportExporting(true);
+    try {
+      const reportData = await apiRequest<PassFailReportData>(
+        `/api/v1/reports/pass-fail?courseId=${encodeURIComponent(reportCourseId)}`
+      );
+
+      const rows = [
+        ["courseName", reportData.course.name],
+        ["term", reportData.course.term],
+        ["totalSessions", reportData.totalSessions],
+        ["passThreshold", reportData.passThreshold],
+        ["totalStudents", reportData.summary.totalStudents],
+        ["passed", reportData.summary.passed],
+        ["failed", reportData.summary.failed],
+        ["passRate", `${reportData.summary.passRate}%`],
+        [],
+        [
+          "studentId",
+          "firstName",
+          "lastName",
+          "present",
+          "excused",
+          "absent",
+          "attendedCount",
+          "totalSessions",
+          "attendanceRate",
+          "result",
+        ],
+        ...reportData.report.map((item) => [
+          item.studentId,
+          item.firstName,
+          item.lastName,
+          item.present,
+          item.excused,
+          item.absent,
+          item.attendedCount,
+          item.totalSessions,
+          `${item.attendanceRate}%`,
+          item.result === "PASSED" ? "GECTI" : "KALDI",
+        ]),
+      ];
+
+      const csvContent = rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(",")).join("\n");
+      const blob = new Blob([`\uFEFF${csvContent}`], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `gecti-kaldi-${reportData.course.name.toLowerCase().replace(/\s+/g, "-")}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Gecti-kaldi raporu CSV olarak indirildi.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Rapor disa aktarilamadi.");
+    } finally {
+      setReportExporting(false);
+    }
+  }
+
   if (loading) {
     return <LoadingBlock description="Ders ve materyal ekranlari yukleniyor..." />;
   }
@@ -295,6 +395,35 @@ export default function CoursesPage() {
         title="Ders ve Materyal Yonetimi"
         description="Dersler, siniflar, oturumlar, kayitlar ve materyalleri tek ekrandan yonetin."
       />
+
+      <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
+        <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <CardTitle className="text-2xl font-semibold">Rapor ve disa aktarim</CardTitle>
+            <p className="text-base leading-7 text-muted-foreground">
+              Secili ders icin gecti-kaldi raporunu CSV olarak disa aktarabilirsiniz.
+            </p>
+          </div>
+          <div className="flex w-full max-w-2xl flex-col gap-3 lg:flex-row">
+            <Select value={reportCourseId} onValueChange={(value) => setReportCourseId(value || "")}>
+              <SelectTrigger className="h-12 w-full rounded-xl bg-white">
+                <SelectValue placeholder="Rapor icin ders secin" />
+              </SelectTrigger>
+              <SelectContent>
+                {courses.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.name} - {course.term}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="lg" variant="outline" onClick={() => void exportPassFailCsv()} disabled={!reportCourseId || reportExporting}>
+              <Download className="size-5" />
+              {reportExporting ? "CSV hazirlaniyor..." : "Gecti-kaldi CSV indir"}
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value || "courses")}>
         <TabsList className="h-auto flex-wrap rounded-[1.5rem] bg-white/90 p-2 shadow-sm ring-1 ring-foreground/10">
