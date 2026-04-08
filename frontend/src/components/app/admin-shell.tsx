@@ -45,10 +45,10 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
             href={href}
             onClick={onNavigate}
             className={cn(
-              "flex min-h-14 items-center gap-4 rounded-2xl px-4 text-lg font-semibold transition-colors",
+              "flex min-h-15 items-center gap-4 rounded-[1.4rem] px-4 text-lg font-semibold transition-all duration-200",
               isActive
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-white/70 text-foreground hover:bg-white"
+                ? "bg-[linear-gradient(135deg,color-mix(in_oklab,var(--primary)_94%,white),color-mix(in_oklab,var(--primary)_78%,black_8%))] text-primary-foreground shadow-[0_20px_34px_-24px_color-mix(in_oklab,var(--primary)_70%,transparent)]"
+                : "bg-white/70 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.82)] hover:-translate-y-0.5 hover:bg-white"
             )}
           >
             <Icon className="size-6" />
@@ -77,9 +77,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       <div className="panel-shell">
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="hidden rounded-[2rem] bg-sidebar p-5 shadow-sm ring-1 ring-foreground/10 lg:block">
+          <aside className="hidden rounded-[2.25rem] border border-white/65 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--sidebar)_92%,white),color-mix(in_oklab,var(--sidebar)_82%,var(--secondary)))] p-5 shadow-[0_28px_70px_-42px_rgba(34,62,97,0.36)] lg:block">
             <div className="mb-8 space-y-2 px-2">
-              <div className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+              <div className="panel-label">
                 TazelenmeApp
               </div>
               <div className="text-3xl font-semibold">Admin Panel</div>
@@ -91,7 +91,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </aside>
 
           <div className="space-y-6">
-            <header className="flex flex-wrap items-center justify-between gap-4 rounded-[2rem] bg-white/90 px-5 py-4 shadow-sm ring-1 ring-foreground/10">
+            <header className="surface-panel-strong flex flex-wrap items-center justify-between gap-4 px-5 py-4">
               <div className="flex items-center gap-3">
                 <Sheet>
                   <SheetTrigger render={<Button size="icon-lg" variant="outline" className="lg:hidden" />}>
@@ -107,13 +107,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   </SheetContent>
                 </Sheet>
                 <div>
-                  <div className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">{currentSection}</div>
-                  <div className="text-xl font-semibold">Hos geldiniz, {user?.firstName || "Yonetici"}</div>
+                  <div className="panel-label">{currentSection}</div>
+                  <div className="text-2xl font-semibold">Hos geldiniz, {user?.firstName || "Yonetici"}</div>
                 </div>
               </div>
 
               <DropdownMenu>
-                <DropdownMenuTrigger render={<Button size="lg" variant="outline" />}>
+                <DropdownMenuTrigger render={<Button size="lg" variant="outline" className="min-w-52 justify-between" />}>
                   {user?.firstName} {user?.lastName}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-60">

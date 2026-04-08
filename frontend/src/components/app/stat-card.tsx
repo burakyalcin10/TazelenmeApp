@@ -17,21 +17,24 @@ export function StatCard({
   tone?: "default" | "warning" | "success";
 }) {
   return (
-    <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
+    <Card className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,rgba(255,255,255,0.48),transparent)]" />
       <CardHeader className="items-start gap-4">
         <div
           className={cn(
-            "flex size-14 items-center justify-center rounded-2xl",
-            tone === "warning" && "bg-amber-100 text-amber-700",
-            tone === "success" && "bg-emerald-100 text-emerald-700",
+            "flex size-15 items-center justify-center rounded-[1.35rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.68)]",
+            tone === "warning" && "bg-amber-100/90 text-amber-700",
+            tone === "success" && "bg-emerald-100/90 text-emerald-700",
             tone === "default" && "bg-primary/10 text-primary"
           )}
         >
           <Icon className="size-7" />
         </div>
         <div className="space-y-1">
-          <CardTitle className="text-lg font-semibold text-muted-foreground">{title}</CardTitle>
-          <div className="text-4xl font-semibold tracking-tight text-foreground">{value}</div>
+          <CardTitle className="text-base font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            {title}
+          </CardTitle>
+          <div className="text-[2.6rem] font-semibold tracking-tight text-foreground">{value}</div>
         </div>
       </CardHeader>
       <CardContent>

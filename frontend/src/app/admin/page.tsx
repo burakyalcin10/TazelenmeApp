@@ -178,7 +178,7 @@ export default function AdminDashboardPage() {
           })) || []}
         />
 
-        <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
+        <Card className="surface-panel-strong">
           <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <CardTitle className="text-2xl font-semibold">Ders secimi</CardTitle>
@@ -200,8 +200,8 @@ export default function AdminDashboardPage() {
             </Select>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-[1.5rem] bg-secondary/60 p-5">
-              <div className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">Ozet</div>
+            <div className="surface-muted p-5">
+              <div className="panel-label">Ozet</div>
               <div className="mt-2 text-3xl font-semibold">
                 {state.trend ? formatPercentage(state.trend.averageAttendanceRate) : "%0"}
               </div>
@@ -217,7 +217,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10 xl:col-span-1">
+        <Card className="surface-panel xl:col-span-1">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold">Riskli ogrenciler</CardTitle>
             <p className="text-base leading-7 text-muted-foreground">
@@ -232,7 +232,7 @@ export default function AdminDashboardPage() {
               />
             ) : (
               state.riskStudents.map((student) => (
-                <div key={student.id} className="rounded-[1.5rem] bg-secondary/55 p-4">
+                <div key={student.id} className="surface-muted p-4">
                   <div className="text-xl font-semibold">
                     {student.firstName} {student.lastName}
                   </div>
@@ -248,7 +248,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10 xl:col-span-1">
+        <Card className="surface-panel xl:col-span-1">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold">Okunmamis bildirimler</CardTitle>
             <p className="text-base leading-7 text-muted-foreground">
@@ -263,13 +263,13 @@ export default function AdminDashboardPage() {
               />
             ) : (
               state.notifications.map((notification) => (
-                <div key={notification.id} className="rounded-[1.5rem] border border-border bg-white p-4">
+                <div key={notification.id} className="surface-muted p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <div className="text-lg font-semibold">{notification.title}</div>
                       <div className="text-sm text-muted-foreground">{formatDateTime(notification.createdAt)}</div>
                     </div>
-                    <div className="rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-primary">
+                    <div className="rounded-full bg-white/85 px-3 py-1 text-sm font-semibold text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
                       {notification.isRead ? "Okundu" : "Yeni"}
                     </div>
                   </div>
@@ -280,7 +280,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10 xl:col-span-1">
+        <Card className="surface-panel xl:col-span-1">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold">Yaklasan oturumlar</CardTitle>
             <p className="text-base leading-7 text-muted-foreground">
@@ -295,7 +295,7 @@ export default function AdminDashboardPage() {
               />
             ) : (
               upcomingSessions.map((session) => (
-                <div key={session.id} className="rounded-[1.5rem] bg-secondary/55 p-4">
+                <div key={session.id} className="surface-muted p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                       <CalendarClock className="size-6" />

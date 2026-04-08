@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
-import { Fira_Mono, Manrope } from "next/font/google";
+import { Fira_Mono, Plus_Jakarta_Sans, Sora } from "next/font/google";
 
 import { Providers } from "@/components/app/providers";
 
 import "./globals.css";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
+  subsets: ["latin"],
+});
+
+const sora = Sora({
+  variable: "--font-sora",
   subsets: ["latin"],
 });
 
@@ -28,7 +33,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr" suppressHydrationWarning>
-      <body className={`${manrope.variable} ${firaMono.variable} min-h-screen antialiased`}>
+      <body
+        className={`${plusJakartaSans.variable} ${sora.variable} ${firaMono.variable} min-h-screen antialiased`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
