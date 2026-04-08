@@ -107,6 +107,8 @@
 
 ## Sprint 4 - Frontend (Admin Panel & PWA)
 
+> Guncel not: Sprint 4 kapsaminda `Epic 7 - Admin Panel` tamamlandi. `Epic 8 - Ogrenci PWA` bir sonraki asamaya birakildi.
+
 ### Epic 7: Koordinator Dashboard
 
 | # | Gorev | Oncelik | SP | Durum | Bagimlilik |
@@ -188,7 +190,7 @@ gantt
     Mini-LMS (Epic 6)            :done, s3e6, after s2e4, 7d
 
     section Sprint 4
-    Admin Panel (Epic 7)         :s4e7, after s3e5, 14d
+    Admin Panel (Epic 7)         :done, s4e7, after s3e5, 14d
     PWA (Epic 8)                 :s4e8, after s3e6, 10d
 
     section Sprint 5
@@ -208,8 +210,8 @@ gantt
 | 4 - Ogrenci & Saglik | ~16 SP | Sprint 2 Done |
 | 5 - Otomasyon | ~13 SP | Sprint 3 Done |
 | 6 - Mini-LMS | ~17 SP | Sprint 3 Done |
-| 7 - Admin Panel | ~43 SP | Sprint 4 |
-| 8 - PWA | ~19 SP | Sprint 4 |
+| 7 - Admin Panel | ~43 SP | Sprint 4 Done |
+| 8 - PWA | ~19 SP | Sprint 4 Backlog |
 | 9 - IoT | ~11 SP | Sprint 5 |
 | 10 - Test & Deploy | ~27 SP | Sprint 5 |
 | **Toplam** | **~204 SP** | **~11 hafta** |

@@ -1,63 +1,57 @@
 # TazelenmeApp
 
-> Tazelenme Universitesi ogrenci yonetim, yoklama ve mini-LMS sistemi
+> Tazelenme Universitesi icin ogrenci yonetimi, RFID yoklama ve mini-LMS platformu
 
-TazelenmeApp, 60+ yas grubunun egitim gordugu Tazelenme Universitesi icin tasarlanmis bir otomasyon sistemidir. RFID kart ile yoklama, ogrenci ve saglik verisi yonetimi, devamsizlik riski bildirimi ve ders materyali dagitimi tek bir yapida toplanir.
+TazelenmeApp, 60+ yas grubunun egitim aldigi Tazelenme Universitesi icin tasarlanmis bir otomasyon sistemidir. Proje; ogrenci kayitlari, saglik notlari, RFID kart yonetimi, ders planlama, yoklama, bildirimler ve ders materyallerini tek yapida toplar.
 
-## Guncel Durum
+## Proje Durumu
 
-Sprint 1, Sprint 2 ve Sprint 3 backend kapsami tamamlandi.
+Bu repo su anda sunuma uygun bir `Sprint 4 Admin Panel MVP` durumundadir.
 
-Son guncelleme ile:
+Tamamlanan ana kapsam:
 
-- Sprint 3 migration dosyalari repo'ya eklendi ve veritabanina uygulandi
-- Classroom yonetimi icin `CRUD /api/v1/classrooms` endpoint'leri eklendi
-- Manuel yoklama akisina enrollment kontrolu eklendi
-- Docker uzerinde backend yeniden build edilip smoke test ile dogrulandi
+- Sprint 1: temel altyapi, Prisma, auth, Docker
+- Sprint 2: ogrenci, kart ve yoklama cekirdek backend akisleri
+- Sprint 3: classroom/course/session/material/report/notification backend kapsami
+- Sprint 4 Epic 7: admin panel frontend
+  - login
+  - dashboard
+  - ogrenci yonetimi
+  - ogrenci detay
+  - yoklama yonetimi
+  - ders ve materyal yonetimi
+  - kart yonetimi
+  - CSV import/export
 
-## Sprint 3 Kapsami
+Henuz backlog'da kalan ana alan:
 
-Sprint 3 ile gelen baslica yetenekler:
+- Sprint 4 Epic 8: ogrenci PWA
+- Sprint 5: IoT firmware, test ve dagitim hardening
 
-- Bildirim listeleme ve durum guncelleme endpoint'leri
-- Ders CRUD, classroom CRUD, ogrenci-ders kaydi ve toplu oturum uretimi
-- PDF ve link bazli materyal yukleme
-- Ogrenci portali icin `my-courses` ve `my-attendance` endpoint'leri
-- `%70` katilim kuraliyla gecti-kaldi raporu
-- Haftalik izolasyon/devamsizlik taramasi icin cron job
-- KVKK odakli `tcNoEncrypted` ve `tcNoHash` yapisi
+## Admin Panelde Neler Var
 
-## Smoke Test Sonucu
+Mevcut admin panel asagidaki akislari destekler:
 
-Canli ortamda dogrulanan akislardan bazilari:
+- Admin login ve token refresh akisi
+- Dashboard KPI kartlari, bildirimler, yaklasan oturumlar ve katilim grafigi
+- Ogrenci listeleme, olusturma, guncelleme, pasif yapma
+- Ogrenci detayinda attendance, enrollment ve kart gecmisi
+- CSV ile toplu ogrenci import
+- Ogrenci listesini CSV disa aktarma
+- Oturum bazli manuel yoklama yonetimi
+- Yoklama ekraninda canli yenileme mantigi
+- Ders, sinif, session, enrollment ve materyal yonetimi
+- Gecti-kaldi raporunu CSV olarak disa aktarma
+- Kart atama ve kart durumu guncelleme
 
-- `POST /api/v1/auth/login`
-- `GET /api/v1/auth/me`
-- `POST /api/v1/students`
-- `POST /api/v1/courses`
-- `POST /api/v1/classrooms`
-- `POST /api/v1/enrollments`
-- `POST /api/v1/sessions`
-- `POST /api/v1/cards`
-- `POST /api/v1/attendance/scan`
-- `GET /api/v1/student/my-courses`
-- `GET /api/v1/student/my-attendance`
-- `GET /api/v1/reports/pass-fail`
-- `GET /api/v1/reports/attendance-summary`
-- `GET/PATCH /api/v1/notifications`
-
-Not:
-
-- Manuel yoklama artik derse kayitli olmayan ogrenci icin hata doner.
-- Temiz veritabani ile baslangicta en az 1 admin kullanici gerekir.
-
-## Mimari
+## Kisa Mimari
 
 ```text
-Frontend (Next.js)
+Frontend (Next.js App Router + shadcn/ui)
   -> Backend API (Express + TypeScript)
     -> PostgreSQL (Prisma)
-    -> IoT cihazlari (ESP8266 / RC522)
+    -> Dosya depolama (Docker volume / uploads)
+    -> IoT cihazlari (ileriki sprint)
 ```
 
 ## Teknoloji Stack
@@ -68,9 +62,23 @@ Frontend (Next.js)
 | Backend | Node.js, Express.js, TypeScript |
 | ORM | Prisma |
 | Veritabani | PostgreSQL |
+| Auth | JWT access + refresh token |
 | Otomasyon | node-cron |
 | Dosya yukleme | multer |
 | Altyapi | Docker, Docker Compose |
+
+## Demo Bilgileri
+
+Sunum icin kullanabilecegin admin giris bilgisi:
+
+- Panel: `http://localhost:3000/login`
+- TC No: `11111111111`
+- PIN: `1234`
+
+Not:
+
+- Demo verisi veritabanina daha once yuklenmis olmalidir.
+- Bu bilgiler seed/demonstrasyon amaclidir.
 
 ## Hizli Baslangic
 
@@ -82,8 +90,10 @@ Frontend (Next.js)
 
 ### Docker ile Calistirma
 
+Tum sistemi tek komutla ayaga kaldirmak icin:
+
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 Servisler:
@@ -92,12 +102,34 @@ Servisler:
 - Backend: `http://localhost:4000`
 - PostgreSQL: `localhost:5433`
 
-Notlar:
+Container durumunu kontrol etmek icin:
 
-- Backend container acilirken `npx prisma migrate deploy` calistirir.
-- Upload edilen materyaller Docker volume olarak `tazelenme-uploads` icinde tutulur.
+```bash
+docker ps
+```
+
+Container loglarini gormek icin:
+
+```bash
+docker logs tazelenme-frontend --tail 100
+docker logs tazelenme-backend --tail 100
+```
+
+Servisleri durdurmak icin:
+
+```bash
+docker compose down
+```
 
 ### Lokal Gelistirme
+
+Veritabani Docker ile acik kalirken frontend ve backend'i lokal calistirmak icin:
+
+```bash
+docker compose up -d db
+```
+
+Backend:
 
 ```bash
 cd backend
@@ -106,7 +138,7 @@ npx prisma generate
 npm run dev
 ```
 
-Ayrica ayri terminalde:
+Frontend:
 
 ```bash
 cd frontend
@@ -116,47 +148,53 @@ npm run dev
 
 ## Veritabani ve Migration
 
-Sprint 3 migration dosyasi:
+Backend container acilirken migration deploy otomatik uygulanir.
 
-- `backend/prisma/migrations/20260408000000_sprint3_kvkk_encryption/migration.sql`
-
-Docker tabanli akista migration uygulamak icin:
+Docker tabanli standart akis:
 
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
-Sadece migration deploy etmek isterseniz:
+Migration durumunu kontrol etmek icin:
 
 ```bash
-docker exec -e DATABASE_URL="postgresql://tazelenme:tazelenme_secret@db:5432/tazelenme_db?schema=public" tazelenme-backend npx prisma migrate deploy
+docker exec -it tazelenme-backend npx prisma migrate status
 ```
 
-Notlar:
+Gerekirse seed calistirmak icin:
 
-- Windows + Docker Desktop ortaminda host makineden `npx prisma migrate dev` komutu `localhost:5433` baglantisinda sorun cikarabilir.
-- Bu projede en sorunsuz akis Docker container icinden `migrate deploy` calistirmaktir.
+```bash
+docker exec -it tazelenme-backend npm run prisma:seed
+```
 
-## Ilk Kurulum Notu
+## Sunumda Gosterebilecegin Ana Akis
 
-Sistem sifir veritabani ile aciliyorsa:
+1. `http://localhost:3000/login` uzerinden admin girisi yap
+2. Dashboard ekraninda KPI kartlari, bildirimler ve grafik alanini goster
+3. Ogrenciler ekraninda yeni ogrenci, CSV import/export ve detay akisini goster
+4. Yoklama ekraninda oturum secip manuel yoklama akisini goster
+5. Dersler ekraninda course/session/material yonetimi ve rapor export'unu goster
+6. Kartlar ekraninda kart atama ve durum degistirme akisini goster
 
-- en az 1 `ADMIN` kullanici gereklidir
-- session planlamak icin en az 1 classroom kaydi gereklidir
+## Dogrulama Notlari
 
-Classroom yonetimi artik API uzerinden yapilabilir:
+Bu asamaya gelirken dogrulanan baslica komutlar:
 
-- `POST /api/v1/classrooms`
-- `GET /api/v1/classrooms`
-- `GET /api/v1/classrooms/:id`
-- `PUT /api/v1/classrooms/:id`
-- `DELETE /api/v1/classrooms/:id`
+- `frontend`: `npm run lint`
+- `frontend`: `npm run build`
+- `backend`: `npm run build`
+- Docker uzerinde `frontend`, `backend`, `db` container'lari birlikte calistirildi
 
 ## Proje Yapisi
 
 ```text
 TazelenmeApp/
 |-- frontend/
+|   `-- src/
+|       |-- app/
+|       |-- components/
+|       `-- lib/
 |-- backend/
 |   |-- prisma/
 |   |   |-- schema.prisma
