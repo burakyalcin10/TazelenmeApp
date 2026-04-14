@@ -15,7 +15,8 @@ export async function getServerSession(): Promise<StoredSession | null> {
   }
 
   try {
-    return JSON.parse(decodeURIComponent(raw)) as StoredSession;
+    // cookies().get() zaten cookie kütüphanesi aracılığıyla decode yapar
+    return JSON.parse(raw) as StoredSession;
   } catch {
     return null;
   }
@@ -25,10 +26,13 @@ export async function setServerSession(session: StoredSession) {
   const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
 
-  cookieStore.set(COOKIE_NAME, encodeURIComponent(JSON.stringify(session)), {
+  // cookies().set() dahili olarak encodeURIComponent uygular (cookie npm paketi)
+  // Burada tekrar encode yapmıyoruz, yoksa çift encoding oluşur
+  cookieStore.set(COOKIE_NAME, JSON.stringify(session), {
     path: "/",
     maxAge: MAX_AGE,
     sameSite: "lax",
+    httpOnly: false, // Client-side JS (apiRequest) cookie'yi okuyabilmeli
   });
 }
 

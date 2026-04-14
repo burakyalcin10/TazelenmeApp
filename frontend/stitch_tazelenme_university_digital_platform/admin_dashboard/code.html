@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tazelenme Üniversitesi | Akademik Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#86f8c9",
+                        "on-surface": "#1b1c18",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "secondary-container": "#bbead4",
+                        "secondary-fixed": "#beedd7",
+                        "on-secondary-container": "#406b5a",
+                        "on-secondary-fixed": "#002116",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#002115",
+                        "outline-variant": "#bccac1",
+                        "outline": "#6d7a73",
+                        "tertiary-fixed-dim": "#eec054",
+                        "tertiary-fixed": "#ffdf9b",
+                        "on-primary-fixed-variant": "#00513a",
+                        "surface-tint": "#006c4e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#68dbae",
+                        "on-primary-container": "#f5fff7",
+                        "surface-container-highest": "#e4e2dc",
+                        "surface-variant": "#e4e2dc",
+                        "surface-dim": "#dcdad3",
+                        "surface-container": "#f0eee7",
+                        "on-surface-variant": "#3d4943",
+                        "secondary": "#3b6756",
+                        "tertiary": "#755700",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#a2d1bb",
+                        "inverse-primary": "#68dbae",
+                        "surface-bright": "#fbf9f2",
+                        "inverse-on-surface": "#f3f1ea",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "inverse-surface": "#30312c",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-container-low": "#f6f4ec",
+                        "on-secondary-fixed-variant": "#234f3f",
+                        "primary": "#00694c",
+                        "tertiary-container": "#936f00",
+                        "primary-container": "#008560",
+                        "on-secondary": "#ffffff",
+                        "surface": "#fbf9f2",
+                        "on-tertiary-fixed": "#251a00",
+                        "background": "#fbf9f2",
+                        "on-background": "#1b1c18",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#eae8e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "serif": ["Playfair Display", "serif"],
+                        "sans": ["DM Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-sans { font-family: 'DM Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .ghost-border { border: 1px solid rgba(188, 202, 193, 0.15); }
+        body { background-color: #FAFAF8; }
+    </style>
+</head>
+<body class="font-sans text-on-surface antialiased">
+<!-- SideNavBar (JSON Derived) -->
+<aside class="bg-[#3b6756] dark:bg-[#1a2e26] h-screen w-72 fixed left-0 top-0 overflow-y-auto flex flex-col py-8 z-50">
+<div class="px-8 mb-12">
+<h1 class="text-2xl font-serif text-white tracking-tight">Tazelenme Üni.</h1>
+<p class="text-primary-fixed/60 text-xs font-sans mt-1">Academic Portal</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Active: Dashboard -->
+<a class="flex items-center gap-3 px-6 py-4 border-l-4 border-[#1D9E75] text-[#86f8c9] font-bold bg-[#2d4f42]" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white hover:bg-[#2d4f42] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Students</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white hover:bg-[#2d4f42] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span>Faculty</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white hover:bg-[#2d4f42] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+<span>Attendance</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white hover:bg-[#2d4f42] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span>Archives</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white hover:bg-[#2d4f42] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+<span>Alerts</span>
+</a>
+</nav>
+<div class="px-6 mt-8">
+<button class="w-full bg-primary-container text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add_circle</span>
+                New Entry
+            </button>
+</div>
+<div class="mt-auto border-t border-white/10 pt-4">
+<a class="flex items-center gap-3 px-6 py-4 text-white/60 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-4 text-white/60 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-72 min-h-screen pb-20">
+<!-- TopNavBar (JSON Derived) -->
+<header class="flex justify-between items-center w-full px-8 h-20 sticky top-0 z-40 bg-[#fbf9f2]/80 backdrop-blur-md">
+<div class="flex items-center gap-8">
+<h2 class="text-xl font-serif italic text-[#3b6756]">Academic Curator</h2>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Hızlı Arama..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8">
+<a class="text-[#00694c] border-b-2 border-[#00694c] pb-1 font-medium" href="#">Semester</a>
+<a class="text-[#3b6756] font-medium hover:text-[#1D9E75] transition-colors" href="#">Reports</a>
+<a class="text-[#3b6756] font-medium hover:text-[#1D9E75] transition-colors" href="#">Faculty Board</a>
+</nav>
+<div class="flex items-center gap-3 ml-4">
+<button class="p-2 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-highest">
+<img alt="Administrator Profile" class="w-full h-full object-cover" data-alt="professional portrait of a senior academic administrator with glasses in a library setting with soft focus books behind him" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDyQzAUDOMXQnBNZDvk4-ZiCqt8BrQ4kN1xt7tODgOj1E1MJFr589ZKe-KvjgZp5XEhZsLyzJGwo3TXeuKEV02UYfRig7kap3aGr6yuwb8Itd2VCOrsEIJGRIKsEqIclYkbNiy1l91BAViTc1O36g-Io-9hXrQFEbv7nqgwrvByrEzIGTfkOP0XFb9yZdnTUhMTzERxGgyolDc-fU7DuRvFzp-DnlI5nxr-I1siViNQJ1Qgt40aeNuaxNnKjGcz1RTUMIN7hX"/>
+</div>
+</div>
+</div>
+</header>
+<section class="px-10 pt-8">
+<!-- Welcome Message -->
+<div class="mb-10">
+<h1 class="text-4xl font-serif text-secondary mb-2">Hoş geldiniz, Admin.</h1>
+<p class="text-outline font-sans">Bugün 12 Ekim 2023. Akademik süreçleriniz güncel.</p>
+</div>
+<!-- Bento Layout Content -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Hero Metric: Attendance Rate -->
+<div class="col-span-8 bg-surface-container-low rounded-xl p-8 flex flex-col justify-between overflow-hidden relative group">
+<div class="relative z-10">
+<h3 class="text-secondary font-serif text-lg mb-1">Yoklama Oranı</h3>
+<p class="text-primary font-bold text-6xl tracking-tighter mb-4">94.2%</p>
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="text-sm font-medium">Geçen haftaya göre +2.4%</span>
+</div>
+</div>
+<div class="mt-8 relative z-10">
+<button class="px-6 py-2 bg-secondary text-white rounded-full font-medium hover:bg-primary transition-colors">Detayları İncele</button>
+</div>
+<!-- Decorative Graphic -->
+<div class="absolute right-0 top-0 h-full w-1/2 opacity-20 pointer-events-none">
+<div class="w-full h-full bg-gradient-to-l from-primary to-transparent"></div>
+</div>
+<img alt="Academic building" class="absolute -right-20 -bottom-20 w-80 opacity-10 group-hover:scale-105 transition-transform duration-700" data-alt="abstract architectural close-up of a modern university building with repeating geometric glass patterns and soft afternoon light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXic4_cRnhQ-B62ouNrzkBLj1iZA3mlBYuiBz-Y-rQ5TC3px_cGI4U78QRcTrKdBs8_qedF2GgUc1czhIAoq0IK8BN3G69vkJsI1vQaJuReAc1bwFb_KFT7vL0hMO_UqdpDnSNK_6VYnQWSbTYzYHVT8d1t454_rNcZ2umX_Mq9vKD-5evWs2x88xkBBsUyzox4FZOGFz_Tj6gCOQ3rwgXcC6OesE68n4cdx96sS2Qtv3__ERtq8DzfF9ditIEep4PngHr6nWW"/>
+</div>
+<!-- Alert Section -->
+<div class="col-span-4 bg-[#F5C75A]/10 rounded-xl p-6 border-l-4 border-[#F5C75A]">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-tertiary font-bold flex items-center gap-2">
+<span class="material-symbols-outlined">warning</span>
+                            Risk Bildirimleri
+                        </h3>
+<span class="bg-[#F5C75A] text-tertiary-fixed-dim px-2 py-1 rounded text-xs font-bold">2 Yeni</span>
+</div>
+<div class="space-y-4">
+<div class="bg-white/50 p-3 rounded-lg ghost-border">
+<p class="text-sm font-bold text-on-surface">Devamsızlık Sınırı</p>
+<p class="text-xs text-outline">3 Öğrenci kritik seviyeye ulaştı.</p>
+</div>
+<div class="bg-white/50 p-3 rounded-lg ghost-border">
+<p class="text-sm font-bold text-on-surface">Not Girişi Gecikmesi</p>
+<p class="text-xs text-outline">Psikoloji 101 grubu için son gün.</p>
+</div>
+</div>
+</div>
+<!-- KPI Cards -->
+<div class="col-span-3 bg-[#F1EFE8] rounded-xl p-6 transition-all hover:translate-y-[-4px]">
+<p class="text-xs font-bold uppercase tracking-widest text-outline mb-2">Toplam Öğrenci</p>
+<h2 class="text-5xl font-serif text-secondary">248</h2>
+<div class="mt-4 flex items-center justify-between text-xs font-medium text-secondary/60">
+<span>Aktif Kayıt</span>
+<span class="bg-white px-2 py-1 rounded-full">Tüm Yıllar</span>
+</div>
+</div>
+<div class="col-span-3 bg-[#F1EFE8] rounded-xl p-6 transition-all hover:translate-y-[-4px]">
+<p class="text-xs font-bold uppercase tracking-widest text-outline mb-2">Bugün: Oturum</p>
+<h2 class="text-5xl font-serif text-secondary">12</h2>
+<div class="mt-4 flex items-center justify-between text-xs font-medium text-secondary/60">
+<span>Kapasite Oranı</span>
+<span class="bg-white px-2 py-1 rounded-full">88%</span>
+</div>
+</div>
+<div class="col-span-3 bg-[#F1EFE8] rounded-xl p-6 transition-all hover:translate-y-[-4px]">
+<p class="text-xs font-bold uppercase tracking-widest text-outline mb-2">Akademik Kadro</p>
+<h2 class="text-5xl font-serif text-secondary">36</h2>
+<div class="mt-4 flex items-center justify-between text-xs font-medium text-secondary/60">
+<span>Yeni Katılan</span>
+<span class="bg-white px-2 py-1 rounded-full">+2</span>
+</div>
+</div>
+<div class="col-span-3 bg-[#F1EFE8] rounded-xl p-6 transition-all hover:translate-y-[-4px]">
+<p class="text-xs font-bold uppercase tracking-widest text-outline mb-2">Mezun Arşivi</p>
+<h2 class="text-5xl font-serif text-secondary">1.2k</h2>
+<div class="mt-4 flex items-center justify-between text-xs font-medium text-secondary/60">
+<span>Toplam</span>
+<span class="bg-white px-2 py-1 rounded-full">2018-23</span>
+</div>
+</div>
+<!-- Editorial Student List Table -->
+<div class="col-span-12 bg-surface-container-lowest rounded-xl p-8 mt-4">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h3 class="text-2xl font-serif text-secondary">Son Kayıtlı Öğrenciler</h3>
+<p class="text-outline text-sm">Sisteme en son giriş yapan veya yeni kayıt olan profiller.</p>
+</div>
+<button class="text-primary font-bold text-sm flex items-center gap-1 border-b-2 border-primary-fixed pb-1">Tümünü Gör <span class="material-symbols-outlined text-sm">arrow_forward</span></button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="text-xs font-bold text-outline border-b ghost-border">
+<tr>
+<th class="pb-4 px-4 uppercase tracking-wider">Öğrenci Profili</th>
+<th class="pb-4 px-4 uppercase tracking-wider">Fakülte / Bölüm</th>
+<th class="pb-4 px-4 uppercase tracking-wider">Son Etkinlik</th>
+<th class="pb-4 px-4 uppercase tracking-wider">Durum</th>
+<th class="pb-4 px-4 uppercase tracking-wider text-right">Eylemler</th>
+</tr>
+</thead>
+<tbody class="divide-y ghost-border">
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="py-6 px-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center font-bold text-secondary">MA</div>
+<div>
+<p class="font-bold text-secondary">Mehmet Aksoy</p>
+<p class="text-xs text-outline">ID: TZ-8921</p>
+</div>
+</div>
+</td>
+<td class="py-6 px-4">
+<p class="text-sm font-medium">Güzel Sanatlar</p>
+<p class="text-xs text-outline italic">Resim Atölyesi III</p>
+</td>
+<td class="py-6 px-4">
+<p class="text-sm">Bugün, 09:45</p>
+<p class="text-xs text-outline">Sınıf Girişi</p>
+</td>
+<td class="py-6 px-4">
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+<span class="w-2 h-2 rounded-full bg-primary"></span> Aktif
+                                        </span>
+</td>
+<td class="py-6 px-4 text-right">
+<button class="p-2 text-outline hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="py-6 px-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center font-bold text-tertiary">SD</div>
+<div>
+<p class="font-bold text-secondary">Selin Demir</p>
+<p class="text-xs text-outline">ID: TZ-1044</p>
+</div>
+</div>
+</td>
+<td class="py-6 px-4">
+<p class="text-sm font-medium">Sosyal Bilimler</p>
+<p class="text-xs text-outline italic">Modern Tarih</p>
+</td>
+<td class="py-6 px-4">
+<p class="text-sm">Dün, 16:20</p>
+<p class="text-xs text-outline">Kütüphane</p>
+</td>
+<td class="py-6 px-4">
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+<span class="w-2 h-2 rounded-full bg-primary"></span> Aktif
+                                        </span>
+</td>
+<td class="py-6 px-4 text-right">
+<button class="p-2 text-outline hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="py-6 px-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-outline-variant flex items-center justify-center font-bold text-secondary">ET</div>
+<div>
+<p class="font-bold text-secondary">Erol Tekin</p>
+<p class="text-xs text-outline">ID: TZ-3301</p>
+</div>
+</div>
+</td>
+<td class="py-6 px-4">
+<p class="text-sm font-medium">Hukuk</p>
+<p class="text-xs text-outline italic">Medeni Usul Hukuku</p>
+</td>
+<td class="py-6 px-4">
+<p class="text-sm">11 Eki 2023</p>
+<p class="text-xs text-outline">Yoklama Kaydı</p>
+</td>
+<td class="py-6 px-4">
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-error-container text-error text-xs font-bold">
+<span class="w-2 h-2 rounded-full bg-error"></span> Askıda
+                                        </span>
+</td>
+<td class="py-6 px-4 text-right">
+<button class="p-2 text-outline hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body></html>

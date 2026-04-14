@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Academic Curator - Öğrenci Portalı</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Playfair+Display:ital,wght@0,700;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "inverse-surface": "#30302e",
+                "on-tertiary-fixed-variant": "#900a18",
+                "inverse-on-surface": "#f3f0ed",
+                "surface-bright": "#fcf9f5",
+                "inverse-primary": "#68dbae",
+                "secondary-fixed-dim": "#b7cbc4",
+                "on-tertiary": "#ffffff",
+                "tertiary": "#af262a",
+                "secondary": "#50625d",
+                "on-surface-variant": "#3d4943",
+                "surface-container-high": "#eae8e4",
+                "error": "#ba1a1a",
+                "on-background": "#1b1c1a",
+                "background": "#fcf9f5",
+                "on-tertiary-fixed": "#410004",
+                "surface": "#fcf9f5",
+                "on-secondary": "#ffffff",
+                "primary-container": "#008560",
+                "tertiary-container": "#d23f40",
+                "primary": "#00694c",
+                "on-secondary-fixed-variant": "#394a45",
+                "surface-container-low": "#f6f3f0",
+                "on-tertiary-container": "#fffbff",
+                "tertiary-fixed": "#ffdad7",
+                "tertiary-fixed-dim": "#ffb3ae",
+                "outline-variant": "#bccac1",
+                "outline": "#6d7a73",
+                "on-primary": "#ffffff",
+                "on-primary-fixed": "#002115",
+                "on-secondary-fixed": "#0d1f1b",
+                "on-secondary-container": "#566863",
+                "secondary-fixed": "#d3e7e0",
+                "secondary-container": "#d3e7e0",
+                "on-surface": "#1b1c1a",
+                "error-container": "#ffdad6",
+                "on-error-container": "#93000a",
+                "primary-fixed": "#86f8c9",
+                "surface-container": "#f0edea",
+                "surface-dim": "#dcdad6",
+                "surface-variant": "#e5e2df",
+                "surface-container-highest": "#e5e2df",
+                "on-primary-container": "#f5fff7",
+                "primary-fixed-dim": "#68dbae",
+                "on-error": "#ffffff",
+                "surface-container-lowest": "#ffffff",
+                "surface-tint": "#006c4e",
+                "on-primary-fixed-variant": "#00513a"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "1.5rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Plus Jakarta Sans", "sans-serif"],
+                "body": ["Plus Jakarta Sans", "sans-serif"],
+                "serif": ["Playfair Display", "serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #ffffff; /* Requested Pure White */
+            color: #1b1c1a;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-on-surface mb-24 md:mb-0 overflow-x-hidden">
+<!-- Desktop Side Navigation (Suppressed on mobile) -->
+<aside class="hidden md:flex flex-col h-screen w-72 fixed left-0 top-0 overflow-y-auto bg-[#3b6756] py-8 z-50">
+<div class="px-8 mb-12">
+<h1 class="text-2xl font-serif text-white tracking-tight">Tazelenme Üni.</h1>
+<p class="text-white/60 text-sm font-medium mt-1">Academic Portal</p>
+</div>
+<nav class="flex-1">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 px-6 py-4 border-l-4 border-[#1D9E75] text-[#86f8c9] font-bold bg-[#2d4f42]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span>Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white transition-colors hover:bg-[#2d4f42]" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Students</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white transition-colors hover:bg-[#2d4f42]" href="#">
+<span class="material-symbols-outlined">school</span>
+<span>Faculty</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white transition-colors hover:bg-[#2d4f42]" href="#">
+<span class="material-symbols-outlined">history_edu</span>
+<span>Attendance</span>
+</a>
+</li>
+</ul>
+</nav>
+<div class="mt-auto pt-8 border-t border-white/10">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white transition-colors hover:bg-[#2d4f42]" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-6 py-4 text-white/80 hover:text-white transition-colors hover:bg-[#2d4f42]" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Logout</span>
+</a>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-72 min-h-screen">
+<!-- Top App Bar (Desktop Only as per shell rules) -->
+<header class="hidden md:flex justify-between items-center w-full px-8 h-20 bg-[#fbf9f2]/80 backdrop-blur-md sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<span class="text-xl font-serif italic text-[#3b6756]">Academic Curator</span>
+</div>
+<div class="flex items-center gap-8">
+<nav class="flex gap-6">
+<a class="text-[#00694c] border-b-2 border-[#00694c] pb-1 font-medium" href="#">Semester</a>
+<a class="text-[#3b6756] hover:text-[#1D9E75] font-medium transition-colors" href="#">Reports</a>
+<a class="text-[#3b6756] hover:text-[#1D9E75] font-medium transition-colors" href="#">Faculty Board</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary cursor-pointer">notifications</span>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img alt="Administrator Profile" data-alt="close-up portrait of a sophisticated senior woman with gray hair smiling kindly, soft studio lighting, professional aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPSDQSLvq4HAYu5Yg_oGZNMrSaWaNFuo5GG8KQsCFb_-FnbaU4vN5oxVXLGFe0OrnXhubdedWb8sbbrCxnjFeYvbhA_2WWAkRdGdz0iKaCi-B_AGCfC03Sesg6gPbt7OzWjoOW0X6JpW4UjQlvi5DPSTv2JTSW6J6K8xr0ECLfcFGGrMzoSBbnQVIT08S-pge5e9ifuen1qkoHORT3btCreKogtmOuYGXeWCq8qxchMFykEPu4Qe26qvtVZHRHmCKitMjJUDyw"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Mobile Header (Identity) -->
+<div class="md:hidden pt-8 px-6 pb-2">
+<p class="text-secondary font-medium tracking-wide">HOŞ GELDİNİZ</p>
+<h2 class="text-4xl font-extrabold text-on-surface tracking-tight mt-1">Süreyya Hanım</h2>
+</div>
+<!-- Section: Today's Lesson (Breathing Grid Pattern) -->
+<section class="mt-8 px-6 md:px-12 max-w-4xl">
+<div class="mb-6">
+<h3 class="text-[2.75rem] font-bold text-on-surface leading-tight">Bugünkü Dersim</h3>
+</div>
+<!-- Main Lesson Card (Tactile/Large for Elderly) -->
+<div class="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/15 flex flex-col gap-6 shadow-[0_12px_32px_rgba(0,105,76,0.06)] relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16"></div>
+<div class="flex items-start justify-between relative z-10">
+<div class="flex flex-col gap-2">
+<span class="bg-primary-container text-on-primary-container text-sm font-bold px-3 py-1 rounded-full w-fit">CANLI DERS</span>
+<h4 class="text-3xl font-bold text-[#2C2C2A] mt-2">Müzik Teorisi</h4>
+<p class="text-xl font-medium text-secondary">10:00 – 11:30</p>
+</div>
+<div class="bg-secondary-fixed w-16 h-16 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">music_note</span>
+</div>
+</div>
+<div class="flex flex-col md:flex-row gap-4 mt-4">
+<button class="h-16 px-8 rounded-xl bg-gradient-to-br from-[#00694c] to-[#008560] text-white font-bold text-lg flex items-center justify-center gap-3 transition-transform active:scale-[0.98]">
+<span class="material-symbols-outlined">video_call</span>
+                        Derse Katıl
+                    </button>
+<button class="h-16 px-8 rounded-xl bg-surface-container-high text-on-surface font-bold text-lg flex items-center justify-center transition-transform active:scale-[0.98]">
+                        Ders Notları
+                    </button>
+</div>
+</div>
+</section>
+<!-- Section: Secondary Content (Asymmetric Bento) -->
+<section class="mt-12 px-6 md:px-12 max-w-4xl pb-12">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Archive/Materials -->
+<div class="bg-surface-container-low rounded-xl p-8 flex flex-col justify-between h-64 hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="flex justify-between items-start">
+<div class="w-14 h-14 bg-white rounded-full flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-3xl">inventory_2</span>
+</div>
+<span class="material-symbols-outlined text-secondary opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+</div>
+<div>
+<h5 class="text-2xl font-bold text-on-surface">Arşiv</h5>
+<p class="text-secondary mt-1">Geçmiş ders kayıtları ve materyaller</p>
+</div>
+</div>
+<!-- Faculty Contact -->
+<div class="bg-[#f0f9f6] rounded-xl p-8 flex flex-col justify-between h-64 border border-[#d3e7e0]/30 cursor-pointer">
+<div class="flex -space-x-4">
+<img alt="Faculty member" class="w-12 h-12 rounded-full border-4 border-white object-cover" data-alt="portrait of a middle-aged male professor with glasses and a kind expression, academic setting, soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8nohDe44PjRGcZ7-Ewn3GW8d8HQN7vGv1qhg0W8cAPIZWvUcIpxTdoQqBFuNmmv60fMp1mutQkpGv7_ySosQpDq4LJYo6BS5EcjGpD4dH0EAgbThW6WKLBT9u7EGqpt0QhHYEOnbxwWJTVGEjyOEcnvlE1Q9CdCB5YgeNu4meMJ8iJlkzYeYFybtpIeWWhMsxTk_inyj39vqDCHYU4_dDh3vSHwPnLh7vfUXI7jBsLD-K2YjdZMh5hCPgT5rLEjd9IkM7fqyQ"/>
+<img alt="Faculty member" class="w-12 h-12 rounded-full border-4 border-white object-cover" data-alt="portrait of a smiling female lecturer in her 50s, warm lighting, blurred library background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0EDnetg78paS5xjDxoS3vw1ExnV8gByPBaXXj_aEkgS2jFKqVSrep6evyQNcJ-QYyNz2A1W8Yuj1mB8VGkJ62mcLhfFD2lADrmTk5W908l_9W03YSwRK56BkcndsFqaSt74ptn5585qOvSbUkzg6qstf9uU4KojZ_08GBSPlljI5sPAvJGxn0--rIuqoNlNiVoPqXu1CDvvDKzIWwAMEYZRh73--K0uflaRw52NStbTC9QqZMI9V3hyQzxUXI1voS1RpHiUYd"/>
+<div class="w-12 h-12 rounded-full border-4 border-white bg-primary-fixed flex items-center justify-center text-xs font-bold text-on-primary-fixed">+4</div>
+</div>
+<div>
+<h5 class="text-2xl font-bold text-on-surface">Öğretmenlerim</h5>
+<p class="text-secondary mt-1">Akademik kadro ile iletişime geçin</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Mobile Bottom Navigation (Strict Shell Rules) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-surface/85 backdrop-blur-3xl flex items-center justify-around px-4 z-50">
+<a class="flex flex-col items-center gap-1 min-w-[72px]" href="#">
+<div class="bg-[#E1F5EE] w-16 h-10 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">home</span>
+</div>
+<span class="text-xs font-bold text-primary">Ana Sayfa</span>
+</a>
+<a class="flex flex-col items-center gap-1 min-w-[72px] text-secondary" href="#">
+<div class="w-16 h-10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">calendar_month</span>
+</div>
+<span class="text-xs font-medium">Program</span>
+</a>
+<a class="flex flex-col items-center gap-1 min-w-[72px] text-secondary" href="#">
+<div class="w-16 h-10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">person</span>
+</div>
+<span class="text-xs font-medium">Profil</span>
+</a>
+</nav>
+<!-- Floating Action Button (Suppressed based on context, but shown here as a 'Quick Help' for elderly) -->
+<button class="md:hidden fixed bottom-24 right-6 w-16 h-16 bg-primary-container text-white rounded-full shadow-lg flex items-center justify-center z-40 transition-transform active:scale-90">
+<span class="material-symbols-outlined text-3xl">help_outline</span>
+</button>
+</body></html>

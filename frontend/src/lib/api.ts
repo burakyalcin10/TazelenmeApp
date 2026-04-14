@@ -89,15 +89,27 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const auth = config?.auth ?? true;
   const retryOnAuthError = config?.retryOnAuthError ?? true;
-  const currentSession = getStoredSession();
   const headers = mergeHeaders(config?.headers, init?.headers);
 
   if (!headers.has("Content-Type") && !(init?.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
 
-  if (auth && currentSession?.accessToken) {
-    headers.set("Authorization", `Bearer ${currentSession.accessToken}`);
+  // Client-side: proxy route token'ı server cookie'den okuyarak ekler.
+  // Server-side: doğrudan backend çağrısı — token'ı cookie'den oku.
+  if (auth && typeof window === "undefined") {
+    // Server-side direct call — token'ı stored session'dan al
+    const currentSession = getStoredSession();
+    if (currentSession?.accessToken) {
+      headers.set("Authorization", `Bearer ${currentSession.accessToken}`);
+    }
+  } else if (auth && typeof window !== "undefined") {
+    // Client-side: cookie'den okunabildiyse ekle, okunamazsa proxy zaten ekleyecek
+    const currentSession = getStoredSession();
+    if (currentSession?.accessToken) {
+      headers.set("Authorization", `Bearer ${currentSession.accessToken}`);
+    }
+    // Cookie okunamazsa da sorun yok — proxy server-side cookie'den ekler
   }
 
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
