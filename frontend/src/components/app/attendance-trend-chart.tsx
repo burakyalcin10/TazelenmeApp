@@ -15,31 +15,37 @@ export function AttendanceTrendChart({
   }[];
 }) {
   return (
-    <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-      <CardHeader>
-        <CardTitle className="text-2xl font-semibold">{title}</CardTitle>
-        <p className="text-base leading-7 text-muted-foreground">{description}</p>
-      </CardHeader>
-      <CardContent className="space-y-5">
+    <div className="surface-card">
+      <div className="mb-6">
+        <h3 className="font-serif text-2xl text-forest">{title}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div className="space-y-4">
         {data.length === 0 ? (
-          <div className="rounded-[1.5rem] bg-muted/60 px-5 py-6 text-base text-muted-foreground">
-            Grafik gosterimi icin once bir ders secin veya bu ders icin oturum olusturun.
+          <div className="rounded-xl bg-muted/60 px-5 py-6 text-sm text-muted-foreground">
+            Grafik gösterimi için önce bir ders seçin veya bu ders için oturum oluşturun.
           </div>
         ) : (
           data.map((item) => (
             <div key={item.weekNumber} className="space-y-2">
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="text-base font-semibold">Hafta {item.weekNumber}</div>
-                  <div className="truncate text-sm text-muted-foreground">{item.classroom}</div>
+                  <div className="text-sm font-semibold text-foreground">
+                    Hafta {item.weekNumber}
+                  </div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {item.classroom}
+                  </div>
                 </div>
-                <div className="text-lg font-semibold">{item.attendanceRate}%</div>
+                <div className="font-serif text-lg font-semibold text-forest">
+                  {item.attendanceRate}%
+                </div>
               </div>
-              <div className="h-4 overflow-hidden rounded-full bg-muted">
+              <div className="h-3 overflow-hidden rounded-full bg-secondary">
                 <div
                   className={cn(
-                    "h-full rounded-full transition-all",
-                    item.attendanceRate >= 70 ? "bg-emerald-500" : "bg-amber-500"
+                    "h-full rounded-full transition-all duration-500",
+                    item.attendanceRate >= 70 ? "bg-primary" : "bg-amber"
                   )}
                   style={{ width: `${Math.max(item.attendanceRate, 8)}%` }}
                 />
@@ -47,7 +53,7 @@ export function AttendanceTrendChart({
             </div>
           ))
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

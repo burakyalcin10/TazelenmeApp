@@ -1,29 +1,28 @@
 import type { Metadata } from "next";
-import { Fira_Mono, Plus_Jakarta_Sans, Sora } from "next/font/google";
+import { DM_Sans, Playfair_Display } from "next/font/google";
 
-import { Providers } from "@/components/app/providers";
+import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-const sora = Sora({
-  variable: "--font-sora",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
-});
-
-const firaMono = Fira_Mono({
-  variable: "--font-fira-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "TazelenmeApp Admin Panel",
-  description: "Tazelenme Universitesi icin ogrenci, yoklama ve materyal yonetim paneli.",
+  title: "Tazelenme Üniversitesi | Akademik Panel",
+  description:
+    "Tazelenme Üniversitesi öğrenci bilgi sistemi. Öğrenci, yoklama, ders ve materyal yönetim paneli.",
 };
 
 export default function RootLayout({
@@ -32,11 +31,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" suppressHydrationWarning>
+    <html lang="tr">
       <body
-        className={`${plusJakartaSans.variable} ${sora.variable} ${firaMono.variable} min-h-screen antialiased`}
+        className={`${playfairDisplay.variable} ${dmSans.variable} min-h-screen antialiased`}
       >
-        <Providers>{children}</Providers>
+        {children}
+        <Toaster richColors closeButton position="top-right" />
       </body>
     </html>
   );

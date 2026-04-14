@@ -1,154 +1,138 @@
 "use client";
 
-import { FormEvent, Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useActionState, useEffect, useRef } from "react";
 import { KeyRound, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
-import { useAuth } from "@/components/app/auth-provider";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormField } from "@/components/app/form-field";
-import { Input } from "@/components/ui/input";
+import { loginAction } from "@/lib/actions/auth";
 
-function LoginPageContent() {
-  const { login, status } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [tcNo, setTcNo] = useState("");
-  const [pin, setPin] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+export default function LoginPage() {
+  const [state, formAction, isPending] = useActionState(loginAction, null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (status === "authenticated") {
-      router.replace(searchParams.get("next") || "/admin");
+    if (state?.error) {
+      toast.error(state.error);
     }
-  }, [router, searchParams, status]);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (tcNo.length !== 11) {
-      toast.error("TC kimlik numarasi 11 haneli olmalidir.");
-      return;
-    }
-
-    if (pin.length !== 4) {
-      toast.error("PIN kodu 4 haneli olmalidir.");
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      await login(tcNo, pin);
-      toast.success("Giris basarili. Admin paneline yonlendiriliyorsunuz.");
-      router.replace(searchParams.get("next") || "/admin");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Giris yapilirken bir sorun olustu.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  }, [state]);
 
   return (
-    <div className="panel-shell flex min-h-screen items-center justify-center">
-      <div className="grid w-full max-w-6xl gap-6 lg:grid-cols-[1.12fr_0.88fr]">
-        <div className="relative overflow-hidden rounded-[2.8rem] bg-[linear-gradient(145deg,color-mix(in_oklab,var(--primary)_92%,white),color-mix(in_oklab,var(--primary)_72%,#0d4d72))] p-8 text-primary-foreground shadow-[0_34px_80px_-42px_rgba(29,61,93,0.55)]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.24),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.12),transparent_28%)]" />
-          <div className="flex h-full flex-col justify-between gap-10">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-3 rounded-full border border-white/16 bg-white/12 px-4 py-2 text-sm font-semibold backdrop-blur-sm">
-                <ShieldCheck className="size-4" />
-                Guvenli Yonetici Girisi
-              </div>
-              <h1 className="max-w-2xl text-balance-soft text-4xl font-semibold leading-tight sm:text-[3.4rem]">
-                Ogrenci ve ders yonetimini net, sakin ve modern bir panelle yonetin.
-              </h1>
-              <p className="max-w-2xl text-lg leading-8 text-primary-foreground/86">
-                Yasli kullanicilar ve koordinasyon ekibi icin hazirlanan bu deneyimde buyuk hedef alanlari,
-                guclu kontrast ve anlasilir onay akislari bulunur.
-              </p>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="grid w-full max-w-5xl gap-0 overflow-hidden rounded-2xl shadow-[0_24px_60px_-20px_rgba(15,61,46,0.18)] lg:grid-cols-[1.1fr_0.9fr]">
+        {/* Sol Panel — Deep Forest */}
+        <div className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0F3D2E] to-[#1a5240] p-10 text-white lg:p-12">
+          {/* Dekoratif daireler */}
+          <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-[#1D9E75]/20" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 size-64 rounded-full bg-[#1D9E75]/10" />
+
+          <div className="relative z-10 space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-sm">
+              <ShieldCheck className="size-4" />
+              Güvenli Yönetici Girişi
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-[2rem] border border-white/16 bg-white/12 p-5 backdrop-blur-sm">
-                <div className="text-3xl font-semibold">Rahat</div>
-                <div className="mt-2 text-base leading-7 text-primary-foreground/85">
-                  Butonlar, form alanlari ve metinler rahat kullanima gore olceklendi.
-                </div>
-              </div>
-              <div className="rounded-[2rem] border border-white/16 bg-white/12 p-5 backdrop-blur-sm">
-                <div className="text-3xl font-semibold">Onayli</div>
-                <div className="mt-2 text-base leading-7 text-primary-foreground/85">
-                  Kritik islemler ikinci onay almadan tamamlanmaz.
-                </div>
-              </div>
+            <h1 className="max-w-md font-serif text-4xl font-bold leading-tight lg:text-5xl">
+              Akademik yönetimi net ve sakin bir panelle yürütün.
+            </h1>
+
+            <p className="max-w-md text-base leading-7 text-white/70">
+              Yaşlı kullanıcılar ve koordinasyon ekibi için hazırlanan bu
+              deneyimde güçlü kontrast ve anlaşılır onay akışları bulunur.
+            </p>
+          </div>
+
+          <div className="relative z-10 mt-12 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+              <div className="text-2xl font-bold">Rahat</div>
+              <p className="mt-2 text-sm leading-6 text-white/65">
+                Butonlar ve metinler rahat kullanıma göre ölçeklendi.
+              </p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+              <div className="text-2xl font-bold">Onaylı</div>
+              <p className="mt-2 text-sm leading-6 text-white/65">
+                Kritik işlemler ikinci onay almadan tamamlanmaz.
+              </p>
             </div>
           </div>
         </div>
 
-        <Card className="rounded-[2.8rem] border-0 bg-white/92 shadow-[0_34px_80px_-48px_rgba(34,62,97,0.4)]">
-          <CardHeader className="space-y-3 p-8">
-            <div className="flex size-16 items-center justify-center rounded-[1.4rem] bg-primary/10 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
-              <KeyRound className="size-8" />
+        {/* Sağ Panel — Login Formu */}
+        <div className="flex flex-col justify-center bg-white p-10 lg:p-12">
+          <div className="mb-8 space-y-4">
+            <div className="flex size-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <KeyRound className="size-7" />
             </div>
-            <div className="panel-label">Yonetici Girisi</div>
-            <CardTitle className="text-3xl font-semibold sm:text-[2.2rem]">Admin paneline giris yapin</CardTitle>
-            <p className="text-lg leading-8 text-muted-foreground">
-              TC kimlik numaraniz ve 4 haneli PIN kodunuz ile giris yapabilirsiniz.
+            <div className="panel-label">Yönetici Girişi</div>
+            <h2 className="font-serif text-3xl font-bold text-foreground">
+              Admin paneline giriş yapın
+            </h2>
+            <p className="text-base leading-7 text-muted-foreground">
+              TC kimlik numaranız ve 4 haneli PIN kodunuz ile giriş
+              yapabilirsiniz.
             </p>
-          </CardHeader>
-          <CardContent className="p-8 pt-0">
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <FormField
-                label="TC Kimlik Numarasi"
-                description="11 haneli numaranizi arada bosluk birakmadan girin."
+          </div>
+
+          <form ref={formRef} action={formAction} className="space-y-6">
+            {/* TC No */}
+            <div className="space-y-2">
+              <label
                 htmlFor="tcNo"
+                className="text-sm font-semibold text-foreground"
               >
-                <Input
-                  id="tcNo"
-                  inputMode="numeric"
-                  maxLength={11}
-                  autoComplete="username"
-                  placeholder="11111111111"
-                  value={tcNo}
-                  onChange={(event) => setTcNo(event.target.value.replace(/\D/g, "").slice(0, 11))}
-                />
-              </FormField>
+                TC Kimlik Numarası
+              </label>
+              <p className="text-xs text-muted-foreground">
+                11 haneli numaranızı arada boşluk bırakmadan girin.
+              </p>
+              <input
+                id="tcNo"
+                name="tcNo"
+                type="text"
+                inputMode="numeric"
+                maxLength={11}
+                autoComplete="username"
+                placeholder="11111111111"
+                required
+                className="h-12 w-full rounded-xl border border-border bg-secondary/50 px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
+              />
+            </div>
 
-              <FormField
-                label="PIN Kodu"
-                description="Sisteme ait 4 haneli yonetici PIN kodunuzu kullanin."
+            {/* PIN */}
+            <div className="space-y-2">
+              <label
                 htmlFor="pin"
+                className="text-sm font-semibold text-foreground"
               >
-                <Input
-                  id="pin"
-                  type="password"
-                  inputMode="numeric"
-                  maxLength={4}
-                  autoComplete="current-password"
-                  placeholder="****"
-                  value={pin}
-                  onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 4))}
-                />
-              </FormField>
+                PIN Kodu
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Sisteme ait 4 haneli yönetici PIN kodunuzu kullanın.
+              </p>
+              <input
+                id="pin"
+                name="pin"
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                autoComplete="current-password"
+                placeholder="****"
+                required
+                className="h-12 w-full rounded-xl border border-border bg-secondary/50 px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
+              />
+            </div>
 
-              <Button className="w-full" size="xl" type="submit" disabled={submitting}>
-                {submitting ? "Giris yapiliyor..." : "Panele giris yap"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isPending}
+              className="flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-primary to-[#008560] font-bold text-white transition-all hover:shadow-lg hover:shadow-primary/20 disabled:opacity-60"
+            >
+              {isPending ? "Giriş yapılıyor..." : "Panele giriş yap"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="panel-shell min-h-screen bg-background" />}>
-      <LoginPageContent />
-    </Suspense>
   );
 }

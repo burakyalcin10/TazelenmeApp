@@ -1,14 +1,13 @@
-import { AdminGuard } from "@/components/app/admin-guard";
+import { verifyAdminSession } from "@/components/app/admin-guard";
 import { AdminShell } from "@/components/app/admin-shell";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <AdminGuard>
-      <AdminShell>{children}</AdminShell>
-    </AdminGuard>
-  );
+  // Server-side oturum doğrulama — geçersizse /login'e redirect
+  const user = await verifyAdminSession();
+
+  return <AdminShell user={user}>{children}</AdminShell>;
 }

@@ -1,33 +1,48 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { clearServerSession, getServerSession } from "@/lib/session";
+import type { AdminUser } from "@/lib/types";
+import { getApiBaseUrl } from "@/lib/env";
 
-import { useAuth } from "@/components/app/auth-provider";
-import { LoadingBlock } from "@/components/app/loading-block";
+/**
+ * Server-side admin oturum doğrulaması.
+ * Geçerli oturum yoksa /login'e yönlendirir.
+ * Geçerli oturum varsa user bilgisini döner.
+ */
+export async function verifyAdminSession(): Promise<AdminUser> {
+  const session = await getServerSession();
 
-export function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { status, user } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
-    }
-
-    if (status === "authenticated" && user?.role !== "ADMIN") {
-      router.replace("/login");
-    }
-  }, [pathname, router, status, user?.role]);
-
-  if (status === "loading") {
-    return <LoadingBlock className="min-h-screen" description="Oturum bilgileriniz kontrol ediliyor..." />;
+  if (!session?.accessToken) {
+    redirect("/login");
   }
 
-  if (status !== "authenticated" || user?.role !== "ADMIN") {
-    return <LoadingBlock className="min-h-screen" description="Guvenli alana yonlendiriliyorsunuz..." />;
-  }
+  // /me ile kullanıcı doğrulama
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/v1/auth/me`, {
+      headers: { Authorization: `Bearer ${session.accessToken}` },
+      cache: "no-store",
+    });
 
-  return <>{children}</>;
+    if (!res.ok) {
+      // Token geçersiz — cookie temizle
+      await clearServerSession();
+      redirect("/login");
+    }
+
+    const payload = (await res.json()) as { data?: AdminUser };
+
+    if (!payload.data || payload.data.role !== "ADMIN") {
+      await clearServerSession();
+      redirect("/login");
+    }
+
+    return payload.data;
+  } catch {
+    // API erişilemiyorsa, cookie'deki kullanıcı bilgisini kullan (fallback)
+    if (session.user && session.user.role === "ADMIN") {
+      return session.user;
+    }
+    await clearServerSession();
+    redirect("/login");
+  }
 }

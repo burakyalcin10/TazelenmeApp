@@ -1,18 +1,8 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { getServerSession } from "@/lib/session";
 
-import { LoadingBlock } from "@/components/app/loading-block";
-import { getStoredSession } from "@/lib/session";
-
-export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const session = getStoredSession();
-    router.replace(session?.accessToken ? "/admin" : "/login");
-  }, [router]);
-
-  return <LoadingBlock className="min-h-screen" description="Panel hazirlaniyor..." />;
+export default async function HomePage() {
+  const session = await getServerSession();
+  redirect(session?.accessToken ? "/admin" : "/login");
 }
