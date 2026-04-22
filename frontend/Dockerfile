@@ -6,6 +6,7 @@ RUN npm ci
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DOCKER_BUILD=1
 RUN npm run build
 
 # Production stage
