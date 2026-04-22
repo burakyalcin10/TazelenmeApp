@@ -6,7 +6,7 @@ TazelenmeApp, 60+ yas grubunun egitim aldigi Tazelenme Universitesi icin tasarla
 
 ## Proje Durumu
 
-Bu repo su anda sunuma uygun bir `Sprint 4 Admin Panel MVP` durumundadir.
+Bu repo su anda sunuma uygun bir `Sprint 4 Complete` durumundadir.
 
 Tamamlanan ana kapsam:
 
@@ -14,7 +14,7 @@ Tamamlanan ana kapsam:
 - Sprint 2: ogrenci, kart ve yoklama cekirdek backend akisleri
 - Sprint 3: classroom/course/session/material/report/notification backend kapsami
 - Sprint 4 Epic 7: admin panel frontend
-  - login
+  - unified login (admin + ogrenci ayni ekrandan)
   - dashboard
   - ogrenci yonetimi
   - ogrenci detay
@@ -22,17 +22,24 @@ Tamamlanan ana kapsam:
   - ders ve materyal yonetimi
   - kart yonetimi
   - CSV import/export
+- Sprint 4 Epic 8: ogrenci PWA (8.1-8.6)
+  - PWA manifest + install destegi
+  - Ana ekran: buyuk butonlar + istatistikler
+  - Derslerim & devamsizligim sayfasi
+  - Materyal sayfasi (PDF, Video, Link)
+  - A11Y: 60+ yas grubu icin optimize (18px font, 48px touch target)
+  - Premium mobile-first tasarim
 
 Henuz backlog'da kalan ana alan:
 
-- Sprint 4 Epic 8: ogrenci PWA
+- 8.7: Offline materyal cache (Deferred)
 - Sprint 5: IoT firmware, test ve dagitim hardening
 
 ## Admin Panelde Neler Var
 
 Mevcut admin panel asagidaki akislari destekler:
 
-- Admin login ve token refresh akisi
+- Unified login: admin ve ogrenci ayni ekrandan giris yapar, role-based redirect
 - Dashboard KPI kartlari, bildirimler, yaklasan oturumlar ve katilim grafigi
 - Ogrenci listeleme, olusturma, guncelleme, pasif yapma
 - Ogrenci detayinda attendance, enrollment ve kart gecmisi
@@ -43,6 +50,16 @@ Mevcut admin panel asagidaki akislari destekler:
 - Ders, sinif, session, enrollment ve materyal yonetimi
 - Gecti-kaldi raporunu CSV olarak disa aktarma
 - Kart atama ve kart durumu guncelleme
+
+## Ogrenci PWA'da Neler Var
+
+Ogrenci portali 60+ yas grubu icin optimize edilmis mobile-first tasarimla:
+
+- Ana ekran: istatistik kartlari, risk uyarisi, buyuk navigasyon butonlari
+- Derslerim & devamsizligim: ders bazli katilim orani, progress bar, risk badge
+- Materyal sayfasi: PDF indirme, video ve link acma, ders filtresi
+- Premium tasarim: gradient header, glassmorphism bottom nav, animasyonlar
+- A11Y: minimum 18px font, 48px touch target, belirgin focus ring
 
 ## Kisa Mimari
 
@@ -69,16 +86,24 @@ Frontend (Next.js App Router + shadcn/ui)
 
 ## Demo Bilgileri
 
-Sunum icin kullanabilecegin admin giris bilgisi:
+### Canli Demo (Gecici Test)
 
-- Panel: `http://localhost:3000/login`
+- Frontend: `https://tazelenme-app.vercel.app`
+- Backend: `https://tazelenme-backend.onrender.com/api/health`
+
+> Not: Render free tier soguyan serviste ilk istek 10-30 saniye surebilir.
+
+### Admin Girisi
+
 - TC No: `11111111111`
 - PIN: `1234`
 
-Not:
+### Ornek Ogrenci Girisi
 
-- Demo verisi veritabanina daha once yuklenmis olmalidir.
-- Bu bilgiler seed/demonstrasyon amaclidir.
+- TC No: `22222222221`
+- PIN: `4921`
+
+> Bu bilgiler seed/demonstrasyon amaclidir.
 
 ## Hizli Baslangic
 

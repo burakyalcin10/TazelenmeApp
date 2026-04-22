@@ -107,7 +107,7 @@
 
 ## Sprint 4 - Frontend (Admin Panel & PWA)
 
-> Guncel not: Sprint 4 kapsaminda `Epic 7 - Admin Panel` tamamlandi. `Epic 8 - Ogrenci PWA` bir sonraki asamaya birakildi.
+> Guncel not: Sprint 4 tamamen tamamlandi. `Epic 7 - Admin Panel` ve `Epic 8 - Ogrenci PWA` (8.1-8.6) Done. 8.7 Offline cache sonraki sprinte birakildi. Unified login (admin + ogrenci tek ekrandan role-based redirect) eklendi. Gecici test deploymentu Render + Vercel uzerinde aktif.
 
 ### Epic 7: Koordinator Dashboard
 
@@ -131,13 +131,13 @@
 
 | # | Gorev | Oncelik | SP | Durum | Bagimlilik |
 |---|-------|---------|----|-------|------------|
-| 8.1 | PWA kurulumu | Kritik | 3 | Backlog | 1.3 |
-| 8.2 | Buyuk numpad ile giris ekrani | Kritik | 3 | Backlog | 8.1, 2.1 |
-| 8.3 | Ana ekran: buyuk butonlar | Kritik | 2 | Backlog | 8.1 |
-| 8.4 | Derslerim ve devamsizligim sayfasi | Yuksek | 3 | Backlog | 8.3, 6.6 |
-| 8.5 | Ders notlarim / materyal sayfasi | Yuksek | 2 | Backlog | 8.3, 6.6 |
-| 8.6 | A11Y: font, kontrast, focus | Kritik | 3 | Backlog | 8.2, 8.3, 8.4, 8.5 |
-| 8.7 | `[YENI]` Offline materyal cache | Dusuk | 3 | Backlog | 8.5 |
+| 8.1 | PWA kurulumu | Kritik | 3 | Done | 1.3 |
+| 8.2 | Buyuk numpad ile giris ekrani | Kritik | 3 | Done | 8.1, 2.1 |
+| 8.3 | Ana ekran: buyuk butonlar | Kritik | 2 | Done | 8.1 |
+| 8.4 | Derslerim ve devamsizligim sayfasi | Yuksek | 3 | Done | 8.3, 6.6 |
+| 8.5 | Ders notlarim / materyal sayfasi | Yuksek | 2 | Done | 8.3, 6.6 |
+| 8.6 | A11Y: font, kontrast, focus | Kritik | 3 | Done | 8.2, 8.3, 8.4, 8.5 |
+| 8.7 | `[YENI]` Offline materyal cache | Dusuk | 3 | Deferred | 8.5 |
 
 ---
 
@@ -191,7 +191,7 @@ gantt
 
     section Sprint 4
     Admin Panel (Epic 7)         :done, s4e7, after s3e5, 14d
-    PWA (Epic 8)                 :s4e8, after s3e6, 10d
+    PWA (Epic 8)                 :done, s4e8, after s3e6, 10d
 
     section Sprint 5
     IoT (Epic 9)                 :s5e9, after s4e7, 7d
@@ -211,7 +211,7 @@ gantt
 | 5 - Otomasyon | ~13 SP | Sprint 3 Done |
 | 6 - Mini-LMS | ~17 SP | Sprint 3 Done |
 | 7 - Admin Panel | ~43 SP | Sprint 4 Done |
-| 8 - PWA | ~19 SP | Sprint 4 Backlog |
+| 8 - PWA | ~16 SP | Sprint 4 Done (8.7 Deferred) |
 | 9 - IoT | ~11 SP | Sprint 5 |
 | 10 - Test & Deploy | ~27 SP | Sprint 5 |
 | **Toplam** | **~204 SP** | **~11 hafta** |
@@ -310,3 +310,26 @@ gantt
 | T2 | Auth, attendance, reports, notifications smoke test | 00:59 |
 | T3 | Manuel yoklama icin enrollment guard | 01:05 |
 | T4 | Classroom API ile bootstrap eksiginin giderilmesi | 01:05 |
+
+### 2026-04-22 - Epic 8: Ogrenci PWA + Unified Login
+
+| # | Gorev | Tamamlanma |
+|---|-------|------------|
+| U.1 | Unified login: admin + ogrenci tek ekrandan role-based redirect | 14:14 |
+| U.2 | Middleware: /student/* koruma + cross-role redirect | 14:14 |
+| 8.1 | PWA manifest + meta tags + app icon | 14:54 |
+| 8.3 | Student ana ekran: buyuk butonlar + istatistikler | 15:00 |
+| 8.4 | Derslerim & devamsizligim sayfasi (progress bar, risk badge) | 15:00 |
+| 8.5 | Materyal sayfasi (ders filtresi, PDF/Video/Link kartlari) | 14:53 |
+| 8.6 | A11Y: 18px font, 48px touch target, focus ring, kontrast | 15:00 |
+| 8.2 | Student shell: mobile-first layout + premium bottom nav | 15:30 |
+| R.1 | Premium UI redesign: gradient header, stat kartlari, animasyonlar | 18:08 |
+
+### 2026-04-22 - Deployment (Gecici Test)
+
+| # | Gorev | Tamamlanma |
+|---|-------|------------|
+| D.1 | Backend: Render Web Service (Docker) deploy | 21:52 |
+| D.2 | Database: Render PostgreSQL kurulumu + migration | 21:52 |
+| D.3 | Frontend: Vercel deploy (Next.js) | 22:32 |
+| D.4 | SSL fix, CORS coklu origin, seed idempotency guclendirilmesi | 21:59 |
