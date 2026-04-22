@@ -8,12 +8,11 @@ import {
   Download,
   ArrowLeft,
   BookOpen,
-  Filter,
+  Folder,
 } from "lucide-react";
 import Link from "next/link";
 
 import { apiRequest } from "@/lib/api";
-import { getStoredSession } from "@/lib/session";
 import { getApiBaseUrl } from "@/lib/env";
 
 interface MaterialItem {
@@ -39,20 +38,23 @@ const typeConfig = {
   PDF: {
     icon: FileText,
     label: "PDF Doküman",
-    color: "bg-red-50 text-red-600",
-    borderColor: "border-red-100",
+    gradient: "from-rose-50 to-red-50",
+    iconColor: "text-red-500",
+    ringColor: "ring-red-100 hover:ring-red-200",
   },
   VIDEO: {
     icon: Video,
     label: "Video",
-    color: "bg-blue-50 text-blue-600",
-    borderColor: "border-blue-100",
+    gradient: "from-blue-50 to-indigo-50",
+    iconColor: "text-blue-500",
+    ringColor: "ring-blue-100 hover:ring-blue-200",
   },
   LINK: {
     icon: ExternalLink,
     label: "Bağlantı",
-    color: "bg-purple-50 text-purple-600",
-    borderColor: "border-purple-100",
+    gradient: "from-violet-50 to-purple-50",
+    iconColor: "text-violet-500",
+    ringColor: "ring-violet-100 hover:ring-violet-200",
   },
 };
 
@@ -67,8 +69,7 @@ function formatDate(dateStr: string): string {
   try {
     return new Intl.DateTimeFormat("tr-TR", {
       day: "numeric",
-      month: "long",
-      year: "numeric",
+      month: "short",
     }).format(new Date(dateStr));
   } catch {
     return dateStr;
@@ -100,17 +101,9 @@ export default function StudentMaterialsPage() {
 
   function handleMaterialClick(material: MaterialItem) {
     if (material.type === "PDF") {
-      // Authenticated download
-      const session = getStoredSession();
       const url = `${getApiBaseUrl()}${material.downloadUrl}`;
-      const link = document.createElement("a");
-      link.href = url;
-      link.target = "_blank";
-      // For authenticated download, we open in new tab
-      // The proxy will handle auth
       window.open(url, "_blank");
     } else {
-      // VIDEO or LINK — open external URL
       window.open(material.url, "_blank", "noopener,noreferrer");
     }
   }
@@ -131,7 +124,7 @@ export default function StudentMaterialsPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/student"
-            className="flex size-10 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:bg-secondary/80"
+            className="flex size-11 items-center justify-center rounded-xl bg-white text-foreground shadow-sm ring-1 ring-black/[0.03] transition-colors hover:bg-secondary"
             aria-label="Geri dön"
           >
             <ArrowLeft className="size-5" />
@@ -140,11 +133,11 @@ export default function StudentMaterialsPage() {
             Ders Materyalleri
           </h1>
         </div>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-28 animate-pulse rounded-2xl bg-secondary"
+              className="h-24 animate-pulse rounded-2xl bg-white shadow-sm"
             />
           ))}
         </div>
@@ -158,7 +151,7 @@ export default function StudentMaterialsPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/student"
-            className="flex size-10 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:bg-secondary/80"
+            className="flex size-11 items-center justify-center rounded-xl bg-white text-foreground shadow-sm ring-1 ring-black/[0.03] transition-colors hover:bg-secondary"
             aria-label="Geri dön"
           >
             <ArrowLeft className="size-5" />
@@ -167,9 +160,9 @@ export default function StudentMaterialsPage() {
             Ders Materyalleri
           </h1>
         </div>
-        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-center">
-          <FileText className="mx-auto size-10 text-destructive" />
-          <p className="mt-3 text-lg font-semibold text-destructive">{error}</p>
+        <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-black/[0.03]">
+          <FileText className="mx-auto size-12 text-red-400" />
+          <p className="mt-4 text-lg font-bold text-foreground">{error}</p>
         </div>
       </div>
     );
@@ -177,11 +170,11 @@ export default function StudentMaterialsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Başlık */}
+      {/* Header */}
       <div className="flex items-center gap-3">
         <Link
           href="/student"
-          className="flex size-10 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:bg-secondary/80"
+          className="flex size-11 items-center justify-center rounded-xl bg-white text-foreground shadow-sm ring-1 ring-black/[0.03] transition-colors hover:bg-secondary"
           aria-label="Geri dön"
         >
           <ArrowLeft className="size-5" />
@@ -191,50 +184,59 @@ export default function StudentMaterialsPage() {
             Ders Materyalleri
           </h1>
           <p className="text-sm text-muted-foreground">
-            {totalMaterials} materyal
+            {totalMaterials} materyal · {courses.length} ders
           </p>
         </div>
       </div>
 
-      {/* Ders filtresi */}
+      {/* ─── Course Filter Pills ─── */}
       {courses.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <Filter className="size-4 shrink-0 text-muted-foreground" />
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => setSelectedCourse("all")}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${
               selectedCourse === "all"
-                ? "bg-primary text-white"
-                : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                ? "bg-gradient-to-r from-primary to-[#008560] text-white shadow-md shadow-primary/20"
+                : "bg-white text-muted-foreground shadow-sm ring-1 ring-black/[0.03] hover:bg-gray-50"
             }`}
           >
+            <Folder className="size-3.5" />
             Tümü
           </button>
           {courses.map((c) => (
             <button
               key={c.courseId}
               onClick={() => setSelectedCourse(c.courseId)}
-              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${
                 selectedCourse === c.courseId
-                  ? "bg-primary text-white"
-                  : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                  ? "bg-gradient-to-r from-primary to-[#008560] text-white shadow-md shadow-primary/20"
+                  : "bg-white text-muted-foreground shadow-sm ring-1 ring-black/[0.03] hover:bg-gray-50"
               }`}
             >
               {c.courseName}
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                  selectedCourse === c.courseId
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {c.materialCount}
+              </span>
             </button>
           ))}
         </div>
       )}
 
-      {/* Materyal listesi */}
-      {filteredCourses.length === 0 || totalMaterials === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-8 text-center">
-          <BookOpen className="mx-auto size-12 text-muted-foreground" />
-          <p className="mt-4 text-lg font-semibold text-foreground">
+      {/* ─── Materials List ─── */}
+      {totalMaterials === 0 ? (
+        <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-black/[0.03]">
+          <BookOpen className="mx-auto size-14 text-muted-foreground/40" />
+          <p className="mt-4 text-lg font-bold text-foreground">
             Materyal bulunamadı
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Bu dersler için henüz materyal yüklenmemiş.
+            Seçilen dersler için henüz materyal yüklenmemiş.
           </p>
         </div>
       ) : (
@@ -244,18 +246,21 @@ export default function StudentMaterialsPage() {
 
             return (
               <div key={course.courseId} className="space-y-3">
-                {/* Ders başlığı */}
-                <div className="flex items-center gap-2">
-                  <BookOpen className="size-4 text-primary" />
-                  <h2 className="text-base font-bold text-foreground">
+                {/* Course section header */}
+                <div className="flex items-center gap-2 px-1">
+                  <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
+                    <BookOpen className="size-3.5 text-primary" />
+                  </div>
+                  <h2 className="text-sm font-bold text-foreground">
                     {course.courseName}
                   </h2>
-                  <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
-                    {course.materialCount}
+                  <div className="h-px flex-1 bg-border/50" />
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {course.materialCount} dosya
                   </span>
                 </div>
 
-                {/* Materyal kartları */}
+                {/* Material cards */}
                 {course.materials.map((material) => {
                   const config = typeConfig[material.type];
                   const Icon = config.icon;
@@ -264,34 +269,34 @@ export default function StudentMaterialsPage() {
                     <button
                       key={material.id}
                       onClick={() => handleMaterialClick(material)}
-                      className={`flex w-full items-center gap-4 rounded-2xl border-2 bg-card p-5 text-left transition-all duration-200 hover:shadow-md active:scale-[0.98] ${config.borderColor}`}
+                      className={`group flex w-full items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm ring-1 transition-all duration-200 hover:shadow-md active:scale-[0.98] ${config.ringColor}`}
                     >
                       <div
-                        className={`flex size-14 shrink-0 items-center justify-center rounded-xl ${config.color}`}
+                        className={`flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${config.gradient}`}
                       >
-                        <Icon className="size-7" />
+                        <Icon className={`size-6 ${config.iconColor}`} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-bold text-foreground truncate">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-base font-bold text-foreground">
                           {material.title}
                         </h3>
                         <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="font-medium">{config.label}</span>
+                          <span className="font-semibold">{config.label}</span>
                           {material.fileSize && (
                             <>
-                              <span>•</span>
+                              <span className="text-border">·</span>
                               <span>{formatFileSize(material.fileSize)}</span>
                             </>
                           )}
-                          <span>•</span>
+                          <span className="text-border">·</span>
                           <span>{formatDate(material.uploadedAt)}</span>
                         </div>
                       </div>
-                      <div className="shrink-0 text-muted-foreground">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
                         {material.type === "PDF" ? (
-                          <Download className="size-5" />
+                          <Download className="size-4" />
                         ) : (
-                          <ExternalLink className="size-5" />
+                          <ExternalLink className="size-4" />
                         )}
                       </div>
                     </button>
