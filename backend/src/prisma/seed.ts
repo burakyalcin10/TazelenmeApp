@@ -9,21 +9,32 @@ import { encryptField, hashForLookup } from '../utils/encryption';
  * 10 öğrenci, 2 koordinatör, 3 ders, 2 sınıf, haftalık yoklama
  */
 async function main() {
-  // ── İdempotent koruma: zaten seed edilmişse atla ──
+  // ── İdempotent koruma: hem admin hem classroom kontrolü ──
   const existingAdmin = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
   if (existingAdmin) {
     logger.info('⏭️  Seed atlandı: Veriler zaten mevcut (admin kullanıcı bulundu).');
     return;
   }
 
+  // Eğer classroom'lar kısmen yazılmışsa sil ve baştan yaz
+  const existingClassrooms = await prisma.classroom.count();
+  if (existingClassrooms > 0) {
+    logger.info('🧹 Kısmi seed temizleniyor...');
+    await prisma.classroom.deleteMany();
+  }
+
   logger.info('🌱 Seed verileri yükleniyor...');
 
   // ── 1. Sınıflar (Classroom) ──
-  const amfi1 = await prisma.classroom.create({
-    data: { name: 'Amfi 1', code: 'AMFI_1', capacity: 200 },
+  const amfi1 = await prisma.classroom.upsert({
+    where: { code: 'AMFI_1' },
+    update: {},
+    create: { name: 'Amfi 1', code: 'AMFI_1', capacity: 200 },
   });
-  const sinifB201 = await prisma.classroom.create({
-    data: { name: 'Sınıf B-201', code: 'SINIF_B201', capacity: 40 },
+  const sinifB201 = await prisma.classroom.upsert({
+    where: { code: 'SINIF_B201' },
+    update: {},
+    create: { name: 'Sınıf B-201', code: 'SINIF_B201', capacity: 40 },
   });
 
   logger.info(`✅ ${2} Sınıf oluşturuldu`);
