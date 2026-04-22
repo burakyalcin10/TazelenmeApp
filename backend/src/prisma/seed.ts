@@ -9,6 +9,13 @@ import { encryptField, hashForLookup } from '../utils/encryption';
  * 10 öğrenci, 2 koordinatör, 3 ders, 2 sınıf, haftalık yoklama
  */
 async function main() {
+  // ── İdempotent koruma: zaten seed edilmişse atla ──
+  const existingAdmin = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+  if (existingAdmin) {
+    logger.info('⏭️  Seed atlandı: Veriler zaten mevcut (admin kullanıcı bulundu).');
+    return;
+  }
+
   logger.info('🌱 Seed verileri yükleniyor...');
 
   // ── 1. Sınıflar (Classroom) ──
