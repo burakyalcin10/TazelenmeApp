@@ -4,8 +4,11 @@ import { Pool } from 'pg';
 import logger from '../utils/logger';
 
 // Prisma v7: client engine requires a driver adapter
+const isProduction = process.env.NODE_ENV === 'production';
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
 });
 const adapter = new PrismaPg(pool);
 
