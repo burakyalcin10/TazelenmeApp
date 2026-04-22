@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { KeyRound, ShieldCheck } from "lucide-react";
+import { KeyRound, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
 import { loginAction } from "@/lib/actions/auth";
@@ -27,17 +27,18 @@ export default function LoginPage() {
 
           <div className="relative z-10 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-sm">
-              <ShieldCheck className="size-4" />
-              Güvenli Yönetici Girişi
+              <GraduationCap className="size-4" />
+              Tazelenme Üniversitesi
             </div>
 
             <h1 className="max-w-md font-serif text-4xl font-bold leading-tight lg:text-5xl">
-              Akademik yönetimi net ve sakin bir panelle yürütün.
+              Koordinatör ve öğrenci girişi
             </h1>
 
             <p className="max-w-md text-base leading-7 text-white/70">
-              Yaşlı kullanıcılar ve koordinasyon ekibi için hazırlanan bu
-              deneyimde güçlü kontrast ve anlaşılır onay akışları bulunur.
+              Tazelenme Üniversitesi bilgi sistemine hoş geldiniz.
+              Koordinatörler yönetim paneline, öğrenciler ise kişisel
+              portallarına giriş yapabilir.
             </p>
           </div>
 
@@ -49,9 +50,9 @@ export default function LoginPage() {
               </p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-              <div className="text-2xl font-bold">Onaylı</div>
+              <div className="text-2xl font-bold">Güvenli</div>
               <p className="mt-2 text-sm leading-6 text-white/65">
-                Kritik işlemler ikinci onay almadan tamamlanmaz.
+                TC ve PIN ile güvenli kimlik doğrulama sistemi.
               </p>
             </div>
           </div>
@@ -63,9 +64,9 @@ export default function LoginPage() {
             <div className="flex size-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <KeyRound className="size-7" />
             </div>
-            <div className="panel-label">Yönetici Girişi</div>
+            <div className="panel-label">Sisteme Giriş</div>
             <h2 className="font-serif text-3xl font-bold text-foreground">
-              Admin paneline giriş yapın
+              Hesabınıza giriş yapın
             </h2>
             <p className="text-base leading-7 text-muted-foreground">
               TC kimlik numaranız ve 4 haneli PIN kodunuz ile giriş
@@ -107,7 +108,7 @@ export default function LoginPage() {
                 PIN Kodu
               </label>
               <p className="text-xs text-muted-foreground">
-                Sisteme ait 4 haneli yönetici PIN kodunuzu kullanın.
+                Size tanımlanan 4 haneli PIN kodunuzu kullanın.
               </p>
               <input
                 id="pin"
@@ -128,7 +129,7 @@ export default function LoginPage() {
               disabled={isPending}
               className="flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-primary to-[#008560] font-bold text-white transition-all hover:shadow-lg hover:shadow-primary/20 disabled:opacity-60"
             >
-              {isPending ? "Giriş yapılıyor..." : "Panele giriş yap"}
+              {isPending ? "Giriş yapılıyor..." : "Giriş yap"}
             </button>
           </form>
         </div>

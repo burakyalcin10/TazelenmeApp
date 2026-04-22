@@ -220,3 +220,31 @@
   margin-right: auto;
   width: 100%;
 }
+
+/* ─── Student Portal A11Y (8.6) ─── */
+
+/* Minimum font size for elderly users */
+[data-student-portal] {
+  font-size: 1.125rem; /* 18px base */
+  line-height: 1.6;
+}
+
+/* Strong focus rings — visible for keyboard navigation */
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+/* Minimum touch target for interactive elements */
+[data-student-portal] button,
+[data-student-portal] a,
+[data-student-portal] input,
+[data-student-portal] select {
+  min-height: 48px;
+}
+
+/* Ensure adequate contrast for muted text in student portal */
+[data-student-portal] .text-muted-foreground {
+  color: #526b5f; /* Boosted from #6d7a73 for WCAG AA (4.5:1 ratio on #FAFAF8) */
+}

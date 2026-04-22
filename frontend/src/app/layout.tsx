@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
@@ -20,9 +20,21 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Tazelenme Üniversitesi | Akademik Panel",
+  title: "Tazelenme Üniversitesi",
   description:
     "Tazelenme Üniversitesi öğrenci bilgi sistemi. Öğrenci, yoklama, ders ve materyal yönetim paneli.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Tazelenme",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#00694C",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

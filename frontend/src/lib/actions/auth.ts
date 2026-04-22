@@ -40,7 +40,7 @@ export async function loginAction(
     };
   }
 
-  // 2. /me ile rol doğrulama
+  // 2. /me ile kullanıcı bilgisi al
   const meRes = await fetch(`${getApiBaseUrl()}/api/v1/auth/me`, {
     headers: { Authorization: `Bearer ${loginPayload.data.accessToken}` },
   });
@@ -50,8 +50,8 @@ export async function loginAction(
     data?: AdminUser;
   };
 
-  if (!meRes.ok || mePayload.data?.role !== "ADMIN") {
-    return { error: "Bu panel sadece yönetici kullanıcılar içindir." };
+  if (!meRes.ok || !mePayload.data) {
+    return { error: "Kullanıcı bilgileri alınamadı." };
   }
 
   // 3. Session cookie yaz
@@ -67,8 +67,13 @@ export async function loginAction(
 
   await setServerSession(session);
 
-  // 4. Redirect — execution stops here
-  redirect("/admin");
+  // 4. Role'a göre redirect
+  const role = mePayload.data.role;
+  if (role === "ADMIN") {
+    redirect("/admin");
+  } else {
+    redirect("/student");
+  }
 }
 
 export async function logoutAction() {
