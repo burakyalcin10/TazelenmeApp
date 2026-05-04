@@ -287,6 +287,86 @@ RFID servis loglari:
 journalctl -u tazelenme-rfid -f
 ```
 
+### RFID Sunum Komutlari
+
+Sunum esnasinda hizli kopyalamak icin komutlar:
+
+1. Uygulamayi baslat:
+
+```powershell
+cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
+docker compose up -d
+```
+
+2. Backend calisiyor mu kontrol et:
+
+```powershell
+Invoke-RestMethod http://localhost:4000/api/health
+```
+
+3. Pi agda mi kontrol et:
+
+```powershell
+ssh burak@rfid-pi.local
+```
+
+IP ile gerekirse:
+
+```powershell
+ssh burak@192.168.1.121
+```
+
+4. Pi'de RFID servisini kontrol et:
+
+```bash
+systemctl status tazelenme-rfid
+```
+
+5. Pi RFID ayarini kontrol et:
+
+```bash
+cat /home/burak/tazelenme-rfid/tazelenme-rfid.env
+```
+
+Beklenen deger:
+
+```env
+TAZELENME_DEVICE_LOCATION=AUTO
+```
+
+6. Ayar degistiyse servisi yeniden baslat:
+
+```bash
+sudo systemctl restart tazelenme-rfid
+```
+
+7. Bilgisayarda backend tunnel'i ac:
+
+```powershell
+cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
+python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+```
+
+8. Tunnel zaten aciksa kapat:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "name = 'python.exe'" |
+  Where-Object { $_.CommandLine -like '*reverse_tunnel.py*' } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+```
+
+9. Pi'den backend'e ulasim testi:
+
+```bash
+curl http://127.0.0.1:4000/api/health
+```
+
+10. Kart okuma loglarini izle:
+
+```bash
+journalctl -u tazelenme-rfid -f
+```
+
 ## Sunum Akisi
 
 1. Admin olarak giris yap.
