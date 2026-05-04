@@ -1,0 +1,17 @@
+[Unit]
+Description=TazelenmeApp RC522 RFID attendance gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=burak
+Group=burak
+WorkingDirectory=/home/burak/tazelenme-rfid
+EnvironmentFile=/home/burak/tazelenme-rfid/tazelenme-rfid.env
+ExecStart=/usr/bin/python3 /home/burak/tazelenme-rfid/rfid_gateway.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

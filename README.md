@@ -202,6 +202,142 @@ docker exec -it tazelenme-backend npm run prisma:seed
 5. Dersler ekraninda course/session/material yonetimi ve rapor export'unu goster
 6. Kartlar ekraninda kart atama ve durum degistirme akisini goster
 
+## Sunumda RFID Donanim Demo Kurulumu
+
+Bu akis Raspberry Pi + RC522 okuyucu ile fiziksel kart okutma demosu icindir.
+
+### 1. Bilgisayarda uygulamayi ayaga kaldir
+
+PowerShell:
+
+```powershell
+cd C:\Users\burak\OneDrive\Masaüstü\TazelenmeApp
+docker compose up -d
+```
+
+Backend saglik kontrolu:
+
+```powershell
+Invoke-RestMethod http://localhost:4000/api/health
+```
+
+Admin panel:
+
+```text
+http://localhost:3000/login
+```
+
+### 2. Raspberry Pi'ye baglan
+
+PowerShell:
+
+```powershell
+ssh burak@192.168.1.121
+```
+
+Pi uzerinde RFID servis durumunu kontrol et:
+
+```bash
+systemctl status tazelenme-rfid
+```
+
+Loglari canli izlemek icin:
+
+```bash
+journalctl -u tazelenme-rfid -f
+```
+
+### 3. Bilgisayar ile Pi arasinda backend tunnel ac
+
+Windows Firewall yerel agdan `4000` portunu engelleyebildigi icin demo sirasinda
+Pi, backend'e SSH reverse tunnel ile ulasir. Bilgisayarda ayri bir PowerShell
+penceresi ac ve su komutu calistir:
+
+```powershell
+cd C:\Users\burak\OneDrive\Masaüstü\TazelenmeApp
+python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+```
+
+Basariliysa su satiri gorursun:
+
+```text
+remote 127.0.0.1:4000 -> local 127.0.0.1:4000
+```
+
+Bu PowerShell penceresi demo boyunca acik kalmali.
+
+Eger `TCP forwarding request denied` hatasi gelirse tunnel zaten acik olabilir.
+Eski tunnel'i kapatmak icin:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "name = 'python.exe'" |
+  Where-Object { $_.CommandLine -like '*reverse_tunnel.py*' } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+```
+
+Sonra tunnel komutunu tekrar calistir.
+
+### 4. Pi RFID ayari
+
+Pi su anda `AUTO` lokasyon modunda calisir:
+
+```bash
+cat /home/burak/tazelenme-rfid/tazelenme-rfid.env
+```
+
+Beklenen ayar:
+
+```env
+TAZELENME_API_URL=http://127.0.0.1:4000
+TAZELENME_IOT_API_KEY=iot_secret_change_me
+TAZELENME_DEVICE_LOCATION=AUTO
+```
+
+`AUTO` modunda kart okutulunca backend, kart sahibinin kayitli oldugu acik
+yoklama oturumunu sinif fark etmeksizin bulur. Bu yuzden sunumda her ders icin
+Pi'de sinif kodu degistirmek gerekmez.
+
+Gerekirse tek bir sinifa sabitlemek icin `TAZELENME_DEVICE_LOCATION` degeri
+asagidaki kodlardan biri yapilabilir:
+
+```text
+AMFI_1          -> Amfi 1
+AMFI_TEST       -> Amfi Test
+DIJITAL_LAB     -> Dijital Laboratuvar
+LAB_SMOKE       -> Lab Test Smoke
+SANAT_SINIFI    -> Sanat Sinifi
+SEMINER_SALONU  -> Seminer Salonu
+YASAM_ATOLYESI  -> Yasam Atolyesi
+```
+
+Ayar degisirse servisi yeniden baslat:
+
+```bash
+sudo systemctl restart tazelenme-rfid
+```
+
+### 5. Yoklama demosu
+
+1. Admin panelde `Yoklama` sayfasina gir.
+2. Bir ders oturumu sec.
+3. Yoklamayi baslat.
+4. Burak Yalcin'in kartini RC522 okuyucuya yaklastir.
+5. Ekranda Burak Yalcin `Geldi` olur.
+
+Pi loglarinda basarili okuma ornegi:
+
+```text
+{"event":"card_read","uid":"83432021"}
+{"event":"attendance_response","status_code":200}
+```
+
+Demo anlatim cumlesi:
+
+```text
+Raspberry Pi uzerindeki RC522 okuyucu kart UID'sini okuyor, backend'e gonderiyor;
+backend aktif yoklama oturumunu bulup ogrencinin yoklamasini RFID olarak isliyor.
+```
+
 ## Dogrulama Notlari
 
 Bu asamaya gelirken dogrulanan baslica komutlar:

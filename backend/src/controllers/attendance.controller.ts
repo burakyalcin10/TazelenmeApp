@@ -15,7 +15,36 @@ import logger from '../utils/logger';
  * Belirtilen sinif kodunda koordinator tarafindan baslatilmis
  * aktif RFID yoklama oturumunu bulur.
  */
-async function findActiveSessionForLocation(deviceLocation: string) {
+async function findActiveSessionForLocation(deviceLocation: string, studentId?: string) {
+  const isAutoLocation = ['AUTO', 'ALL', '*'].includes(deviceLocation.trim().toUpperCase());
+
+  if (isAutoLocation) {
+    const sessions: any[] = await prisma.lessonSession.findMany({
+      where: {
+        attendanceOpen: true,
+        ...(studentId
+          ? {
+              course: {
+                enrollments: {
+                  some: { studentId },
+                },
+              },
+            }
+          : {}),
+      },
+      include: {
+        course: true,
+        classroom: true,
+      },
+      orderBy: [
+        { sessionDate: 'desc' },
+        { startTime: 'desc' },
+      ],
+      take: 1,
+    });
+
+    return sessions[0] || null;
+  }
 
   // Sınıfı bul
   const classroom = await prisma.classroom.findUnique({
@@ -100,10 +129,16 @@ export const scanCard = async (req: Request, res: Response, next: NextFunction) 
     }
 
     // 3. ADIM: Aktif ders oturumu bul (3.3)
-    const currentSession = await findActiveSessionForLocation(deviceLocation);
+    const currentSession = await findActiveSessionForLocation(deviceLocation, rfidCard.studentId);
 
     if (!currentSession) {
-      throw new AppError('Bu sinifta RFID yoklamasi baslatilmamis.', 400);
+      const isAutoLocation = ['AUTO', 'ALL', '*'].includes(deviceLocation.trim().toUpperCase());
+      throw new AppError(
+        isAutoLocation
+          ? 'Bu ogrenci icin aktif RFID yoklamasi bulunamadi.'
+          : 'Bu sinifta RFID yoklamasi baslatilmamis.',
+        400
+      );
     }
 
     // 4. ADIM: Öğrenci bu derse kayıtlı mı kontrol et
@@ -134,7 +169,7 @@ export const scanCard = async (req: Request, res: Response, next: NextFunction) 
       },
     });
 
-    if (existingAttendance) {
+    if (existingAttendance && existingAttendance.status === 'PRESENT') {
       logger.info(
         { cardUid, sessionId: currentSession.id, studentId: rfidCard.studentId },
         'Anti-Passback: Zaten yoklama alınmış'
@@ -153,6 +188,46 @@ export const scanCard = async (req: Request, res: Response, next: NextFunction) 
     }
 
     // 6. ADIM: Yoklama kaydı oluştur
+    if (existingAttendance) {
+      const attendance = await prisma.attendance.update({
+        where: { id: existingAttendance.id },
+        data: {
+          status: 'PRESENT',
+          method: 'RFID',
+          timestamp: new Date(),
+        },
+      });
+
+      logger.info(
+        {
+          attendanceId: attendance.id,
+          previousStatus: existingAttendance.status,
+          studentName: `${rfidCard.student.user.firstName} ${rfidCard.student.user.lastName}`,
+          course: currentSession.course.name,
+          classroom: deviceLocation,
+        },
+        'Yoklama guncellendi - RFID'
+      );
+
+      res.status(200).json({
+        success: true,
+        message: 'Yoklama Basarili',
+        data: {
+          attendanceId: attendance.id,
+          studentName: `${rfidCard.student.user.firstName} ${rfidCard.student.user.lastName}`,
+          courseName: currentSession.course.name,
+          classroom: currentSession.classroom.name,
+          status: 'PRESENT',
+          method: 'RFID',
+          timestamp: attendance.timestamp,
+          alreadyRecorded: false,
+          updatedExisting: true,
+          previousStatus: existingAttendance.status,
+        },
+      });
+      return;
+    }
+
     const attendance = await prisma.attendance.create({
       data: {
         sessionId: currentSession.id,

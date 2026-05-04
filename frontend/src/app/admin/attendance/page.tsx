@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CalendarClock, CheckCircle2, ClipboardList, PlayCircle, StopCircle, UserX } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,7 +25,8 @@ import type {
 type AttendanceListFilter = "ALL" | "PRESENT" | "ABSENT";
 
 export default function AttendancePage() {
-  const autoRefreshIntervalMs = 15000;
+  const autoRefreshIntervalMs = 1000;
+  const autoRefreshLabel = "Canli yenileme (1 sn)";
   const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [classrooms, setClassrooms] = useState<ClassroomItem[]>([]);
   const [sessions, setSessions] = useState<SessionListItem[]>([]);
@@ -46,6 +47,7 @@ export default function AttendancePage() {
     status: AttendanceStatus;
   } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const liveRefreshInFlightRef = useRef(false);
 
   useEffect(() => {
     let ignore = false;
@@ -140,17 +142,20 @@ export default function AttendancePage() {
     }
 
     const intervalId = window.setInterval(() => {
-      if (document.visibilityState !== "visible") {
+      if (document.visibilityState !== "visible" || pendingAttendance || liveRefreshInFlightRef.current) {
         return;
       }
 
-      void loadSessionDetail(selectedSessionId, { silent: true });
+      liveRefreshInFlightRef.current = true;
+      void loadSessionDetail(selectedSessionId, { silent: true }).finally(() => {
+        liveRefreshInFlightRef.current = false;
+      });
     }, autoRefreshIntervalMs);
 
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [autoRefreshEnabled, selectedSessionId]);
+  }, [autoRefreshEnabled, pendingAttendance, selectedSessionId]);
 
   async function loadSessionDetail(sessionId: string, options?: { silent?: boolean }) {
     if (options?.silent) {
@@ -279,7 +284,7 @@ export default function AttendancePage() {
               variant={autoRefreshEnabled ? "secondary" : "outline"}
               onClick={() => setAutoRefreshEnabled((current) => !current)}
             >
-              {autoRefreshEnabled ? "Otomatik yenileme acik" : "Otomatik yenilemeyi ac"}
+              {autoRefreshEnabled ? "Canli yenileme acik" : "Canli yenilemeyi ac"}
             </Button>
             <Button
               variant="outline"
@@ -444,7 +449,7 @@ export default function AttendancePage() {
                   } ${liveRefreshing ? "animate-pulse" : ""}`}
                 />
                 <span className="font-medium">
-                  {autoRefreshEnabled ? "Oto yenileme (15 sn)" : "Yenileme kapali"}
+                  {autoRefreshEnabled ? autoRefreshLabel : "Yenileme kapali"}
                 </span>
                 <span className="text-muted-foreground/60">·</span>
                 <span>
