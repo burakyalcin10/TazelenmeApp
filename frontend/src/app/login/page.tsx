@@ -70,7 +70,8 @@ export default function LoginPage() {
             </h2>
             <p className="text-base leading-7 text-muted-foreground">
               TC kimlik numaranız ve 4 haneli PIN kodunuz ile giriş
-              yapabilirsiniz.
+              yapabilirsiniz. Ogrenci hesaplari koordinator tarafindan acilir;
+              ilk PIN TC kimlik numarasinin son 4 hanesidir.
             </p>
           </div>
 

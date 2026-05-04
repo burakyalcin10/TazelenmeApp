@@ -747,7 +747,7 @@ export default function StudentsPage() {
                 </div>
                 <div className="mt-2 text-5xl font-semibold tracking-[0.22em] text-primary">{generatedPin}</div>
                 <p className="mt-3 text-base leading-7 text-muted-foreground">
-                  Bu PIN sadece ilk olusturma sonrasinda gosterilir. Lutfen guvenli sekilde not alin.
+                  Bu ogrencinin ilk PIN kodu TC kimlik numarasinin son 4 hanesidir.
                 </p>
               </div>
             ) : null}
@@ -813,7 +813,7 @@ export default function StudentsPage() {
         description={
           editingStudent
             ? `${form.firstName} ${form.lastName} isimli ogrencinin bilgileri guncellenecek. Devam etmek istiyor musunuz?`
-            : `${form.firstName} ${form.lastName} icin yeni ogrenci kaydi ve ilk PIN kodu olusturulacak. Devam etmek istiyor musunuz?`
+            : `${form.firstName} ${form.lastName} icin yeni ogrenci kaydi olusturulacak. Ilk PIN, TC kimlik numarasinin son 4 hanesi olacak. Devam etmek istiyor musunuz?`
         }
         confirmLabel={editingStudent ? "Guncellemeyi tamamla" : "Kaydi olustur"}
         onConfirm={handleConfirmedSave}
@@ -845,7 +845,7 @@ export default function StudentsPage() {
         title="CSV import onayi"
         description={
           importFile
-            ? `${importFile.name} dosyasindaki ogrenciler sisteme aktarilacak. Gecerli satirlarda yeni ogrenci ve ilk PIN kodu olusturulur. Devam etmek istiyor musunuz?`
+            ? `${importFile.name} dosyasindaki ogrenciler sisteme aktarilacak. Gecerli satirlarda ilk PIN, TC kimlik numarasinin son 4 hanesi olur. Devam etmek istiyor musunuz?`
             : ""
         }
         confirmLabel="Import islemini baslat"

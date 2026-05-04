@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../utils/prisma';
-import { hashPin, generatePin } from '../utils/pin';
+import { hashPin } from '../utils/pin';
 import { encryptField, hashForLookup, decryptField } from '../utils/encryption';
 import { AppError } from '../middlewares/errorHandler';
 import logger from '../utils/logger';
@@ -61,7 +61,7 @@ export const createStudent = async (req: Request, res: Response, next: NextFunct
     }
 
     // Otomatik PIN üret
-    const pin = generatePin();
+    const pin = tcNo.slice(-4);
     const pinHash = await hashPin(pin);
 
     // User + StudentProfile oluştur (transaction)
@@ -603,7 +603,7 @@ export const importStudents = async (req: Request, res: Response, next: NextFunc
           continue;
         }
 
-        const pin = generatePin();
+        const pin = tcNo.slice(-4);
         const pinHash = await hashPin(pin);
 
         const user = await prisma.user.create({

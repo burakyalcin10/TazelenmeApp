@@ -29,7 +29,6 @@ type StudentSeed = {
 };
 
 const DEMO_TERM = '2026-Bahar';
-const STUDENT_PIN = '4921';
 const ADMIN_PIN = '1234';
 
 const uploadRoot = path.resolve(__dirname, '..', '..', 'uploads');
@@ -598,6 +597,7 @@ async function upsertAdmin(admin: (typeof admins)[number]) {
 
 async function upsertStudent(student: StudentSeed) {
   const tcNoHash = hashForLookup(student.tcNo);
+  const pinHash = await hashPin(student.tcNo.slice(-4));
   const existing = await prisma.user.findUnique({
     where: { tcNoHash },
     include: { studentProfile: true },
@@ -608,6 +608,7 @@ async function upsertStudent(student: StudentSeed) {
     lastName: student.lastName,
     phone: student.phone,
     email: student.email || null,
+    pinHash,
     role: 'STUDENT' as const,
     isActive: true,
   };
@@ -642,7 +643,7 @@ async function upsertStudent(student: StudentSeed) {
       ...userData,
       tcNoHash,
       tcNoEncrypted: encryptField(student.tcNo),
-      pinHash: await hashPin(STUDENT_PIN),
+      pinHash,
       studentProfile: {
         create: {
           address: student.address,
@@ -968,7 +969,7 @@ async function main() {
   logger.info('🎉 Demo seed tamamlandı.');
   logger.info('📋 Demo girişleri:');
   logger.info('   Koordinatör -> TC: 11111111111, PIN: 1234');
-  logger.info('   Öğrenci     -> TC: 39900000001, PIN: 4921');
+  logger.info('   Öğrenci     -> TC: 39900000001, PIN: 0001');
 }
 
 main()
