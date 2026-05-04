@@ -1,190 +1,93 @@
 # TazelenmeApp
 
-> Tazelenme Universitesi icin ogrenci yonetimi, RFID/NFC yoklama ve mini-LMS platformu.
+> Tazelenme Universitesi icin ogrenci yonetimi, yoklama, ders materyali ve raporlama platformu.
 
-TazelenmeApp, 60+ yas grubunun egitim aldigi Tazelenme Universitesi icin gelistirilen bir otomasyon sistemidir. Ogrenci kayitlari, ders ve sinif planlama, RFID kart yonetimi, anlik yoklama, ders materyalleri, bildirimler ve raporlari tek yapida toplar.
+TazelenmeApp, 60+ yas grubuna yonelik Tazelenme Universitesi programlarinda ogrenci, ders, sinif, yoklama, materyal ve raporlama sureclerini tek sistemde toplamak icin gelistirilmis bir web uygulamasidir. Proje hem koordinatore yonelik bir admin paneli hem de ogrenciler icin sade bir PWA portali icerir.
 
-## Son Eklenenler
+## Projenin Amaci
 
-Bu surumde proje donanim demosuna hazir hale getirildi.
+Tazelenme Universitesi gibi surekli egitim programlarinda temel ihtiyac, ogrenci bilgisini guvenli tutmak, ders ve sinif planlamasini kolaylastirmak, yoklamayi hizli almak ve devamsizlik risklerini erken fark etmektir. TazelenmeApp bu ihtiyaclari asagidaki hedeflerle karsilar:
 
-- Raspberry Pi + RC522 RFID/NFC okuyucu entegrasyonu eklendi.
-- Pi uzerinde calisan `tazelenme-rfid` systemd servisi hazirlandi.
-- Kart UID'si backend'e `POST /api/v1/attendance/scan` endpoint'i ile gonderiliyor.
-- `AUTO` lokasyon modu eklendi: okuyucu belirli bir sinifa sabitlenmeden, kart sahibinin kayitli oldugu acik yoklama oturumunu otomatik buluyor.
-- Yoklama ekraninda 15 saniyelik yenileme yerine 1 saniyelik canli polling yapildi.
-- Daha once `ABSENT` veya `EXCUSED` gorunen kayitlar RFID okutulunca `PRESENT / RFID` olarak guncelleniyor.
-- Sunum icin SSH reverse tunnel araci eklendi: `tools/rfid_gateway/reverse_tunnel.py`.
-- RFID demo kurulum dokumani eklendi: `tools/rfid_gateway/README.md`.
+- Ogrenci kayitlarini ve saglik notlarini merkezi olarak yonetmek.
+- Ders, sinif ve oturum planlamasini tek panelden yapmak.
+- Manuel veya RFID/NFC kart ile yoklama almak.
+- Ogrencinin derslerini, devamsizlik durumunu ve materyallerini mobil uyumlu portalda gostermek.
+- Koordinatorlere rapor, bildirim ve risk takibi saglamak.
 
-## RFID Donanim Demo Akisi
+## Kullanici Rolleri
 
-Sunumda beklenen ana akisi:
+### Koordinator / Admin
 
-1. Bilgisayarda Docker servislerini baslat.
-2. Raspberry Pi'ye guc ver.
-3. Backend tunnel'i ac.
-4. Admin panelde yoklama oturumunu baslat.
-5. NFC karti RC522 okuyucuya okut.
-6. Yoklama ekraninda ogrenci `Geldi` olur.
+Admin paneli uzerinden tum operasyonel sureci yonetir:
 
-### Bilgisayarda Uygulamayi Baslat
-
-PowerShell:
-
-```powershell
-cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
-docker compose up -d
-```
-
-Saglik kontrolu:
-
-```powershell
-Invoke-RestMethod http://localhost:4000/api/health
-```
-
-Admin panel:
-
-```text
-http://localhost:3000/login
-```
-
-### Raspberry Pi Kontrolu
-
-SSH:
-
-```powershell
-ssh burak@rfid-pi.local
-```
-
-Alternatif olarak IP ile:
-
-```powershell
-ssh burak@192.168.1.121
-```
-
-RFID servisi:
-
-```bash
-systemctl status tazelenme-rfid
-journalctl -u tazelenme-rfid -f
-```
-
-### Backend Tunnel
-
-Windows Firewall yerel agdan `4000` portunu engelleyebildigi icin Pi, demo sirasinda backend'e SSH reverse tunnel ile ulasir.
-
-Bilgisayarda ayri bir PowerShell penceresinde:
-
-```powershell
-cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
-python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
-```
-
-Basarili cikti:
-
-```text
-remote 127.0.0.1:4000 -> local 127.0.0.1:4000
-```
-
-Bu pencere demo boyunca acik kalmali.
-
-`TCP forwarding request denied` hatasi gelirse tunnel zaten acik olabilir. Eski tunnel'i kapatmak icin:
-
-```powershell
-Get-CimInstance Win32_Process -Filter "name = 'python.exe'" |
-  Where-Object { $_.CommandLine -like '*reverse_tunnel.py*' } |
-  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
-```
-
-### Pi RFID Ayari
-
-Pi'deki ayar dosyasi:
-
-```bash
-cat /home/burak/tazelenme-rfid/tazelenme-rfid.env
-```
-
-Beklenen demo ayari:
-
-```env
-TAZELENME_API_URL=http://127.0.0.1:4000
-TAZELENME_IOT_API_KEY=iot_secret_change_me
-TAZELENME_DEVICE_LOCATION=AUTO
-```
-
-`AUTO` modunda Pi tarafinda sinif degistirmek gerekmez. Backend, kart sahibinin kayitli oldugu acik yoklama oturumunu bulur.
-
-Sabit lokasyon kullanmak gerekirse sinif kodlari:
-
-```text
-AMFI_1          -> Amfi 1
-AMFI_TEST       -> Amfi Test
-DIJITAL_LAB     -> Dijital Laboratuvar
-LAB_SMOKE       -> Lab Test Smoke
-SANAT_SINIFI    -> Sanat Sinifi
-SEMINER_SALONU  -> Seminer Salonu
-YASAM_ATOLYESI  -> Yasam Atolyesi
-```
-
-Ayar degistiyse:
-
-```bash
-sudo systemctl restart tazelenme-rfid
-```
-
-### Demo Sirasinda
-
-1. Admin panelde `Yoklama` sayfasina gir.
-2. Ders oturumunu sec.
-3. `Yoklamayi baslat` butonuna bas.
-4. Kart veya NFC etiketi RC522 okuyucuya yaklastir.
-5. Liste 1 saniyelik canli yenileme ile otomatik guncellenir.
-
-Basarili Pi log ornegi:
-
-```text
-{"event":"card_read","uid":"83432021"}
-{"event":"attendance_response","status_code":200}
-```
-
-Demo anlatim cumlesi:
-
-```text
-Raspberry Pi uzerindeki RC522 okuyucu kart UID'sini okuyor, backend'e gonderiyor; backend aktif yoklama oturumunu bulup ogrencinin yoklamasini RFID olarak isliyor.
-```
-
-## Proje Ozeti
-
-### Admin Panel
-
-- Unified login: admin ve ogrenci ayni ekrandan giris yapar.
-- Role-based redirect: admin paneli ve ogrenci portali ayrilir.
-- Dashboard KPI kartlari, bildirimler ve katilim grafigi.
-- Ogrenci listeleme, olusturma, guncelleme ve pasif yapma.
-- Ogrenci detayinda ders, yoklama ve kart gecmisi.
+- Ogrenci olusturma, guncelleme, pasif yapma.
 - CSV ile toplu ogrenci import ve export.
-- Ders, sinif, oturum, kayit ve materyal yonetimi.
-- Manuel yoklama ve RFID yoklama.
-- Kart atama, kayip/iptal kart durumlari.
-- Rapor export akislari.
+- Ders, sinif, oturum ve kayit yonetimi.
+- Ders materyali yukleme ve listeleme.
+- Manuel yoklama ve RFID yoklama takibi.
+- Kart atama, kayip kart ve iptal kart yonetimi.
+- Bildirimler, katilim ozeti ve raporlar.
 
-### Ogrenci Portali
+### Ogrenci
 
-- 60+ yas grubu icin mobile-first PWA.
-- Buyuk butonlar, okunabilir tipografi ve rahat dokunma alanlari.
-- Derslerim ve devamsizlik sayfasi.
-- Materyal sayfasi: PDF, video ve link icerikleri.
-- Risk uyarilari ve katilim orani.
+Ogrenci portali 60+ yas grubu icin sade ve okunabilir olacak sekilde tasarlanmistir:
 
-### RFID / IoT
+- Kendi derslerini gorur.
+- Devamsizlik ve katilim oranini takip eder.
+- Ders materyallerine ulasir.
+- Mobil cihazdan PWA olarak kullanabilir.
 
-- RC522 okuyucu SPI uzerinden Raspberry Pi'ye baglanir.
-- Pi Python gateway UID okur ve backend'e gonderir.
-- Backend karti ogrenciyle eslestirir.
-- Aktif yoklama oturumu bulunur.
-- Anti-passback ile ayni oturumda tekrar kayit engellenir.
-- Var olan `ABSENT` kayit RFID ile `PRESENT` yapilabilir.
+## Ana Moduller
+
+### 1. Kimlik Dogrulama
+
+- Admin ve ogrenci ayni login ekranini kullanir.
+- JWT access token ve refresh token akisi vardir.
+- Role-based redirect ile admin ve ogrenci panelleri ayrilir.
+- Ogrenci hesaplarinda ilk PIN, TC kimlik numarasinin son 4 hanesidir.
+
+### 2. Ogrenci Yonetimi
+
+- Ogrenci temel bilgileri, iletisim bilgileri ve acil durum kisisi tutulur.
+- Saglik durumu ve ek saglik notlari kaydedilebilir.
+- Ogrenci detay ekraninda kartlar, ders kayitlari ve yoklama gecmisi gorulur.
+- CSV import/export destegi vardir.
+
+### 3. Ders, Sinif ve Oturum Yonetimi
+
+- Dersler donem bilgisiyle birlikte tanimlanir.
+- Siniflar kapasite ve lokasyon kodu ile tutulur.
+- Her ders icin haftalik oturumlar olusturulur.
+- Oturumlar belirli bir sinif ve zaman araligina baglanir.
+- Ogrenciler derslere enrollment kaydi ile eklenir.
+
+### 4. Yoklama Yonetimi
+
+- Koordinator, secili oturum icin yoklamayi baslatip durdurabilir.
+- Yoklama listesi 1 saniyelik canli yenileme ile guncellenir.
+- Ogrenciler `Geldi`, `Gelmedi`, `Izinli` olarak isaretlenebilir.
+- Manuel isaretleme onay dialog'u ile yapilir.
+- RFID okutma ile gelen ogrenciler otomatik `PRESENT / RFID` olur.
+- Anti-passback sayesinde ayni oturum icin tekrarli kayit olusmaz.
+
+### 5. RFID/NFC Kart Yonetimi
+
+- Her ogrenciye aktif RFID kart atanabilir.
+- Kayip veya iptal edilen kartlar sistemde isaretlenebilir.
+- Kayip/iptal kart okutulursa backend uyarici bildirim olusturur.
+- Raspberry Pi + RC522 okuyucu ile fiziksel kart okutma demosu desteklenir.
+
+### 6. Materyal ve Mini-LMS
+
+- Derslere PDF, video veya link materyali eklenebilir.
+- Ogrenci portali uzerinden kendi ders materyallerine erisir.
+- PDF indirme akisi binary-safe proxy uzerinden calisir.
+
+### 7. Raporlama ve Bildirim
+
+- Katilim ve gecme-kalma raporlari olusturulur.
+- Devamsizlik riski olan ogrenciler icin izolasyon/risk bildirimleri uretilir.
+- Bildirimler admin panelinde takip edilebilir.
 
 ## Mimari
 
@@ -192,9 +95,39 @@ Raspberry Pi uzerindeki RC522 okuyucu kart UID'sini okuyor, backend'e gonderiyor
 Frontend (Next.js App Router + React + Tailwind)
   -> Backend API (Express + TypeScript)
     -> PostgreSQL (Prisma)
-    -> Upload storage (Docker volume)
+    -> Upload storage
     -> RFID Gateway (Raspberry Pi + RC522)
 ```
+
+### Frontend
+
+- Next.js App Router kullanilir.
+- Admin panel ve ogrenci portali ayni frontend uygulamasindadir.
+- Client tarafindaki API cagrilari `/api/v1/*` proxy rotasindan backend'e iletilir.
+- Ogrenci portali PWA olarak tasarlanmistir.
+
+### Backend
+
+- Express + TypeScript ile yazilmistir.
+- Tum ana API rotalari `/api/v1/*` altindadir.
+- Prisma ORM ile PostgreSQL veritabani kullanilir.
+- Auth, ogrenci, ders, sinif, oturum, enrollment, yoklama, kart, materyal, bildirim ve rapor modulleri vardir.
+
+### Veritabani
+
+Temel tablolar:
+
+- `users`
+- `student_profiles`
+- `courses`
+- `classrooms`
+- `lesson_sessions`
+- `enrollments`
+- `attendances`
+- `rfid_cards`
+- `course_materials`
+- `notifications`
+- `audit_logs`
 
 ## Teknoloji Stack
 
@@ -209,35 +142,6 @@ Frontend (Next.js App Router + React + Tailwind)
 | Otomasyon | node-cron |
 | Dosya yukleme | multer |
 | Altyapi | Docker, Docker Compose |
-
-## Demo Bilgileri
-
-### Admin Girisi
-
-```text
-TC No: 11111111111
-PIN: 1234
-```
-
-### Ogrenci Girisi
-
-Ogrenci hesaplarinda ilk PIN, TC kimlik numarasinin son 4 hanesidir.
-
-Ornek:
-
-```text
-TC No: 39900000001
-PIN: 0001
-```
-
-### Canli Demo
-
-```text
-Frontend: https://tazelenme-app.vercel.app
-Backend:  https://tazelenme-backend.onrender.com/api/health
-```
-
-Not: Render free tier soguyan serviste ilk istek 10-30 saniye surebilir.
 
 ## Hizli Baslangic
 
@@ -261,7 +165,7 @@ Backend:    http://localhost:4000
 PostgreSQL: localhost:5433
 ```
 
-Durum kontrolu:
+Container durumunu kontrol etmek icin:
 
 ```bash
 docker ps
@@ -307,31 +211,91 @@ npm install
 npm run dev
 ```
 
-## Veritabani ve Seed
+## Demo Bilgileri
 
-Backend container acilirken migration ve seed otomatik calisir.
+### Admin Girisi
 
-Migration durumu:
-
-```bash
-docker exec -it tazelenme-backend npx prisma migrate status
+```text
+TC No: 11111111111
+PIN: 1234
 ```
 
-Seed:
+### Ogrenci Girisi
+
+Ogrenci hesaplarinda ilk PIN, TC kimlik numarasinin son 4 hanesidir.
+
+Ornek:
+
+```text
+TC No: 39900000001
+PIN: 0001
+```
+
+### Canli Demo
+
+```text
+Frontend: https://tazelenme-app.vercel.app
+Backend:  https://tazelenme-backend.onrender.com/api/health
+```
+
+Not: Render free tier soguyan serviste ilk istek 10-30 saniye surebilir.
+
+## RFID Donanim Demosu
+
+RFID/NFC donanim demosu opsiyoneldir. Demo icin Raspberry Pi uzerinde RC522 okuyucu ve `tazelenme-rfid` servisi kullanilir.
+
+Detayli dosyalar:
+
+```text
+tools/rfid_gateway/rfid_gateway.py
+tools/rfid_gateway/reverse_tunnel.py
+tools/rfid_gateway/tazelenme-rfid.service
+tools/rfid_gateway/README.md
+```
+
+Pi ayar dosyasi:
 
 ```bash
-docker exec -it tazelenme-backend npm run prisma:seed
+cat /home/burak/tazelenme-rfid/tazelenme-rfid.env
+```
+
+Beklenen demo ayari:
+
+```env
+TAZELENME_API_URL=http://127.0.0.1:4000
+TAZELENME_IOT_API_KEY=iot_secret_change_me
+TAZELENME_DEVICE_LOCATION=AUTO
+```
+
+`AUTO` modunda Pi tarafinda sinif kodu degistirmek gerekmez. Backend, kart sahibinin kayitli oldugu acik yoklama oturumunu otomatik bulur.
+
+Windows Firewall nedeniyle Pi'nin backend'e erismesi icin sunumda reverse tunnel acilabilir:
+
+```powershell
+python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+```
+
+Basarili cikti:
+
+```text
+remote 127.0.0.1:4000 -> local 127.0.0.1:4000
+```
+
+RFID servis loglari:
+
+```bash
+journalctl -u tazelenme-rfid -f
 ```
 
 ## Sunum Akisi
 
-1. `http://localhost:3000/login` uzerinden admin girisi yap.
-2. Dashboard KPI kartlarini ve grafikleri goster.
-3. Ogrenciler ekraninda yeni ogrenci, CSV import/export ve detay akisini goster.
-4. Dersler ekraninda course/session/material yonetimini goster.
-5. Yoklama ekraninda oturum baslat.
-6. RFID karti okut ve listeyi canli yenilemeyle goster.
-7. Kartlar ekraninda kart atama ve durum degistirme akisini goster.
+1. Admin olarak giris yap.
+2. Dashboard uzerinden genel durumu goster.
+3. Ogrenci yonetiminde ogrenci detaylarini ve kart bilgisini goster.
+4. Dersler ekraninda ders, sinif, oturum ve materyal yonetimini goster.
+5. Yoklama ekraninda bir oturum baslat.
+6. Manuel yoklama veya RFID kart okutma ile `Geldi` durumunu goster.
+7. Raporlar ve ogrenci portali ile akisi tamamla.
 
 ## Dogrulama
 
