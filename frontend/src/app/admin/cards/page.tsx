@@ -11,7 +11,7 @@ import { FormField } from "@/components/app/form-field";
 import { LoadingBlock } from "@/components/app/loading-block";
 import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -22,10 +22,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { apiRequest } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import type { CardItem, CardStatus, StudentListItem } from "@/lib/types";
+
+const cardStatusLabels: Record<string, string> = {
+  ALL: "Tum kartlar",
+  ACTIVE: "Aktif",
+  LOST: "Kayip",
+  REVOKED: "Iptal",
+};
 
 export default function CardsPage() {
   const [cards, setCards] = useState<CardItem[]>([]);
@@ -132,6 +139,7 @@ export default function CardsPage() {
   const studentByProfileId = Object.fromEntries(
     students.map((student) => [student.profileId || "", student])
   );
+  const selectedStudent = students.find((student) => (student.profileId || student.id) === studentProfileId);
 
   if (loading) {
     return <LoadingBlock description="Kart yonetimi verileri yukleniyor..." />;
@@ -140,59 +148,61 @@ export default function CardsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Kart Yonetimi"
-        description="Tum RFID kartlarini tek listede izleyin, yeni kart atayin ve kart durumlarini guvenli sekilde degistirin."
+        title="Kart Yönetimi"
+        description="RFID kartlarını listeleyin, yeni kart atayın ve durumlarını güncelleyin."
         actions={
-          <Button size="xl" onClick={openAssignDialog}>
-            <Plus className="size-5" />
+          <Button onClick={openAssignDialog}>
+            <Plus className="size-4" />
             Yeni kart ata
           </Button>
         }
       />
 
-      <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-        <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <CardTitle className="text-2xl font-semibold">Kart listesi</CardTitle>
+      <Card className="rounded-xl border border-border shadow-none">
+        <CardHeader className="gap-3 md:flex-row md:items-center md:justify-between">
+          <CardTitle className="text-base font-semibold">Kart listesi</CardTitle>
           <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value || "ALL")}>
-            <SelectTrigger className="h-12 w-full max-w-xs rounded-xl bg-white">
-              <SelectValue placeholder="Duruma gore filtrele" />
+            <SelectTrigger className="h-11 w-full max-w-xs bg-white">
+              <span className="min-w-0 truncate text-left">
+                {cardStatusLabels[statusFilter] || "Duruma gore filtrele"}
+              </span>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">Tum kartlar</SelectItem>
-              <SelectItem value="ACTIVE">Aktif kartlar</SelectItem>
-              <SelectItem value="LOST">Kayip kartlar</SelectItem>
-              <SelectItem value="REVOKED">Iptal kartlar</SelectItem>
+              <SelectItem value="ALL">Tüm kartlar</SelectItem>
+              <SelectItem value="ACTIVE">Aktif</SelectItem>
+              <SelectItem value="LOST">Kayıp</SelectItem>
+              <SelectItem value="REVOKED">İptal</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2">
           {visibleCards.length === 0 ? (
             <EmptyState
-              title="Kart bulunamadi"
-              description="Secili filtreye uygun kart kaydi yok."
+              title="Kart bulunamadı"
+              description="Seçili filtreye uygun kart kaydı yok."
               actionLabel="Yeni kart ata"
               onAction={openAssignDialog}
             />
           ) : (
             visibleCards.map((card) => {
               const linkedStudent = studentByProfileId[card.studentId];
+              const draftStatus = statusDraft[card.id] || card.status;
+              const studentName = card.student?.user
+                ? `${card.student.user.firstName} ${card.student.user.lastName}`
+                : "Öğrenci bilgisi yok";
 
               return (
-                <div key={card.id} className="rounded-[1.5rem] border border-border bg-white p-4">
-                  <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                          <CreditCard className="size-6" />
-                        </div>
-                        <div>
-                          <div className="text-xl font-semibold">{card.uid}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {card.student?.user
-                              ? `${card.student.user.firstName} ${card.student.user.lastName}`
-                              : "Ogrenci bilgisi"}
-                          </div>
-                        </div>
+                <div
+                  key={card.id}
+                  className="flex flex-col gap-3 rounded-xl border border-border bg-white p-3.5 lg:flex-row lg:items-center lg:gap-4"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <CreditCard className="size-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-sm font-semibold">{card.uid}</span>
                         <Badge
                           variant={
                             card.status === "ACTIVE"
@@ -201,54 +211,58 @@ export default function CardsPage() {
                                 ? "destructive"
                                 : "outline"
                           }
-                          className="px-3 py-1 text-sm"
+                          className="rounded px-1.5 py-0 text-[10px] font-medium"
                         >
-                          {card.status === "ACTIVE" ? "Aktif" : card.status === "LOST" ? "Kayip" : "Iptal"}
+                          {card.status === "ACTIVE" ? "Aktif" : card.status === "LOST" ? "Kayıp" : "İptal"}
                         </Badge>
                       </div>
-                      <div className="text-sm leading-7 text-muted-foreground">
-                        Atama: {formatDate(card.assignedAt)}
-                        {card.revokedAt ? ` · Son degisim: ${formatDate(card.revokedAt)}` : ""}
+                      <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {linkedStudent ? (
+                          <Link
+                            href={`/admin/students/${linkedStudent.id}`}
+                            className="inline-flex items-center gap-1 hover:text-primary hover:underline"
+                          >
+                            {studentName}
+                            <Link2 className="size-3" />
+                          </Link>
+                        ) : (
+                          studentName
+                        )}
+                        <span className="mx-1">·</span>
+                        Atama {formatDate(card.assignedAt)}
                       </div>
-                      {linkedStudent ? (
-                        <Link
-                          href={`/admin/students/${linkedStudent.id}`}
-                          className={buttonVariants({ size: "sm", variant: "outline" })}
-                        >
-                          <Link2 className="size-4" />
-                          Ogrenci detayina git
-                        </Link>
-                      ) : null}
                     </div>
+                  </div>
 
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                      <Select
-                        value={statusDraft[card.id] || card.status}
-                        onValueChange={(value) =>
-                          setStatusDraft((current) => ({
-                            ...current,
-                            [card.id]: value as CardStatus,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="h-12 min-w-44 rounded-xl bg-white">
-                          <SelectValue placeholder="Yeni durum" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ACTIVE">Aktif</SelectItem>
-                          <SelectItem value="LOST">Kayip</SelectItem>
-                          <SelectItem value="REVOKED">Iptal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        disabled={(statusDraft[card.id] || card.status) === card.status}
-                        onClick={() => queueStatusUpdate(card)}
-                      >
-                        Durumu guncelle
-                      </Button>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={draftStatus}
+                      onValueChange={(value) =>
+                        setStatusDraft((current) => ({
+                          ...current,
+                          [card.id]: value as CardStatus,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="h-9 min-w-32 bg-white text-sm">
+                        <span className="min-w-0 truncate text-left">
+                          {cardStatusLabels[draftStatus]}
+                        </span>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ACTIVE">Aktif</SelectItem>
+                        <SelectItem value="LOST">Kayıp</SelectItem>
+                        <SelectItem value="REVOKED">İptal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={draftStatus === card.status}
+                      onClick={() => queueStatusUpdate(card)}
+                    >
+                      Güncelle
+                    </Button>
                   </div>
                 </div>
               );
@@ -258,7 +272,7 @@ export default function CardsPage() {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl rounded-[2rem] p-6 sm:max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-xl p-6 sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-3xl font-semibold">Yeni kart atama</DialogTitle>
             <DialogDescription className="text-base leading-7">
@@ -277,7 +291,11 @@ export default function CardsPage() {
             <FormField label="Ogrenci secimi" htmlFor="student-profile-id">
               <Select value={studentProfileId} onValueChange={(value) => setStudentProfileId(value || "")}>
                 <SelectTrigger id="student-profile-id" className="h-12 w-full rounded-xl bg-white">
-                  <SelectValue placeholder="Kartin atanacagi ogrenciyi secin" />
+                  <span className="min-w-0 truncate text-left">
+                    {selectedStudent
+                      ? `${selectedStudent.firstName} ${selectedStudent.lastName}`
+                      : "Kartin atanacagi ogrenciyi secin"}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   {students.map((student) => (

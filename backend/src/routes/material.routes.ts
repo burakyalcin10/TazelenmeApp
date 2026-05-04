@@ -18,12 +18,22 @@ const router = Router();
  * Base path: /api/v1/materials
  */
 
+const UPLOAD_ROOT = path.resolve(__dirname, '..', '..', 'uploads', 'materials');
+
 // Multer config — PDF dosyaları için disk storage
+// Not: courseId multipart text field olarak file'dan ÖNCE gönderilmelidir;
+// frontend (FormData.set sırası) bunu garanti ediyor.
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
-    const courseId = req.body.courseId || 'unknown';
-    const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'materials', courseId);
-    // Dizin yoksa oluştur
+    const courseId = (req.body.courseId || '').toString().trim();
+    if (!courseId) {
+      return cb(new Error('courseId zorunludur ve dosya field\'ından önce gönderilmelidir.'), '');
+    }
+    // courseId UUID olmalı; path traversal'ı önlemek için sanitize
+    if (!/^[a-zA-Z0-9-]+$/.test(courseId)) {
+      return cb(new Error('Geçersiz courseId formatı.'), '');
+    }
+    const uploadDir = path.join(UPLOAD_ROOT, courseId);
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }

@@ -1,21 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  BellRing,
-  BookOpen,
   ChevronRight,
-  MoreVertical,
   ShieldAlert,
   TrendingUp,
-  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { LoadingBlock } from "@/components/app/loading-block";
 import { EmptyState } from "@/components/app/empty-state";
 import { apiRequest } from "@/lib/api";
-import { formatDate, formatDateTime, formatPercentage } from "@/lib/format";
+import { formatDate, formatPercentage } from "@/lib/format";
 import type {
   AttendanceSummary,
   CourseListItem,
@@ -101,142 +98,155 @@ export default function AdminDashboardPage() {
   const attendanceRate = state.trend?.averageAttendanceRate ?? 0;
   const latestStudents = state.students.slice(0, 3);
 
+  const unreadAlerts = state.notifications.filter((n) => !n.isRead).length;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* ─── Welcome Banner ─── */}
-      <div>
-        <h1 className="font-serif text-4xl text-forest">
-          Hoş geldiniz, Admin.
+      <div className="space-y-1">
+        <h1 className="font-serif text-2xl text-forest sm:text-3xl">
+          Hoş geldiniz, Admin
         </h1>
-        <p className="mt-1 text-muted-foreground">
-          Bugün {new Date().toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}. Akademik süreçleriniz güncel.
+        <p className="text-sm text-muted-foreground">
+          {new Date().toLocaleDateString("tr-TR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
         </p>
       </div>
 
-      {/* ─── Hero Row: Yoklama Oranı + Risk Bildirimleri ─── */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        {/* Hero Metric — Yoklama Oranı */}
-        <div className="relative col-span-1 overflow-hidden rounded-xl bg-muted p-8 xl:col-span-8">
-          <div className="relative z-10">
-            <h3 className="font-serif text-lg text-forest">Yoklama Oranı</h3>
-            <p className="mt-1 text-6xl font-bold tracking-tighter text-primary">
-              {formatPercentage(attendanceRate)}
-            </p>
-            {state.trend && (
-              <div className="mt-3 flex items-center gap-2 text-primary">
-                <TrendingUp className="size-4" />
-                <span className="text-sm font-medium">
-                  Ortalama katılım oranı
+      {/* ─── KPI Strip ─── */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="surface-kpi">
+          <p className="panel-label">Toplam Öğrenci</p>
+          <div className="mt-2 font-serif text-3xl tracking-tight text-forest">
+            {totalStudents}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Aktif kayıt</p>
+        </div>
+        <div className="surface-kpi">
+          <p className="panel-label">Aktif Ders</p>
+          <div className="mt-2 font-serif text-3xl tracking-tight text-forest">
+            {activeCourses}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Dönem boyu</p>
+        </div>
+        <div className="surface-kpi">
+          <p className="panel-label">Yaklaşan Oturum</p>
+          <div className="mt-2 font-serif text-3xl tracking-tight text-forest">
+            {todaySessions.length}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Sonraki 6</p>
+        </div>
+        <div className="surface-kpi">
+          <p className="panel-label">Bildirim</p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-serif text-3xl tracking-tight text-forest">
+              {state.unreadCount}
+            </span>
+            {state.unreadCount > 0 ? (
+              <span className="rounded-md bg-amber/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-foreground">
+                YENİ
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Okunmamış</p>
+        </div>
+      </div>
+
+      {/* ─── Hero Row: Attendance Trend + Risk Notifications ─── */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Hero Metric — Attendance */}
+        <div className="surface-card relative overflow-hidden lg:col-span-2">
+          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <p className="panel-label">Ortalama Katılım</p>
+              <div className="mt-3 flex items-baseline gap-3">
+                <span className="font-serif text-4xl tracking-tight text-primary sm:text-5xl">
+                  {formatPercentage(attendanceRate)}
                 </span>
+                {state.trend ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-primary/80">
+                    <TrendingUp className="size-3.5" />
+                    Aktif dönem
+                  </span>
+                ) : null}
               </div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {state.courses[0]?.name
+                  ? `${state.courses[0].name} dersi referans alındı`
+                  : "Henüz aktif ders yok"}
+              </p>
+            </div>
+            <Link
+              href="/admin/courses"
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-white px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary/60"
+            >
+              Detaylı rapor
+              <ChevronRight className="ml-1 size-4" />
+            </Link>
+          </div>
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-primary/[0.06] to-transparent" />
+        </div>
+
+        {/* Risk Notifications */}
+        <div className="surface-alert flex flex-col">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-amber-foreground">
+              <ShieldAlert className="size-4" />
+              Risk bildirimleri
+            </h3>
+            {unreadAlerts > 0 ? (
+              <span className="rounded-md bg-amber px-1.5 py-0.5 text-[10px] font-semibold text-amber-foreground">
+                {unreadAlerts} YENİ
+              </span>
+            ) : null}
+          </div>
+          <div className="flex-1 space-y-2">
+            {state.riskStudents.length === 0 && state.notifications.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Şu an risk bildirimi yok.</p>
+            ) : (
+              <>
+                {state.riskStudents.slice(0, 2).map((s) => (
+                  <div key={s.id} className="rounded-lg border border-amber/20 bg-white/60 p-2.5">
+                    <p className="text-xs font-semibold text-foreground">
+                      {s.firstName} {s.lastName}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Devamsızlık eşiğine ulaştı
+                    </p>
+                  </div>
+                ))}
+                {state.notifications.slice(0, 2).map((n) => (
+                  <div key={n.id} className="rounded-lg border border-amber/20 bg-white/60 p-2.5">
+                    <p className="line-clamp-1 text-xs font-semibold text-foreground">{n.title}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{n.message}</p>
+                  </div>
+                ))}
+              </>
             )}
           </div>
-          <div className="mt-6 relative z-10">
-            <button className="rounded-full bg-forest px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary">
-              Detayları İncele
-            </button>
-          </div>
-          {/* Dekoratif gradient */}
-          <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2">
-            <div className="h-full w-full bg-gradient-to-l from-primary/10 to-transparent" />
-          </div>
-        </div>
-
-        {/* Risk Bildirimleri */}
-        <div className="col-span-1 xl:col-span-4">
-          <div className="surface-alert h-full">
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 font-bold text-amber-foreground">
-                <ShieldAlert className="size-5" />
-                Risk Bildirimleri
-              </h3>
-              {state.notifications.filter((n) => !n.isRead).length > 0 && (
-                <span className="rounded bg-amber px-2 py-1 text-xs font-bold text-amber-foreground">
-                  {state.notifications.filter((n) => !n.isRead).length} Yeni
-                </span>
-              )}
-            </div>
-            <div className="space-y-3">
-              {state.riskStudents.length === 0 && state.notifications.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Şu an risk bildirimi yok.</p>
-              ) : (
-                <>
-                  {state.riskStudents.slice(0, 2).map((s) => (
-                    <div key={s.id} className="rounded-lg bg-white/50 p-3 ghost-border">
-                      <p className="text-sm font-bold text-foreground">Devamsızlık Sınırı</p>
-                      <p className="text-xs text-muted-foreground">
-                        {s.firstName} {s.lastName} kritik seviyeye ulaştı.
-                      </p>
-                    </div>
-                  ))}
-                  {state.notifications.slice(0, 2).map((n) => (
-                    <div key={n.id} className="rounded-lg bg-white/50 p-3 ghost-border">
-                      <p className="text-sm font-bold text-foreground">{n.title}</p>
-                      <p className="text-xs text-muted-foreground">{n.message}</p>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* ─── KPI Cards ─── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="surface-kpi">
-          <p className="panel-label mb-2">Toplam Öğrenci</p>
-          <h2 className="font-serif text-5xl text-forest">{totalStudents}</h2>
-          <div className="mt-4 flex items-center justify-between text-xs font-medium text-forest/60">
-            <span>Aktif Kayıt</span>
-            <span className="rounded-full bg-white px-2 py-1">Tüm Yıllar</span>
-          </div>
-        </div>
-
-        <div className="surface-kpi">
-          <p className="panel-label mb-2">Bugün: Oturum</p>
-          <h2 className="font-serif text-5xl text-forest">{todaySessions.length}</h2>
-          <div className="mt-4 flex items-center justify-between text-xs font-medium text-forest/60">
-            <span>Kapasite Oranı</span>
-            <span className="rounded-full bg-white px-2 py-1">
-              {formatPercentage(attendanceRate)}
-            </span>
-          </div>
-        </div>
-
-        <div className="surface-kpi">
-          <p className="panel-label mb-2">Aktif Ders</p>
-          <h2 className="font-serif text-5xl text-forest">{activeCourses}</h2>
-          <div className="mt-4 flex items-center justify-between text-xs font-medium text-forest/60">
-            <span>Dönem Dersleri</span>
-            <span className="rounded-full bg-white px-2 py-1">Güncel</span>
-          </div>
-        </div>
-
-        <div className="surface-kpi">
-          <p className="panel-label mb-2">Okunmamış Bildirim</p>
-          <h2 className="font-serif text-5xl text-forest">{state.unreadCount}</h2>
-          <div className="mt-4 flex items-center justify-between text-xs font-medium text-forest/60">
-            <span>Bekleyen</span>
-            <span className="rounded-full bg-white px-2 py-1">
-              {state.unreadCount > 0 ? "Yeni" : "Temiz"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── Son Kayıtlı Öğrenciler Tablosu ─── */}
+      {/* ─── Recent Students Table ─── */}
       <div className="surface-card">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="font-serif text-2xl text-forest">Son Kayıtlı Öğrenciler</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Sisteme en son giriş yapan veya yeni kayıt olan profiller.
+            <h3 className="text-base font-semibold text-foreground">Son kayıtlı öğrenciler</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Sisteme en son eklenen profiller
             </p>
           </div>
-          <button className="flex items-center gap-1 border-b-2 border-accent pb-1 text-sm font-bold text-primary">
-            Tümünü Gör <ChevronRight className="size-4" />
-          </button>
+          <Link
+            href="/admin/students"
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
+            Tümünü gör
+            <ChevronRight className="size-4" />
+          </Link>
         </div>
 
         {latestStudents.length === 0 ? (
@@ -246,66 +256,58 @@ export default function AdminDashboardPage() {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="ghost-border border-b text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-border text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="px-4 pb-4">Öğrenci Profili</th>
-                  <th className="px-4 pb-4">Sağlık Durumu</th>
-                  <th className="px-4 pb-4">Kayıt Tarihi</th>
-                  <th className="px-4 pb-4">Durum</th>
-                  <th className="px-4 pb-4 text-right">Eylemler</th>
+                  <th className="px-3 pb-3 font-semibold">Öğrenci</th>
+                  <th className="px-3 pb-3 font-semibold">Sağlık</th>
+                  <th className="px-3 pb-3 font-semibold">Kayıt</th>
+                  <th className="px-3 pb-3 font-semibold">Durum</th>
                 </tr>
               </thead>
-              <tbody className="divide-y ghost-border">
+              <tbody className="divide-y divide-border">
                 {latestStudents.map((student) => {
                   const initials = `${student.firstName[0]}${student.lastName[0]}`.toUpperCase();
                   return (
-                    <tr
-                      key={student.id}
-                      className="transition-colors hover:bg-secondary/40"
-                    >
-                      <td className="px-4 py-6">
-                        <div className="flex items-center gap-4">
-                          <div className="flex size-12 items-center justify-center rounded-full bg-accent/15 font-bold text-forest">
+                    <tr key={student.id} className="transition-colors hover:bg-secondary/40">
+                      <td className="px-3 py-3">
+                        <Link
+                          href={`/admin/students/${student.id}`}
+                          className="flex items-center gap-3"
+                        >
+                          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent/15 text-xs font-semibold text-forest">
                             {initials}
                           </div>
-                          <div>
-                            <p className="font-bold text-forest">
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-foreground">
                               {student.firstName} {student.lastName}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              ID: {student.id.slice(0, 8)}
+                            <p className="truncate text-xs text-muted-foreground">
+                              {student.tcNo || student.id.slice(0, 8)}
                             </p>
                           </div>
-                        </div>
+                        </Link>
                       </td>
-                      <td className="px-4 py-6">
-                        <p className="text-sm font-medium">
-                          {student.healthConditions.length > 0
-                            ? `${student.healthConditions.length} durum`
-                            : "Normal"}
-                        </p>
+                      <td className="px-3 py-3 text-muted-foreground">
+                        {student.healthConditions.length > 0
+                          ? `${student.healthConditions.length} durum`
+                          : "Normal"}
                       </td>
-                      <td className="px-4 py-6">
-                        <p className="text-sm">{formatDate(student.createdAt)}</p>
+                      <td className="px-3 py-3 text-muted-foreground">
+                        {formatDate(student.createdAt)}
                       </td>
-                      <td className="px-4 py-6">
+                      <td className="px-3 py-3">
                         {student.isAtRisk ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600">
-                            <span className="size-2 rounded-full bg-red-500" />
+                          <span className="inline-flex items-center gap-1.5 rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                            <span className="size-1.5 rounded-full bg-red-500" />
                             Riskli
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-                            <span className="size-2 rounded-full bg-primary" />
+                          <span className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                            <span className="size-1.5 rounded-full bg-primary" />
                             Aktif
                           </span>
                         )}
-                      </td>
-                      <td className="px-4 py-6 text-right">
-                        <button className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-forest">
-                          <MoreVertical className="size-5" />
-                        </button>
                       </td>
                     </tr>
                   );

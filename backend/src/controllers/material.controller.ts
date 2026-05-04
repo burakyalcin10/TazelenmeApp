@@ -10,8 +10,25 @@ import logger from '../utils/logger';
  * Görev 6.4, 6.5: PDF/Link upload, materyal listeleme, indirme
  */
 
-// Upload dizini
-const UPLOAD_BASE = path.join(__dirname, '..', '..', 'uploads', 'materials');
+// Upload tabanı — backend kökünde (dist/ veya src/)'in iki üstü
+const UPLOAD_ROOT = path.resolve(__dirname, '..', '..', 'uploads');
+
+/**
+ * material.url değerini disk yoluna çevirir.
+ * Beklenen format: "/uploads/materials/{courseId}/{filename}"
+ * path.join leading "/" ile sorun çıkarır; manuel normalize gerekiyor.
+ */
+function resolveMaterialFilePath(materialUrl: string): string | null {
+  const prefix = '/uploads/';
+  if (!materialUrl.startsWith(prefix)) return null;
+  const relative = materialUrl.slice(prefix.length); // "materials/{courseId}/{filename}"
+  const resolved = path.resolve(UPLOAD_ROOT, relative);
+  // Path traversal koruması — uploads dizini dışına çıkmasın
+  if (!resolved.startsWith(UPLOAD_ROOT + path.sep) && resolved !== UPLOAD_ROOT) {
+    return null;
+  }
+  return resolved;
+}
 
 // ── Materyal Yükleme ────────────────────────────────────────
 
@@ -163,7 +180,7 @@ export const getMaterials = async (req: Request, res: Response, next: NextFuncti
 /**
  * GET /api/v1/materials/:id
  * Materyal detay
- * Auth: ADMIN
+ * Auth: ADMIN her zaman; STUDENT sadece kayıtlı olduğu dersin materyalini görebilir
  */
 export const getMaterialById = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -172,12 +189,30 @@ export const getMaterialById = async (req: Request, res: Response, next: NextFun
     const material = await prisma.courseMaterial.findUnique({
       where: { id: id as string },
       include: {
-        course: { select: { id: true, name: true, term: true } },
+        course: { select: { id: true, name: true, term: true, isActive: true } },
       },
     });
 
     if (!material) {
       throw new AppError('Materyal bulunamadı.', 404);
+    }
+
+    // STUDENT ise kayıtlı olduğu dersin materyali olmalı
+    if (req.user?.role === 'STUDENT') {
+      if (!req.user.profileId) {
+        throw new AppError('Öğrenci profili bulunamadı.', 403);
+      }
+      const enrollment = await prisma.enrollment.findUnique({
+        where: {
+          studentId_courseId: {
+            studentId: req.user.profileId,
+            courseId: material.courseId,
+          },
+        },
+      });
+      if (!enrollment && !material.course.isActive) {
+        throw new AppError('Bu materyale erişim yetkiniz yok.', 403);
+      }
     }
 
     res.json({
@@ -209,15 +244,17 @@ export const deleteMaterial = async (req: Request, res: Response, next: NextFunc
     }
 
     // PDF ise dosyayı disk'ten sil
-    if (material.type === 'PDF' && material.url.startsWith('/uploads/')) {
-      const filePath = path.join(__dirname, '..', '..', material.url);
-      try {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          logger.info({ filePath }, 'PDF dosyası silindi');
+    if (material.type === 'PDF') {
+      const filePath = resolveMaterialFilePath(material.url);
+      if (filePath) {
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            logger.info({ filePath }, 'PDF dosyası silindi');
+          }
+        } catch (fsError) {
+          logger.warn({ filePath, error: fsError }, 'PDF dosyası silinemedi');
         }
-      } catch (fsError) {
-        logger.warn({ filePath, error: fsError }, 'PDF dosyası silinemedi');
       }
     }
 
@@ -283,19 +320,20 @@ export const downloadMaterial = async (req: Request, res: Response, next: NextFu
           },
         },
       });
-      if (!enrollment) {
+      if (!enrollment && !material.course.isActive) {
         throw new AppError('Bu materyale erişim yetkiniz yok.', 403);
       }
     }
 
-    const filePath = path.join(__dirname, '..', '..', material.url);
-
-    if (!fs.existsSync(filePath)) {
+    const filePath = resolveMaterialFilePath(material.url);
+    if (!filePath || !fs.existsSync(filePath)) {
       throw new AppError('Dosya sunucuda bulunamadı.', 404);
     }
 
-    const fileName = path.basename(material.url);
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(material.title)}.pdf"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(material.title)}.pdf"`
+    );
     res.setHeader('Content-Type', 'application/pdf');
 
     const fileStream = fs.createReadStream(filePath);

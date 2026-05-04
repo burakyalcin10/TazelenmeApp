@@ -180,6 +180,7 @@ model LessonSession {
   startTime   DateTime  // [YENİ] Ders başlangıç saati
   endTime     DateTime  // [YENİ] Ders bitiş saati
   weekNumber  Int       // Örn: 3. Hafta
+  attendanceOpen Boolean @default(false)
 
   // İlişkiler
   attendances Attendance[]

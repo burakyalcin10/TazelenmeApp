@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarClock, CheckCircle2, ClipboardList, UserX } from "lucide-react";
+import { CalendarClock, CheckCircle2, ClipboardList, PlayCircle, StopCircle, UserX } from "lucide-react";
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { StatCard } from "@/components/app/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { apiRequest } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/format";
 import type {
@@ -21,6 +21,8 @@ import type {
   CourseListItem,
   SessionListItem,
 } from "@/lib/types";
+
+type AttendanceListFilter = "ALL" | "PRESENT" | "ABSENT";
 
 export default function AttendancePage() {
   const autoRefreshIntervalMs = 15000;
@@ -36,6 +38,8 @@ export default function AttendancePage() {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [liveRefreshing, setLiveRefreshing] = useState(false);
+  const [attendanceFilter, setAttendanceFilter] = useState<AttendanceListFilter>("ALL");
+  const [attendanceWindowLoading, setAttendanceWindowLoading] = useState(false);
   const [pendingAttendance, setPendingAttendance] = useState<{
     studentId: string;
     studentName: string;
@@ -189,6 +193,9 @@ export default function AttendancePage() {
       });
       toast.success("Manuel yoklama guncellendi.");
       setPendingAttendance(null);
+      if (pendingAttendance.status !== attendanceFilter && attendanceFilter !== "ALL") {
+        setAttendanceFilter(pendingAttendance.status === "EXCUSED" ? "ALL" : pendingAttendance.status);
+      }
       await loadSessionDetail(selectedSessionId);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Yoklama guncellenemedi.");
@@ -197,7 +204,65 @@ export default function AttendancePage() {
     }
   }
 
+  async function setSessionAttendanceWindow(open: boolean) {
+    if (!selectedSessionId) {
+      return;
+    }
+
+    setAttendanceWindowLoading(true);
+    try {
+      const endpoint = open ? "start" : "stop";
+      await apiRequest(`/api/v1/attendance/session/${selectedSessionId}/${endpoint}`, {
+        method: "POST",
+      });
+
+      setSessions((currentSessions) =>
+        currentSessions.map((session) => {
+          if (session.id === selectedSessionId) {
+            return { ...session, attendanceOpen: open };
+          }
+
+          return { ...session, attendanceOpen: open ? false : session.attendanceOpen };
+        })
+      );
+
+      toast.success(open ? "RFID yoklamasi baslatildi." : "RFID yoklamasi durduruldu.");
+      await loadSessionDetail(selectedSessionId);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "RFID yoklama durumu guncellenemedi.");
+    } finally {
+      setAttendanceWindowLoading(false);
+    }
+  }
+
   const selectedSession = sessions.find((session) => session.id === selectedSessionId);
+  const attendanceOpen = Boolean(sessionDetail?.session.attendanceOpen || selectedSession?.attendanceOpen);
+  const attendanceWindowDescription = attendanceOpen
+    ? "RFID okuyucular sadece secili oturum icin yoklama aliyor."
+    : "RFID yoklamasi kapali. Kart okutmalari derse katilim yazmaz.";
+  const selectedCourseLabel =
+    courseFilter === "ALL"
+      ? "Tum dersler"
+      : courses.find((course) => course.id === courseFilter)?.name || "Ders secin";
+  const selectedClassroomLabel =
+    classroomFilter === "ALL"
+      ? "Tum siniflar"
+      : classrooms.find((classroom) => classroom.id === classroomFilter)?.name || "Sinif secin";
+  const selectedSessionLabel = selectedSession
+    ? `${selectedSession.course.name} · ${selectedSession.classroom.name} · ${formatDate(
+        selectedSession.sessionDate
+      )} · Hafta ${selectedSession.weekNumber}`
+    : "Oturum secin";
+  const visibleAttendanceList =
+    attendanceFilter === "ALL"
+      ? sessionDetail?.attendanceList || []
+      : (sessionDetail?.attendanceList || []).filter((item) => item.status === attendanceFilter);
+  const attendanceFilterTitle =
+    attendanceFilter === "PRESENT"
+      ? "Gelen ogrenciler"
+      : attendanceFilter === "ABSENT"
+        ? "Gelmeyen ogrenciler"
+        : "Tum ogrenciler";
 
   if (loading && !sessions.length) {
     return <LoadingBlock description="Yoklama ekranlari yukleniyor..." />;
@@ -209,16 +274,14 @@ export default function AttendancePage() {
         title="Yoklama Yonetimi"
         description="Oturumu secin, ogrenci listesini gorun ve geldi, gelmedi veya izinli durumunu onayli sekilde guncelleyin."
         actions={
-          <div className="flex flex-wrap gap-3">
+          <>
             <Button
-              size="lg"
               variant={autoRefreshEnabled ? "secondary" : "outline"}
               onClick={() => setAutoRefreshEnabled((current) => !current)}
             >
-              {autoRefreshEnabled ? "Canli izleme acik" : "Canli izlemeyi ac"}
+              {autoRefreshEnabled ? "Otomatik yenileme acik" : "Otomatik yenilemeyi ac"}
             </Button>
             <Button
-              size="lg"
               variant="outline"
               onClick={() => {
                 if (selectedSessionId) {
@@ -229,17 +292,17 @@ export default function AttendancePage() {
             >
               Listeyi yenile
             </Button>
-          </div>
+          </>
         }
       />
 
-      <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-        <CardHeader className="gap-4">
-          <CardTitle className="text-2xl font-semibold">Oturum filtreleri</CardTitle>
-          <div className="grid gap-4 xl:grid-cols-[1fr_1fr_1.2fr]">
+      <Card className="rounded-xl border border-border shadow-none">
+        <CardHeader className="gap-3">
+          <CardTitle className="text-base font-semibold">Oturum filtreleri</CardTitle>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             <Select value={courseFilter} onValueChange={(value) => setCourseFilter(value || "ALL")}>
-              <SelectTrigger className="h-12 w-full rounded-xl bg-white">
-                <SelectValue placeholder="Derse gore filtrele" />
+              <SelectTrigger className="h-11 w-full bg-white">
+                <span className="min-w-0 truncate text-left">{selectedCourseLabel}</span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Tum dersler</SelectItem>
@@ -251,8 +314,8 @@ export default function AttendancePage() {
               </SelectContent>
             </Select>
             <Select value={classroomFilter} onValueChange={(value) => setClassroomFilter(value || "ALL")}>
-              <SelectTrigger className="h-12 w-full rounded-xl bg-white">
-                <SelectValue placeholder="Sinifa gore filtrele" />
+              <SelectTrigger className="h-11 w-full bg-white">
+                <span className="min-w-0 truncate text-left">{selectedClassroomLabel}</span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Tum siniflar</SelectItem>
@@ -270,11 +333,12 @@ export default function AttendancePage() {
                   return;
                 }
                 setSelectedSessionId(value);
+                setAttendanceFilter("ALL");
                 void loadSessionDetail(value);
               }}
             >
-              <SelectTrigger className="h-12 w-full rounded-xl bg-white">
-                <SelectValue placeholder="Oturum secin" />
+              <SelectTrigger className="h-11 w-full bg-white">
+                <span className="min-w-0 truncate text-left">{selectedSessionLabel}</span>
               </SelectTrigger>
               <SelectContent>
                 {sessions.map((session) => (
@@ -284,6 +348,35 @@ export default function AttendancePage() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex flex-col gap-3 rounded-xl border border-border bg-secondary/30 p-3 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0 space-y-1">
+              <p className="text-sm font-semibold text-foreground">
+                {attendanceOpen ? "Yoklama aktif" : "Yoklama kapali"}
+              </p>
+              <p className="text-xs text-muted-foreground">{attendanceWindowDescription}</p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                onClick={() => void setSessionAttendanceWindow(true)}
+                disabled={!selectedSessionId || attendanceOpen || attendanceWindowLoading}
+                className="gap-2"
+              >
+                <PlayCircle className="size-4" />
+                Yoklamayi baslat
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void setSessionAttendanceWindow(false)}
+                disabled={!selectedSessionId || !attendanceOpen || attendanceWindowLoading}
+                className="gap-2 bg-white"
+              >
+                <StopCircle className="size-4" />
+                Yoklamayi durdur
+              </Button>
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -299,22 +392,28 @@ export default function AttendancePage() {
             <StatCard
               title="Toplam ogrenci"
               value={sessionDetail.stats.total}
-              description="Bu oturuma kayitli ogrenci sayisi."
+              description="Tum yoklama listesini goster."
               icon={ClipboardList}
+              active={attendanceFilter === "ALL"}
+              onClick={() => setAttendanceFilter("ALL")}
             />
             <StatCard
               title="Gelen"
               value={sessionDetail.stats.present}
-              description="Yoklamada geldi olarak isaretlenenler."
+              description="Geldi olarak isaretlenenleri goster."
               icon={CheckCircle2}
               tone="success"
+              active={attendanceFilter === "PRESENT"}
+              onClick={() => setAttendanceFilter("PRESENT")}
             />
             <StatCard
               title="Gelmeyen"
               value={sessionDetail.stats.absent}
-              description="Henuz gelmedi veya yok olarak gorunenler."
+              description="Gelmedi olarak gorunenleri goster."
               icon={UserX}
               tone="warning"
+              active={attendanceFilter === "ABSENT"}
+              onClick={() => setAttendanceFilter("ABSENT")}
             />
             <StatCard
               title="Secili oturum"
@@ -324,93 +423,107 @@ export default function AttendancePage() {
             />
           </div>
 
-          <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-            <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-              <CardTitle className="text-2xl font-semibold">
-                {sessionDetail.session.courseName} · {sessionDetail.session.classroom}
-              </CardTitle>
-              <p className="text-base leading-7 text-muted-foreground">
-                {formatDate(sessionDetail.session.sessionDate)} · {formatDateTime(sessionDetail.session.startTime)} · Hafta{" "}
-                {sessionDetail.session.weekNumber}
-              </p>
+          <Card className="rounded-xl border border-border shadow-none">
+            <CardHeader className="gap-3 md:flex-row md:items-start md:justify-between">
+              <div className="min-w-0 space-y-1">
+                <CardTitle className="text-lg font-semibold">
+                  {sessionDetail.session.courseName}
+                </CardTitle>
+                <p className="text-xs font-semibold text-primary">
+                  {attendanceFilterTitle}: {visibleAttendanceList.length} kisi
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {sessionDetail.session.classroom} · {formatDate(sessionDetail.session.sessionDate)} ·{" "}
+                  {formatDateTime(sessionDetail.session.startTime)} · Hafta {sessionDetail.session.weekNumber}
+                </p>
               </div>
-              <div className="rounded-[1.5rem] bg-secondary/60 px-4 py-3 text-sm font-medium text-muted-foreground">
-                {autoRefreshEnabled ? "Canli yenileme 15 sn" : "Canli yenileme kapali"}
-                <div className="mt-1 text-foreground">
-                  Son guncelleme: {lastUpdatedAt ? formatDateTime(lastUpdatedAt) : "Henuz veri alinmadi"}
-                </div>
-                {liveRefreshing ? <div className="mt-1 text-primary">Liste arka planda yenileniyor...</div> : null}
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
+                <span
+                  className={`size-2 rounded-full ${
+                    autoRefreshEnabled ? "bg-emerald-500" : "bg-muted-foreground/40"
+                  } ${liveRefreshing ? "animate-pulse" : ""}`}
+                />
+                <span className="font-medium">
+                  {autoRefreshEnabled ? "Oto yenileme (15 sn)" : "Yenileme kapali"}
+                </span>
+                <span className="text-muted-foreground/60">·</span>
+                <span>
+                  Son yenileme: {lastUpdatedAt ? formatDateTime(lastUpdatedAt) : "henuz yok"}
+                </span>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {detailLoading ? (
                 <LoadingBlock description="Secili oturum yenileniyor..." />
-              ) : sessionDetail.attendanceList.length === 0 ? (
+              ) : visibleAttendanceList.length === 0 ? (
                 <EmptyState
-                  title="Yoklama listesi bos"
-                  description="Bu oturuma bagli ogrenci kaydi gorunmuyor."
+                  title="Liste bos"
+                  description="Secili filtre icin ogrenci bulunmuyor."
                 />
               ) : (
-                sessionDetail.attendanceList.map((item) => (
-                  <div key={item.studentId} className="rounded-[1.5rem] border border-border bg-white p-4">
-                    <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
-                      <div className="space-y-1">
-                        <div className="text-xl font-semibold">
-                          {item.firstName} {item.lastName}
+                visibleAttendanceList.map((item) => {
+                  const studentName = `${item.firstName} ${item.lastName}`;
+                  return (
+                    <div
+                      key={item.studentId}
+                      className="flex flex-col gap-3 rounded-xl border border-border bg-white p-4 md:flex-row md:items-center md:justify-between"
+                    >
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="truncate text-base font-semibold">
+                          {studentName}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Kart: {item.activeCard || "Aktif kart yok"} · Son islem: {item.timestamp ? formatDateTime(item.timestamp) : "Yok"}
-                        </div>
-                        <div className="inline-flex rounded-full bg-secondary px-3 py-1.5 text-sm font-semibold text-primary">
-                          Mevcut durum:{" "}
-                          {item.status === "PRESENT" ? "Geldi" : item.status === "EXCUSED" ? "Izinli" : "Gelmedi"}
+                        <div className="text-xs text-muted-foreground">
+                          Kart: {item.activeCard || "yok"}
+                          {item.timestamp ? ` · ${formatDateTime(item.timestamp)}` : ""}
                         </div>
                       </div>
-                      <div className="flex flex-col gap-3 sm:flex-row">
-                        <Button
-                          size="lg"
-                          variant={item.status === "PRESENT" ? "secondary" : "outline"}
+                      <div className="segmented-group w-full md:w-auto md:shrink-0">
+                        <button
+                          type="button"
+                          data-active={item.status === "PRESENT"}
+                          data-tone="success"
                           onClick={() =>
                             setPendingAttendance({
                               studentId: item.studentId,
-                              studentName: `${item.firstName} ${item.lastName}`,
+                              studentName,
                               status: "PRESENT",
                             })
                           }
                         >
                           Geldi
-                        </Button>
-                        <Button
-                          size="lg"
-                          variant={item.status === "ABSENT" ? "destructive" : "outline"}
+                        </button>
+                        <button
+                          type="button"
+                          data-active={item.status === "ABSENT"}
+                          data-tone="danger"
                           onClick={() =>
                             setPendingAttendance({
                               studentId: item.studentId,
-                              studentName: `${item.firstName} ${item.lastName}`,
+                              studentName,
                               status: "ABSENT",
                             })
                           }
                         >
                           Gelmedi
-                        </Button>
-                        <Button
-                          size="lg"
-                          variant={item.status === "EXCUSED" ? "secondary" : "outline"}
+                        </button>
+                        <button
+                          type="button"
+                          data-active={item.status === "EXCUSED"}
+                          data-tone="warning"
                           onClick={() =>
                             setPendingAttendance({
                               studentId: item.studentId,
-                              studentName: `${item.firstName} ${item.lastName}`,
+                              studentName,
                               status: "EXCUSED",
                             })
                           }
                         >
-                          Izinli
-                        </Button>
+                          İzinli
+                        </button>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>

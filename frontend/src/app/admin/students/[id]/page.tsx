@@ -24,10 +24,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { apiRequest } from "@/lib/api";
 import { formatDate, formatDateTime, formatPercentage, healthConditionLabel } from "@/lib/format";
 import type { CardItem, CardStatus, StudentDetail } from "@/lib/types";
+
+const cardStatusLabels: Record<CardStatus, string> = {
+  ACTIVE: "Aktif",
+  LOST: "Kayip",
+  REVOKED: "Iptal",
+};
 
 export default function StudentDetailPage() {
   const params = useParams<{ id: string }>();
@@ -300,7 +306,9 @@ export default function StudentDetailPage() {
                         }
                       >
                         <SelectTrigger className="h-12 w-full min-w-48 rounded-xl bg-white">
-                          <SelectValue placeholder="Kart durumu" />
+                          <span className="min-w-0 truncate text-left">
+                            {cardStatusLabels[cardStatusDraft[card.id] || card.status]}
+                          </span>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="ACTIVE">Aktif</SelectItem>

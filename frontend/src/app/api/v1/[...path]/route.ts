@@ -5,14 +5,27 @@ import { getServerSession } from "@/lib/session";
 /**
  * API Proxy Route — Client-side istekleri backend'e yönlendirir.
  *
- * Client component'ler doğrudan backend'e istek yapmak yerine
- * bu proxy üzerinden geçer. Proxy, server-side cookie'den token'ı
- * okuyarak Authorization header ekler.
- *
- * Bu sayede client-side'da document.cookie okuma sorunları ortadan kalkar.
- *
- * Örnek: GET /api/v1/students → GET http://localhost:4000/api/v1/students
+ * Body ve response'lar binary-safe stream'lenir; multipart upload (PDF) ve
+ * stream download (PDF indirme) için .text() / .blob() kullanılmaz.
  */
+
+// fetch() body: ReadableStream gönderebilmek için Node runtime şart (edge'de duplex sorunu var)
+export const runtime = "nodejs";
+
+// Backend'den gelen header'ları aktarırken atlanacaklar — fetch / undici bunları zaten yönetiyor
+const HOP_BY_HOP = new Set([
+  "connection",
+  "keep-alive",
+  "transfer-encoding",
+  "content-encoding",
+  "content-length",
+  "upgrade",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "expect",
+  "te",
+  "trailer",
+]);
 
 function getBackendBaseUrl(): string {
   return (
@@ -30,49 +43,53 @@ async function proxyHandler(
   const session = await getServerSession();
   const backendBase = getBackendBaseUrl();
 
-  // Path'i yeniden oluştur: /api/v1/students?limit=100 → http://backend/api/v1/students?limit=100
   const targetPath = `/api/v1/${path.join("/")}`;
   const { searchParams } = new URL(req.url);
   const queryString = searchParams.toString();
   const targetUrl = `${backendBase}${targetPath}${queryString ? `?${queryString}` : ""}`;
 
-  // İstek header'larını kopyala
+  // İstek header'larını birebir aktar — Content-Type (multipart boundary dahil) korunur
   const headers = new Headers();
-  headers.set("Content-Type", req.headers.get("Content-Type") || "application/json");
-  headers.set("Accept", "application/json");
+  req.headers.forEach((value, key) => {
+    const lower = key.toLowerCase();
+    if (HOP_BY_HOP.has(lower)) return;
+    if (lower === "host") return; // backend kendi host'unu set etmeli
+    if (lower === "authorization") return; // server-side cookie'den ekleyeceğiz
+    headers.set(key, value);
+  });
 
-  // Token ekle
   if (session?.accessToken) {
     headers.set("Authorization", `Bearer ${session.accessToken}`);
   }
 
-  // User-Agent ve diğer gerekli header'lar
-  const userAgent = req.headers.get("User-Agent");
-  if (userAgent) {
-    headers.set("User-Agent", userAgent);
-  }
-
   try {
-    // Body'yi hazırla (GET/HEAD için body yok)
-    let body: string | null = null;
-    if (req.method !== "GET" && req.method !== "HEAD") {
-      body = await req.text();
-    }
+    const hasBody = req.method !== "GET" && req.method !== "HEAD";
 
-    const backendResponse = await fetch(targetUrl, {
+    const init: RequestInit & { duplex?: "half" } = {
       method: req.method,
       headers,
-      body,
+    };
+
+    if (hasBody) {
+      // Body'yi stream olarak aktar — multipart binary bozulmaz
+      init.body = req.body;
+      init.duplex = "half"; // Node fetch (undici) ReadableStream body için zorunlu
+    }
+
+    const backendResponse = await fetch(targetUrl, init);
+
+    // Response header'larını aktar
+    const responseHeaders = new Headers();
+    backendResponse.headers.forEach((value, key) => {
+      if (HOP_BY_HOP.has(key.toLowerCase())) return;
+      responseHeaders.set(key, value);
     });
 
-    // Backend'den gelen yanıtı döndür
-    const responseBody = await backendResponse.text();
-
-    return new NextResponse(responseBody, {
+    // Response body'yi stream olarak geri ver — PDF/binary korunur
+    return new NextResponse(backendResponse.body, {
       status: backendResponse.status,
-      headers: {
-        "Content-Type": backendResponse.headers.get("Content-Type") || "application/json",
-      },
+      statusText: backendResponse.statusText,
+      headers: responseHeaders,
     });
   } catch (error) {
     console.error("[API Proxy] Backend isteği başarısız:", error);

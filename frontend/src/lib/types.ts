@@ -148,6 +148,7 @@ export interface SessionListItem {
   startTime: string;
   endTime: string;
   weekNumber: number;
+  attendanceOpen: boolean;
   attendanceCount: number;
   course: {
     id: string;
@@ -249,6 +250,7 @@ export interface AttendanceSessionDetail {
     startTime: string;
     endTime: string;
     weekNumber: number;
+    attendanceOpen: boolean;
   };
   stats: {
     total: number;

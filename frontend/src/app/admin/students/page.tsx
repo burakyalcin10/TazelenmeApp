@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/api";
@@ -38,6 +38,17 @@ const healthOptions: { value: HealthCondition; label: string }[] = [
   { value: "PHYSICAL_ISSUE", label: "Fiziksel Destek Ihtiyaci" },
   { value: "OTHER", label: "Diger" },
 ];
+
+const riskFilterLabels: Record<string, string> = {
+  ALL: "Tum ogrenciler",
+  RISK: "Sadece riskli",
+  SAFE: "Riskte olmayanlar",
+};
+
+function healthFilterLabel(value: string) {
+  if (value === "ALL") return "Tum saglik durumlari";
+  return healthOptions.find((option) => option.value === value)?.label || "Saglik filtresi";
+}
 
 const emptyForm: StudentCreatePayload = {
   tcNo: "",
@@ -361,59 +372,63 @@ export default function StudentsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Ogrenci Yonetimi"
-        description="Ogrenci kayitlarini arayin, yeni ogrenci ekleyin ve riskli profilleri rahat bir ekrandan yonetin."
+        title="Öğrenci Yönetimi"
+        description="Öğrenci kayıtlarını arayın, yeni öğrenci ekleyin ve riskli profilleri yönetin."
         actions={
-          <div className="flex flex-wrap gap-3">
-            <Button size="xl" variant="outline" onClick={() => setImportDialogOpen(true)}>
-              <Upload className="size-5" />
-              CSV import
+          <>
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="size-4" />
+              CSV içe aktar
             </Button>
-            <Button size="xl" variant="outline" onClick={exportStudentsCsv}>
-              <Download className="size-5" />
-              CSV disa aktar
+            <Button variant="outline" onClick={exportStudentsCsv}>
+              <Download className="size-4" />
+              CSV dışa aktar
             </Button>
-            <Button size="xl" onClick={openCreateDialog}>
-              <Plus className="size-5" />
-              Yeni ogrenci ekle
+            <Button onClick={openCreateDialog}>
+              <Plus className="size-4" />
+              Yeni öğrenci
             </Button>
-          </div>
+          </>
         }
       />
 
-      <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-        <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <CardTitle className="text-2xl font-semibold">Toplu islemler</CardTitle>
-            <p className="text-base leading-7 text-muted-foreground">
-              Ogrenci listesini CSV olarak disa aktarabilir veya hazir sablon ile toplu import yapabilirsiniz.
+      <Card className="rounded-xl border border-border shadow-none">
+        <CardHeader className="gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <CardTitle className="text-base font-semibold">Toplu işlemler</CardTitle>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              CSV ile toplu import veya export yapın.
             </p>
           </div>
-          <Button size="lg" variant="outline" onClick={downloadImportTemplate}>
-            <Download className="size-5" />
-            Import sablonunu indir
+          <Button variant="outline" size="sm" onClick={downloadImportTemplate}>
+            <Download className="size-4" />
+            Şablonu indir
           </Button>
         </CardHeader>
         {importResult ? (
-          <CardContent className="grid gap-4 xl:grid-cols-[0.75fr_1.25fr]">
-            <div className="rounded-[1.5rem] bg-secondary/60 p-5">
-              <div className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">Son import ozeti</div>
-              <div className="mt-3 text-3xl font-semibold">{importResult.success.length} basarili</div>
-              <div className="mt-2 text-base text-muted-foreground">{importResult.errors.length} satir hata ile karsilasti.</div>
+          <CardContent className="grid gap-3 lg:grid-cols-[1fr_2fr]">
+            <div className="rounded-lg bg-secondary/50 p-4">
+              <div className="panel-label">Son import özeti</div>
+              <div className="mt-2 font-serif text-2xl text-forest">
+                {importResult.success.length} başarılı
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {importResult.errors.length} satır hata
+              </div>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {importResult.success.slice(0, 4).map((item) => (
-                <div key={`${item.userId}-${item.line}`} className="rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-4">
-                  <div className="text-base font-semibold">
-                    Satir {item.line}: {item.firstName} {item.lastName}
+                <div key={`${item.userId}-${item.line}`} className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                  <div className="text-sm font-medium">
+                    #{item.line} · {item.firstName} {item.lastName}
                   </div>
-                  <div className="mt-1 text-sm text-emerald-800">Olusan ilk PIN: {item.generatedPin}</div>
+                  <div className="text-xs text-emerald-800">PIN: {item.generatedPin}</div>
                 </div>
               ))}
               {importResult.errors.slice(0, 3).map((item) => (
-                <div key={`error-${item.line}`} className="rounded-[1.25rem] border border-amber-200 bg-amber-50 p-4">
-                  <div className="text-base font-semibold">Satir {item.line}</div>
-                  <div className="mt-1 text-sm text-amber-900">{item.error}</div>
+                <div key={`error-${item.line}`} className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                  <div className="text-sm font-medium">Satır {item.line}</div>
+                  <div className="text-xs text-amber-900">{item.error}</div>
                 </div>
               ))}
             </div>
@@ -421,22 +436,23 @@ export default function StudentsPage() {
         ) : null}
       </Card>
 
-      <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-        <CardHeader className="gap-4">
-          <CardTitle className="text-2xl font-semibold">Arama ve filtreler</CardTitle>
-          <div className="grid gap-4 xl:grid-cols-[1.4fr_0.8fr_0.8fr]">
+      <Card className="rounded-xl border border-border shadow-none">
+        <CardHeader className="gap-3">
+          <div className="grid gap-3 md:grid-cols-[2fr_1fr_1fr]">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="pl-12"
-                placeholder="Ad, soyad veya TC ile arayin"
+                className="h-11 pl-10"
+                placeholder="Ad, soyad veya TC ile arayın"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
             </div>
             <Select value={riskFilter} onValueChange={(value) => setRiskFilter(value || "ALL")}>
-              <SelectTrigger className="h-12 w-full rounded-xl bg-white">
-                <SelectValue placeholder="Risk durumu" />
+              <SelectTrigger className="h-11 w-full bg-white">
+                <span className="min-w-0 truncate text-left">
+                  {riskFilterLabels[riskFilter] || "Risk durumu"}
+                </span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Tum ogrenciler</SelectItem>
@@ -445,8 +461,10 @@ export default function StudentsPage() {
               </SelectContent>
             </Select>
             <Select value={healthFilter} onValueChange={(value) => setHealthFilter(value || "ALL")}>
-              <SelectTrigger className="h-12 w-full rounded-xl bg-white">
-                <SelectValue placeholder="Saglik filtresi" />
+              <SelectTrigger className="h-11 w-full bg-white">
+                <span className="min-w-0 truncate text-left">
+                  {healthFilterLabel(healthFilter)}
+                </span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Tum saglik durumlari</SelectItem>
@@ -461,104 +479,146 @@ export default function StudentsPage() {
         </CardHeader>
       </Card>
 
-      <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold">
-            Ogrenci listesi ({filteredStudents.length})
+      <Card className="rounded-xl border border-border shadow-none">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">
+            Öğrenci listesi
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              ({filteredStudents.length})
+            </span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0">
           {filteredStudents.length === 0 ? (
-            <EmptyState
-              title="Ogrenci bulunamadi"
-              description="Arama ve filtrelere uygun ogrenci yok. Isterseniz yeni bir kayit olusturabilirsiniz."
-              actionLabel="Yeni ogrenci ekle"
-              onAction={openCreateDialog}
-            />
+            <div className="px-6">
+              <EmptyState
+                title="Öğrenci bulunamadı"
+                description="Arama ve filtrelere uygun öğrenci yok."
+                actionLabel="Yeni öğrenci ekle"
+                onAction={openCreateDialog}
+              />
+            </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border">
-                  <TableHead className="px-4 py-4 text-base">Ogrenci</TableHead>
-                  <TableHead className="px-4 py-4 text-base">Durum</TableHead>
-                  <TableHead className="px-4 py-4 text-base">Kart</TableHead>
-                  <TableHead className="px-4 py-4 text-base">Kayit tarihi</TableHead>
-                  <TableHead className="px-4 py-4 text-right text-base">Islemler</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student) => (
-                  <TableRow key={student.id} className="border-border">
-                    <TableCell className="px-4 py-5 align-top">
-                      <div className="space-y-2">
-                        <div className="text-lg font-semibold">
-                          {student.firstName} {student.lastName}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          TC: {student.tcNo || "-"} {student.phone ? `· Tel: ${student.phone}` : ""}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {student.healthConditions.length > 0 ? (
-                            student.healthConditions.map((condition) => (
-                              <Badge key={condition} variant="secondary" className="px-3 py-1 text-sm">
-                                {healthConditionLabel(condition)}
-                              </Badge>
-                            ))
-                          ) : (
-                            <Badge variant="outline" className="px-3 py-1 text-sm">
-                              Saglik notu yok
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-5 align-top">
-                      {student.isAtRisk ? (
-                        <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-800">
-                          <ShieldAlert className="size-4" />
-                          Riskli
-                        </div>
-                      ) : (
-                        <div className="inline-flex rounded-full bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-800">
-                          Takipte sorun yok
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-4 py-5 align-top text-base">
-                      {student.activeCard?.uid || "Kart atanmadi"}
-                    </TableCell>
-                    <TableCell className="px-4 py-5 align-top text-base">
-                      {formatDate(student.createdAt)}
-                    </TableCell>
-                    <TableCell className="px-4 py-5 align-top">
-                      <div className="flex justify-end gap-2">
-                        <Link
-                          href={`/admin/students/${student.id}`}
-                          className={buttonVariants({ size: "sm", variant: "outline" })}
-                        >
-                          <Eye className="size-4" />
-                          Detay
-                        </Link>
-                        <Button size="sm" variant="outline" onClick={() => openEditDialog(student)}>
-                          <Pencil className="size-4" />
-                          Duzenle
-                        </Button>
-                        <Button size="sm" variant="destructive" onClick={() => setPendingDelete(student)}>
-                          <Trash2 className="size-4" />
-                          Pasif yap
-                        </Button>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="h-10 px-4 text-xs font-semibold uppercase tracking-wider">
+                      Öğrenci
+                    </TableHead>
+                    <TableHead className="h-10 px-4 text-xs font-semibold uppercase tracking-wider">
+                      Durum
+                    </TableHead>
+                    <TableHead className="h-10 px-4 text-xs font-semibold uppercase tracking-wider">
+                      Kart
+                    </TableHead>
+                    <TableHead className="h-10 px-4 text-xs font-semibold uppercase tracking-wider">
+                      Kayıt
+                    </TableHead>
+                    <TableHead className="h-10 px-4 text-right text-xs font-semibold uppercase tracking-wider">
+                      İşlemler
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredStudents.map((student) => (
+                    <TableRow key={student.id} className="border-border">
+                      <TableCell className="px-4 py-3 align-middle">
+                        <div className="min-w-0 space-y-1">
+                          <div className="font-medium text-foreground">
+                            {student.firstName} {student.lastName}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            TC: {student.tcNo || "-"}
+                            {student.phone ? ` · ${student.phone}` : ""}
+                          </div>
+                          {student.healthConditions.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {student.healthConditions.slice(0, 2).map((condition) => (
+                                <Badge
+                                  key={condition}
+                                  variant="secondary"
+                                  className="rounded px-1.5 py-0 text-[10px] font-medium"
+                                >
+                                  {healthConditionLabel(condition)}
+                                </Badge>
+                              ))}
+                              {student.healthConditions.length > 2 ? (
+                                <Badge
+                                  variant="outline"
+                                  className="rounded px-1.5 py-0 text-[10px] font-medium"
+                                >
+                                  +{student.healthConditions.length - 2}
+                                </Badge>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 align-middle">
+                        {student.isAtRisk ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+                            <ShieldAlert className="size-3" />
+                            Riskli
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                            <span className="size-1.5 rounded-full bg-emerald-500" />
+                            Aktif
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 align-middle text-sm text-muted-foreground">
+                        {student.activeCard?.uid ? (
+                          <span className="rounded bg-secondary/60 px-1.5 py-0.5 font-mono text-xs">
+                            {student.activeCard.uid}
+                          </span>
+                        ) : (
+                          <span className="text-xs italic">Atanmadı</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 align-middle text-sm text-muted-foreground">
+                        {formatDate(student.createdAt)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 align-middle">
+                        <div className="flex justify-end gap-1">
+                          <Link
+                            href={`/admin/students/${student.id}`}
+                            className={buttonVariants({ size: "icon-sm", variant: "ghost" })}
+                            title="Detay"
+                          >
+                            <Eye className="size-4" />
+                          </Link>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            onClick={() => openEditDialog(student)}
+                            title="Düzenle"
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            onClick={() => setPendingDelete(student)}
+                            title="Pasif yap"
+                            className="text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto rounded-[2rem] p-6 sm:max-w-4xl">
+        <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto rounded-xl p-6 sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle className="text-3xl font-semibold">
               {editingStudent ? "Ogrenci bilgilerini duzenle" : "Yeni ogrenci olustur"}
@@ -681,7 +741,7 @@ export default function StudentsPage() {
             </FormField>
 
             {generatedPin ? (
-              <div className="rounded-[1.75rem] bg-primary/10 p-5">
+              <div className="rounded-xl bg-primary/10 p-5">
                 <div className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
                   Yeni PIN Kodu
                 </div>
@@ -705,7 +765,7 @@ export default function StudentsPage() {
       </Dialog>
 
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
-        <DialogContent className="max-w-2xl rounded-[2rem] p-6 sm:max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-xl p-6 sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-3xl font-semibold">CSV ile toplu ogrenci import</DialogTitle>
             <DialogDescription className="text-base leading-7">
@@ -714,7 +774,7 @@ export default function StudentsPage() {
           </DialogHeader>
 
           <div className="space-y-6">
-            <div className="rounded-[1.5rem] bg-secondary/60 p-5 text-base leading-7 text-muted-foreground">
+            <div className="rounded-xl bg-secondary/60 p-4 text-sm leading-6 text-muted-foreground">
               Beklenen kolonlar: <span className="font-semibold text-foreground">tcNo, firstName, lastName, phone, email, emergencyContactName, emergencyContactPhone</span>
             </div>
 
@@ -728,7 +788,7 @@ export default function StudentsPage() {
             </FormField>
 
             {importFile ? (
-              <div className="rounded-[1.5rem] border border-border bg-white p-4 text-base">
+              <div className="rounded-xl border border-border bg-white p-3 text-sm">
                 Secilen dosya: <span className="font-semibold">{importFile.name}</span>
               </div>
             ) : null}

@@ -12,13 +12,10 @@ import logger from '../utils/logger';
 
 /**
  * findActiveSessionForLocation
- * Belirtilen sınıf koduna (deviceLocation) ve şu anki saate göre
- * aktif ders oturumunu bulur.
- *
- * Mantık: startTime <= şu an <= endTime && classroom.code === deviceLocation
+ * Belirtilen sinif kodunda koordinator tarafindan baslatilmis
+ * aktif RFID yoklama oturumunu bulur.
  */
-async function findActiveSessionForLocation(deviceLocation: string, currentTime?: Date) {
-  const now = currentTime || new Date();
+async function findActiveSessionForLocation(deviceLocation: string) {
 
   // Sınıfı bul
   const classroom = await prisma.classroom.findUnique({
@@ -33,8 +30,7 @@ async function findActiveSessionForLocation(deviceLocation: string, currentTime?
   const session: any = await prisma.lessonSession.findFirst({
     where: {
       classroomId: classroom.id,
-      startTime: { lte: now },
-      endTime: { gte: now },
+      attendanceOpen: true,
     },
     include: {
       course: true,
@@ -107,7 +103,7 @@ export const scanCard = async (req: Request, res: Response, next: NextFunction) 
     const currentSession = await findActiveSessionForLocation(deviceLocation);
 
     if (!currentSession) {
-      throw new AppError('Şu an bu sınıfta aktif bir ders bulunmuyor.', 400);
+      throw new AppError('Bu sinifta RFID yoklamasi baslatilmamis.', 400);
     }
 
     // 4. ADIM: Öğrenci bu derse kayıtlı mı kontrol et
@@ -323,6 +319,116 @@ export const manualAttendance = async (req: Request, res: Response, next: NextFu
  * Belirli bir ders seansının yoklama listesi
  * Auth: ADMIN
  */
+export const startSessionAttendance = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const session: any = await prisma.lessonSession.findUnique({
+      where: { id: id as string },
+      include: {
+        course: { select: { name: true } },
+        classroom: { select: { name: true, code: true } },
+      },
+    });
+
+    if (!session) {
+      throw new AppError('Ders oturumu bulunamadi.', 404);
+    }
+
+    const updatedSession = await prisma.$transaction(async (tx) => {
+      await tx.lessonSession.updateMany({
+        data: { attendanceOpen: false },
+      });
+
+      return tx.lessonSession.update({
+        where: { id: id as string },
+        data: { attendanceOpen: true },
+        include: {
+          course: { select: { id: true, name: true, term: true } },
+          classroom: { select: { id: true, name: true, code: true } },
+        },
+      });
+    });
+
+    if (req.user) {
+      await prisma.auditLog.create({
+        data: {
+          userId: req.user.userId,
+          action: 'START_ATTENDANCE_SESSION',
+          entity: 'LessonSession',
+          entityId: id as string,
+          details: JSON.stringify({
+            courseName: session.course.name,
+            classroomName: session.classroom.name,
+          }),
+        },
+      });
+    }
+
+    logger.info({ sessionId: id, courseName: session.course.name }, 'RFID yoklamasi baslatildi');
+
+    res.json({
+      success: true,
+      message: 'RFID yoklamasi baslatildi. Diger oturumlar kapatildi.',
+      data: updatedSession,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const stopSessionAttendance = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const session: any = await prisma.lessonSession.findUnique({
+      where: { id: id as string },
+      include: {
+        course: { select: { name: true } },
+        classroom: { select: { name: true } },
+      },
+    });
+
+    if (!session) {
+      throw new AppError('Ders oturumu bulunamadi.', 404);
+    }
+
+    const updatedSession = await prisma.lessonSession.update({
+      where: { id: id as string },
+      data: { attendanceOpen: false },
+      include: {
+        course: { select: { id: true, name: true, term: true } },
+        classroom: { select: { id: true, name: true, code: true } },
+      },
+    });
+
+    if (req.user) {
+      await prisma.auditLog.create({
+        data: {
+          userId: req.user.userId,
+          action: 'STOP_ATTENDANCE_SESSION',
+          entity: 'LessonSession',
+          entityId: id as string,
+          details: JSON.stringify({
+            courseName: session.course.name,
+            classroomName: session.classroom.name,
+          }),
+        },
+      });
+    }
+
+    logger.info({ sessionId: id, courseName: session.course.name }, 'RFID yoklamasi durduruldu');
+
+    res.json({
+      success: true,
+      message: 'RFID yoklamasi durduruldu.',
+      data: updatedSession,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getSessionAttendance = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
@@ -403,6 +509,7 @@ export const getSessionAttendance = async (req: Request, res: Response, next: Ne
           startTime: session.startTime,
           endTime: session.endTime,
           weekNumber: session.weekNumber,
+          attendanceOpen: session.attendanceOpen,
         },
         stats,
         attendanceList,

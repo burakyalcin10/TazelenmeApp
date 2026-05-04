@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { scanCard, manualAttendance, getSessionAttendance } from '../controllers/attendance.controller';
+import {
+  scanCard,
+  manualAttendance,
+  getSessionAttendance,
+  startSessionAttendance,
+  stopSessionAttendance,
+} from '../controllers/attendance.controller';
 import { authenticate, authorize, authenticateDevice } from '../middlewares/auth';
 import { iotLimiter } from '../middlewares/rateLimiter';
 
@@ -21,6 +27,8 @@ router.post('/manual', authenticate, authorize('ADMIN'), manualAttendance);
 
 // GET /api/v1/attendance/session/:id — Ders seansı yoklama listesi
 // Auth: JWT + ADMIN rolü
+router.post('/session/:id/start', authenticate, authorize('ADMIN'), startSessionAttendance);
+router.post('/session/:id/stop', authenticate, authorize('ADMIN'), stopSessionAttendance);
 router.get('/session/:id', authenticate, authorize('ADMIN'), getSessionAttendance);
 
 export default router;

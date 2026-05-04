@@ -16,17 +16,21 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between",
+        "flex flex-col gap-4 md:flex-row md:items-center md:justify-between",
         className
       )}
     >
-      <div className="space-y-2">
-        <h1 className="font-serif text-3xl text-forest sm:text-4xl">{title}</h1>
-        <p className="max-w-3xl text-base leading-7 text-muted-foreground">
+      <div className="min-w-0 space-y-1.5">
+        <h1 className="font-serif text-2xl text-forest sm:text-3xl">{title}</h1>
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
           {description}
         </p>
       </div>
-      {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+      {actions ? (
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-2.5 [&>*]:w-full sm:[&>*]:w-auto">
+          {actions}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -4,11 +4,20 @@ import { Pool } from 'pg';
 import logger from '../utils/logger';
 
 // Prisma v7: client engine requires a driver adapter
-const isProduction = process.env.NODE_ENV === 'production';
+function shouldUseSsl() {
+  const databaseUrl = process.env.DATABASE_URL || '';
+  const pgSslMode = process.env.PGSSLMODE || '';
+
+  if (pgSslMode === 'require' || pgSslMode === 'verify-ca' || pgSslMode === 'verify-full') {
+    return true;
+  }
+
+  return databaseUrl.includes('sslmode=require');
+}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: isProduction ? { rejectUnauthorized: false } : false,
+  ssl: shouldUseSsl() ? { rejectUnauthorized: false } : false,
 });
 const adapter = new PrismaPg(pool);
 

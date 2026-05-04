@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest, downloadAuthenticatedFile } from "@/lib/api";
@@ -120,6 +120,41 @@ function escapeCsvCell(value: string | number | boolean | null | undefined) {
   const normalized = String(value ?? "").replace(/"/g, "\"\"");
   return `"${normalized}"`;
 }
+
+function courseLabel(courses: CourseListItem[], courseId: string, fallback = "Ders secin") {
+  const course = courses.find((item) => item.id === courseId);
+  return course ? `${course.name} - ${course.term}` : fallback;
+}
+
+function classroomLabel(classrooms: ClassroomItem[], classroomId: string, fallback = "Sinif secin") {
+  return classrooms.find((item) => item.id === classroomId)?.name || fallback;
+}
+
+function studentLabel(students: StudentListItem[], studentId: string, fallback = "Ogrenci secin") {
+  const student = students.find((item) => (item.profileId || item.id) === studentId);
+  return student ? `${student.firstName} ${student.lastName}` : fallback;
+}
+
+const courseStatusLabels = {
+  ACTIVE: "Aktif",
+  PASSIVE: "Pasif",
+};
+
+const weekdayLabels: Record<string, string> = {
+  "0": "Pazar",
+  "1": "Pazartesi",
+  "2": "Sali",
+  "3": "Carsamba",
+  "4": "Persembe",
+  "5": "Cuma",
+  "6": "Cumartesi",
+};
+
+const materialTypeLabels = {
+  PDF: "PDF",
+  LINK: "Link",
+  VIDEO: "Video",
+};
 
 export default function CoursesPage() {
   const [loading, setLoading] = useState(true);
@@ -392,22 +427,24 @@ export default function CoursesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Ders ve Materyal Yonetimi"
-        description="Dersler, siniflar, oturumlar, kayitlar ve materyalleri tek ekrandan yonetin."
+        title="Ders ve Materyal Yönetimi"
+        description="Dersler, sınıflar, oturumlar, kayıtlar ve materyalleri tek ekrandan yönetin."
       />
 
-      <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-        <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <CardTitle className="text-2xl font-semibold">Rapor ve disa aktarim</CardTitle>
-            <p className="text-base leading-7 text-muted-foreground">
-              Secili ders icin gecti-kaldi raporunu CSV olarak disa aktarabilirsiniz.
+      <Card className="rounded-xl border border-border shadow-none">
+        <CardHeader className="gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <CardTitle className="text-base font-semibold">Geçti-kaldı raporu</CardTitle>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Seçili dersin katılım raporunu CSV olarak indirin.
             </p>
           </div>
-          <div className="flex w-full max-w-2xl flex-col gap-3 lg:flex-row">
+          <div className="flex w-full flex-col gap-2 md:max-w-md md:flex-row">
             <Select value={reportCourseId} onValueChange={(value) => setReportCourseId(value || "")}>
-              <SelectTrigger className="h-12 w-full rounded-xl bg-white">
-                <SelectValue placeholder="Rapor icin ders secin" />
+              <SelectTrigger className="h-10 w-full bg-white">
+                <span className="min-w-0 truncate text-left">
+                  {courseLabel(courses, reportCourseId)}
+                </span>
               </SelectTrigger>
               <SelectContent>
                 {courses.map((course) => (
@@ -417,42 +454,49 @@ export default function CoursesPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Button size="lg" variant="outline" onClick={() => void exportPassFailCsv()} disabled={!reportCourseId || reportExporting}>
-              <Download className="size-5" />
-              {reportExporting ? "CSV hazirlaniyor..." : "Gecti-kaldi CSV indir"}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void exportPassFailCsv()}
+              disabled={!reportCourseId || reportExporting}
+            >
+              <Download className="size-4" />
+              {reportExporting ? "Hazırlanıyor..." : "CSV indir"}
             </Button>
           </div>
         </CardHeader>
       </Card>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value || "courses")}>
-        <TabsList className="h-auto flex-wrap rounded-[1.5rem] bg-white/90 p-2 shadow-sm ring-1 ring-foreground/10">
-          <TabsTrigger className="min-h-11 px-4 text-base" value="courses">Dersler</TabsTrigger>
-          <TabsTrigger className="min-h-11 px-4 text-base" value="sessions">Oturumlar</TabsTrigger>
-          <TabsTrigger className="min-h-11 px-4 text-base" value="classrooms">Siniflar</TabsTrigger>
-          <TabsTrigger className="min-h-11 px-4 text-base" value="enrollments">Ders kayitlari</TabsTrigger>
-          <TabsTrigger className="min-h-11 px-4 text-base" value="materials">Materyaller</TabsTrigger>
-        </TabsList>
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <TabsList className="inline-flex h-auto w-auto rounded-lg border border-border bg-card p-1">
+            <TabsTrigger className="h-9 px-3 text-sm" value="courses">Dersler</TabsTrigger>
+            <TabsTrigger className="h-9 px-3 text-sm" value="sessions">Oturumlar</TabsTrigger>
+            <TabsTrigger className="h-9 px-3 text-sm" value="classrooms">Sınıflar</TabsTrigger>
+            <TabsTrigger className="h-9 px-3 text-sm" value="enrollments">Kayıtlar</TabsTrigger>
+            <TabsTrigger className="h-9 px-3 text-sm" value="materials">Materyaller</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="courses" className="space-y-6">
-          <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
+          <Card className="rounded-xl border border-border shadow-none">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <CardTitle className="text-2xl font-semibold">Ders listesi</CardTitle>
-              <Button size="lg" onClick={() => { setCourseForm(emptyCourseForm); setCourseDialogOpen(true); }}>
-                <Plus className="size-5" />
+              <CardTitle className="text-base font-semibold">Ders listesi</CardTitle>
+              <Button size="sm" onClick={() => { setCourseForm(emptyCourseForm); setCourseDialogOpen(true); }}>
+                <Plus className="size-4" />
                 Yeni ders
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               {courses.length === 0 ? <EmptyState title="Ders kaydi yok" description="Ilk dersi olusturarak yonetim akisini baslatabilirsiniz." /> : courses.map((course) => (
-                <div key={course.id} className="rounded-[1.5rem] border border-border bg-white p-4">
+                <div key={course.id} className="rounded-xl border border-border bg-white p-3.5">
                   <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-3">
-                        <div className="text-xl font-semibold">{course.name}</div>
-                        <Badge variant={course.isActive ? "secondary" : "outline"} className="px-3 py-1 text-sm">{course.isActive ? "Aktif" : "Pasif"}</Badge>
+                        <div className="text-base font-semibold">{course.name}</div>
+                        <Badge variant={course.isActive ? "secondary" : "outline"} className="rounded px-1.5 py-0 text-[10px] font-medium">{course.isActive ? "Aktif" : "Pasif"}</Badge>
                       </div>
-                      <div className="text-base text-muted-foreground">{course.term} · {course.enrollmentCount} kayit · {course.sessionCount} oturum · {course.materialCount} materyal</div>
+                      <div className="text-xs text-muted-foreground">{course.term} · {course.enrollmentCount} kayit · {course.sessionCount} oturum · {course.materialCount} materyal</div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Button size="sm" variant="outline" onClick={() => { setCourseForm({ id: course.id, name: course.name, term: course.term, isActive: course.isActive }); setCourseDialogOpen(true); }}>Duzenle</Button>
@@ -469,25 +513,25 @@ export default function CoursesPage() {
         </TabsContent>
 
         <TabsContent value="sessions" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Button size="xl" onClick={() => { setSessionForm(emptySessionForm); setSessionDialogOpen(true); }}>
-              <Plus className="size-5" />
-              Tek oturum olustur
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button onClick={() => { setSessionForm(emptySessionForm); setSessionDialogOpen(true); }}>
+              <Plus className="size-4" />
+              Tek oturum oluştur
             </Button>
-            <Button size="xl" variant="outline" onClick={() => { setGenerateForm(emptyGenerateForm); setGenerateDialogOpen(true); }}>
-              <Layers3 className="size-5" />
-              Toplu oturum uret
+            <Button variant="outline" onClick={() => { setGenerateForm(emptyGenerateForm); setGenerateDialogOpen(true); }}>
+              <Layers3 className="size-4" />
+              Toplu oturum üret
             </Button>
           </div>
-          <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-            <CardHeader><CardTitle className="text-2xl font-semibold">Oturumlar</CardTitle></CardHeader>
+          <Card className="rounded-xl border border-border shadow-none">
+            <CardHeader><CardTitle className="text-base font-semibold">Oturumlar</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               {sessions.length === 0 ? <EmptyState title="Oturum yok" description="Derslere bagli oturum planlamak icin yeni kayit olusturun." /> : sessions.map((session) => (
-                <div key={session.id} className="rounded-[1.5rem] border border-border bg-white p-4">
+                <div key={session.id} className="rounded-xl border border-border bg-white p-3.5">
                   <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
                     <div className="space-y-2">
-                      <div className="text-xl font-semibold">{session.course.name}</div>
-                      <div className="text-base text-muted-foreground">{session.classroom.name} · Hafta {session.weekNumber}</div>
+                      <div className="text-base font-semibold">{session.course.name}</div>
+                      <div className="text-xs text-muted-foreground">{session.classroom.name} · Hafta {session.weekNumber}</div>
                       <div className="text-sm text-muted-foreground">{formatDate(session.sessionDate)} · {formatDateTime(session.startTime)} · Yoklama kaydi: {session.attendanceCount}</div>
                     </div>
                     <Button size="sm" variant="destructive" onClick={() => setPendingAction({ kind: "session-delete", payload: { id: session.id, title: `${session.course.name} / Hafta ${session.weekNumber}` } })}>
@@ -502,21 +546,21 @@ export default function CoursesPage() {
         </TabsContent>
 
         <TabsContent value="classrooms" className="space-y-6">
-          <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
+          <Card className="rounded-xl border border-border shadow-none">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <CardTitle className="text-2xl font-semibold">Siniflar</CardTitle>
-              <Button size="lg" onClick={() => { setClassroomForm(emptyClassroomForm); setClassroomDialogOpen(true); }}>
-                <Plus className="size-5" />
-                Yeni sinif
+              <CardTitle className="text-base font-semibold">Siniflar</CardTitle>
+              <Button size="sm" onClick={() => { setClassroomForm(emptyClassroomForm); setClassroomDialogOpen(true); }}>
+                <Plus className="size-4" />
+                Yeni sınıf
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               {classrooms.length === 0 ? <EmptyState title="Sinif yok" description="Ilk sinif kaydini olusturarak oturum planlamaya baslayin." /> : classrooms.map((classroom) => (
-                <div key={classroom.id} className="rounded-[1.5rem] border border-border bg-white p-4">
+                <div key={classroom.id} className="rounded-xl border border-border bg-white p-3.5">
                   <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
                     <div className="space-y-2">
-                      <div className="text-xl font-semibold">{classroom.name}</div>
-                      <div className="text-base text-muted-foreground">Kod: {classroom.code} · Kapasite: {classroom.capacity || "-"} · Oturum: {classroom.sessionCount || 0}</div>
+                      <div className="text-base font-semibold">{classroom.name}</div>
+                      <div className="text-xs text-muted-foreground">Kod: {classroom.code} · Kapasite: {classroom.capacity || "-"} · Oturum: {classroom.sessionCount || 0}</div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Button size="sm" variant="outline" onClick={() => { setClassroomForm({ id: classroom.id, name: classroom.name, code: classroom.code, capacity: classroom.capacity ? String(classroom.capacity) : "" }); setClassroomDialogOpen(true); }}>Duzenle</Button>
@@ -533,21 +577,21 @@ export default function CoursesPage() {
         </TabsContent>
 
         <TabsContent value="enrollments" className="space-y-6">
-          <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
+          <Card className="rounded-xl border border-border shadow-none">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <CardTitle className="text-2xl font-semibold">Ders kayitlari</CardTitle>
-              <Button size="lg" onClick={() => { setEnrollmentForm(emptyEnrollmentForm); setEnrollmentDialogOpen(true); }}>
-                <GraduationCap className="size-5" />
-                Yeni kayit
+              <CardTitle className="text-base font-semibold">Ders kayitlari</CardTitle>
+              <Button size="sm" onClick={() => { setEnrollmentForm(emptyEnrollmentForm); setEnrollmentDialogOpen(true); }}>
+                <GraduationCap className="size-4" />
+                Yeni kayıt
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               {enrollments.length === 0 ? <EmptyState title="Kayit yok" description="Ogrencileri derslere baglamak icin yeni kayit ekleyin." /> : enrollments.map((enrollment) => (
-                <div key={enrollment.id} className="rounded-[1.5rem] border border-border bg-white p-4">
+                <div key={enrollment.id} className="rounded-xl border border-border bg-white p-3.5">
                   <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
                     <div className="space-y-2">
-                      <div className="text-xl font-semibold">{enrollment.studentName}</div>
-                      <div className="text-base text-muted-foreground">{enrollment.courseName} · {enrollment.term} · {formatDate(enrollment.enrolledAt)}</div>
+                      <div className="text-base font-semibold">{enrollment.studentName}</div>
+                      <div className="text-xs text-muted-foreground">{enrollment.courseName} · {enrollment.term} · {formatDate(enrollment.enrolledAt)}</div>
                     </div>
                     <Button size="sm" variant="destructive" onClick={() => setPendingAction({ kind: "enrollment-delete", payload: { id: enrollment.id, title: `${enrollment.studentName} / ${enrollment.courseName}` } })}>
                       <Trash2 className="size-4" />
@@ -561,24 +605,24 @@ export default function CoursesPage() {
         </TabsContent>
 
         <TabsContent value="materials" className="space-y-6">
-          <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
+          <Card className="rounded-xl border border-border shadow-none">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <CardTitle className="text-2xl font-semibold">Materyaller</CardTitle>
-              <Button size="lg" onClick={() => { setMaterialForm(emptyMaterialForm); setMaterialDialogOpen(true); }}>
-                <Upload className="size-5" />
+              <CardTitle className="text-base font-semibold">Materyaller</CardTitle>
+              <Button size="sm" onClick={() => { setMaterialForm(emptyMaterialForm); setMaterialDialogOpen(true); }}>
+                <Upload className="size-4" />
                 Yeni materyal
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               {materials.length === 0 ? <EmptyState title="Materyal yok" description="Derslere PDF, baglanti veya video materyali ekleyebilirsiniz." /> : materials.map((material) => (
-                <div key={material.id} className="rounded-[1.5rem] border border-border bg-white p-4">
+                <div key={material.id} className="rounded-xl border border-border bg-white p-3.5">
                   <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-3">
-                        <div className="text-xl font-semibold">{material.title}</div>
-                        <Badge variant="secondary" className="px-3 py-1 text-sm">{material.type}</Badge>
+                        <div className="text-base font-semibold">{material.title}</div>
+                        <Badge variant="secondary" className="rounded px-1.5 py-0 text-[10px] font-medium">{material.type}</Badge>
                       </div>
-                      <div className="text-base text-muted-foreground">{material.course?.name || "Ders"} · {formatDate(material.uploadedAt)} · {bytesToMb(material.fileSize)}</div>
+                      <div className="text-xs text-muted-foreground">{material.course?.name || "Ders"} · {formatDate(material.uploadedAt)} · {bytesToMb(material.fileSize)}</div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {material.type === "PDF" ? (
@@ -610,104 +654,108 @@ export default function CoursesPage() {
       </Tabs>
 
       <Dialog open={courseDialogOpen} onOpenChange={setCourseDialogOpen}>
-        <DialogContent className="max-w-2xl rounded-[2rem] p-6 sm:max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-xl p-6 sm:max-w-2xl">
           <DialogHeader><DialogTitle className="text-3xl font-semibold">{courseForm.id ? "Dersi duzenle" : "Yeni ders"}</DialogTitle><DialogDescription className="text-base leading-7">Ders bilgilerini kaydetmeden once ikinci onay alinacaktir.</DialogDescription></DialogHeader>
           <div className="space-y-6">
             <FormField label="Ders adi"><Input value={courseForm.name} onChange={(event) => setCourseForm((current) => ({ ...current, name: event.target.value }))} /></FormField>
             <FormField label="Donem"><Input value={courseForm.term} onChange={(event) => setCourseForm((current) => ({ ...current, term: event.target.value }))} /></FormField>
             <FormField label="Durum">
               <Select value={courseForm.isActive ? "ACTIVE" : "PASSIVE"} onValueChange={(value) => setCourseForm((current) => ({ ...current, isActive: value === "ACTIVE" }))}>
-                <SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-11 w-full bg-white">
+                  <span className="min-w-0 truncate text-left">
+                    {courseStatusLabels[courseForm.isActive ? "ACTIVE" : "PASSIVE"]}
+                  </span>
+                </SelectTrigger>
                 <SelectContent><SelectItem value="ACTIVE">Aktif</SelectItem><SelectItem value="PASSIVE">Pasif</SelectItem></SelectContent>
               </Select>
             </FormField>
             <DialogFooter className="gap-3 bg-transparent px-0 pb-0">
-              <Button type="button" size="lg" variant="outline" onClick={() => setCourseDialogOpen(false)}>Vazgec</Button>
-              <Button type="button" size="lg" onClick={() => setPendingAction({ kind: "course-save", payload: { id: courseForm.id || undefined, name: courseForm.name, term: courseForm.term, isActive: courseForm.isActive } })}>Onay adimina gec</Button>
+              <Button type="button" variant="outline" onClick={() => setCourseDialogOpen(false)}>Vazgec</Button>
+              <Button type="button" onClick={() => setPendingAction({ kind: "course-save", payload: { id: courseForm.id || undefined, name: courseForm.name, term: courseForm.term, isActive: courseForm.isActive } })}>Onay adimina gec</Button>
             </DialogFooter>
           </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={classroomDialogOpen} onOpenChange={setClassroomDialogOpen}>
-        <DialogContent className="max-w-2xl rounded-[2rem] p-6 sm:max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-xl p-6 sm:max-w-2xl">
           <DialogHeader><DialogTitle className="text-3xl font-semibold">{classroomForm.id ? "Sinifi duzenle" : "Yeni sinif"}</DialogTitle><DialogDescription className="text-base leading-7">Sinif kodu cihaz eslestirmesinde kullanilir.</DialogDescription></DialogHeader>
           <div className="space-y-6">
             <FormField label="Sinif adi"><Input value={classroomForm.name} onChange={(event) => setClassroomForm((current) => ({ ...current, name: event.target.value }))} /></FormField>
             <FormField label="Kod"><Input value={classroomForm.code} onChange={(event) => setClassroomForm((current) => ({ ...current, code: event.target.value.toUpperCase() }))} /></FormField>
             <FormField label="Kapasite"><Input value={classroomForm.capacity} onChange={(event) => setClassroomForm((current) => ({ ...current, capacity: event.target.value.replace(/\D/g, "") }))} /></FormField>
             <DialogFooter className="gap-3 bg-transparent px-0 pb-0">
-              <Button type="button" size="lg" variant="outline" onClick={() => setClassroomDialogOpen(false)}>Vazgec</Button>
-              <Button type="button" size="lg" onClick={() => setPendingAction({ kind: "classroom-save", payload: classroomForm })}>Onay adimina gec</Button>
+              <Button type="button" variant="outline" onClick={() => setClassroomDialogOpen(false)}>Vazgec</Button>
+              <Button type="button" onClick={() => setPendingAction({ kind: "classroom-save", payload: classroomForm })}>Onay adimina gec</Button>
             </DialogFooter>
           </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={sessionDialogOpen} onOpenChange={setSessionDialogOpen}>
-        <DialogContent className="max-w-3xl rounded-[2rem] p-6 sm:max-w-3xl">
+        <DialogContent className="max-w-3xl rounded-xl p-6 sm:max-w-3xl">
           <DialogHeader><DialogTitle className="text-3xl font-semibold">Tek oturum olustur</DialogTitle><DialogDescription className="text-base leading-7">Ders, sinif, tarih ve saat secerek tekil bir oturum planlayin.</DialogDescription></DialogHeader>
           <div className="grid gap-5 lg:grid-cols-2">
-            <FormField label="Ders"><Select value={sessionForm.courseId} onValueChange={(value) => setSessionForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
-            <FormField label="Sinif"><Select value={sessionForm.classroomId} onValueChange={(value) => setSessionForm((current) => ({ ...current, classroomId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Sinif secin" /></SelectTrigger><SelectContent>{classrooms.map((classroom) => <SelectItem key={classroom.id} value={classroom.id}>{classroom.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Ders"><Select value={sessionForm.courseId} onValueChange={(value) => setSessionForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-11 w-full bg-white"><span className="min-w-0 truncate text-left">{courseLabel(courses, sessionForm.courseId)}</span></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Sinif"><Select value={sessionForm.classroomId} onValueChange={(value) => setSessionForm((current) => ({ ...current, classroomId: value || "" }))}><SelectTrigger className="h-11 w-full bg-white"><span className="min-w-0 truncate text-left">{classroomLabel(classrooms, sessionForm.classroomId)}</span></SelectTrigger><SelectContent>{classrooms.map((classroom) => <SelectItem key={classroom.id} value={classroom.id}>{classroom.name}</SelectItem>)}</SelectContent></Select></FormField>
             <FormField label="Tarih"><Input type="date" value={sessionForm.sessionDate} onChange={(event) => setSessionForm((current) => ({ ...current, sessionDate: event.target.value }))} /></FormField>
             <FormField label="Hafta numarasi"><Input value={sessionForm.weekNumber} onChange={(event) => setSessionForm((current) => ({ ...current, weekNumber: event.target.value.replace(/\D/g, "") }))} /></FormField>
             <FormField label="Baslangic saati"><Input type="time" value={sessionForm.startClock} onChange={(event) => setSessionForm((current) => ({ ...current, startClock: event.target.value }))} /></FormField>
             <FormField label="Bitis saati"><Input type="time" value={sessionForm.endClock} onChange={(event) => setSessionForm((current) => ({ ...current, endClock: event.target.value }))} /></FormField>
           </div>
           <DialogFooter className="gap-3 bg-transparent px-0 pb-0">
-            <Button type="button" size="lg" variant="outline" onClick={() => setSessionDialogOpen(false)}>Vazgec</Button>
-            <Button type="button" size="lg" onClick={() => setPendingAction({ kind: "session-create", payload: sessionForm })}>Onay adimina gec</Button>
+            <Button type="button" variant="outline" onClick={() => setSessionDialogOpen(false)}>Vazgec</Button>
+            <Button type="button" onClick={() => setPendingAction({ kind: "session-create", payload: sessionForm })}>Onay adimina gec</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
-        <DialogContent className="max-w-3xl rounded-[2rem] p-6 sm:max-w-3xl">
+        <DialogContent className="max-w-3xl rounded-xl p-6 sm:max-w-3xl">
           <DialogHeader><DialogTitle className="text-3xl font-semibold">Toplu oturum uret</DialogTitle><DialogDescription className="text-base leading-7">Haftalik plana gore toplu oturumlar olusturun.</DialogDescription></DialogHeader>
           <div className="grid gap-5 lg:grid-cols-2">
-            <FormField label="Ders"><Select value={generateForm.courseId} onValueChange={(value) => setGenerateForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
-            <FormField label="Sinif"><Select value={generateForm.classroomId} onValueChange={(value) => setGenerateForm((current) => ({ ...current, classroomId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Sinif secin" /></SelectTrigger><SelectContent>{classrooms.map((classroom) => <SelectItem key={classroom.id} value={classroom.id}>{classroom.name}</SelectItem>)}</SelectContent></Select></FormField>
-            <FormField label="Haftanin gunu"><Select value={generateForm.dayOfWeek} onValueChange={(value) => setGenerateForm((current) => ({ ...current, dayOfWeek: value || "1" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="0">Pazar</SelectItem><SelectItem value="1">Pazartesi</SelectItem><SelectItem value="2">Sali</SelectItem><SelectItem value="3">Carsamba</SelectItem><SelectItem value="4">Persembe</SelectItem><SelectItem value="5">Cuma</SelectItem><SelectItem value="6">Cumartesi</SelectItem></SelectContent></Select></FormField>
+            <FormField label="Ders"><Select value={generateForm.courseId} onValueChange={(value) => setGenerateForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-11 w-full bg-white"><span className="min-w-0 truncate text-left">{courseLabel(courses, generateForm.courseId)}</span></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Sinif"><Select value={generateForm.classroomId} onValueChange={(value) => setGenerateForm((current) => ({ ...current, classroomId: value || "" }))}><SelectTrigger className="h-11 w-full bg-white"><span className="min-w-0 truncate text-left">{classroomLabel(classrooms, generateForm.classroomId)}</span></SelectTrigger><SelectContent>{classrooms.map((classroom) => <SelectItem key={classroom.id} value={classroom.id}>{classroom.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Haftanin gunu"><Select value={generateForm.dayOfWeek} onValueChange={(value) => setGenerateForm((current) => ({ ...current, dayOfWeek: value || "1" }))}><SelectTrigger className="h-11 w-full bg-white"><span className="min-w-0 truncate text-left">{weekdayLabels[generateForm.dayOfWeek]}</span></SelectTrigger><SelectContent><SelectItem value="0">Pazar</SelectItem><SelectItem value="1">Pazartesi</SelectItem><SelectItem value="2">Sali</SelectItem><SelectItem value="3">Carsamba</SelectItem><SelectItem value="4">Persembe</SelectItem><SelectItem value="5">Cuma</SelectItem><SelectItem value="6">Cumartesi</SelectItem></SelectContent></Select></FormField>
             <FormField label="Donem baslangici"><Input type="date" value={generateForm.semesterStart} onChange={(event) => setGenerateForm((current) => ({ ...current, semesterStart: event.target.value }))} /></FormField>
             <FormField label="Baslangic saati"><Input type="time" value={generateForm.startTime} onChange={(event) => setGenerateForm((current) => ({ ...current, startTime: event.target.value }))} /></FormField>
             <FormField label="Bitis saati"><Input type="time" value={generateForm.endTime} onChange={(event) => setGenerateForm((current) => ({ ...current, endTime: event.target.value }))} /></FormField>
             <FormField label="Donem bitisi"><Input type="date" value={generateForm.semesterEnd} onChange={(event) => setGenerateForm((current) => ({ ...current, semesterEnd: event.target.value }))} /></FormField>
           </div>
           <DialogFooter className="gap-3 bg-transparent px-0 pb-0">
-            <Button type="button" size="lg" variant="outline" onClick={() => setGenerateDialogOpen(false)}>Vazgec</Button>
-            <Button type="button" size="lg" onClick={() => setPendingAction({ kind: "session-generate", payload: generateForm })}>Onay adimina gec</Button>
+            <Button type="button" variant="outline" onClick={() => setGenerateDialogOpen(false)}>Vazgec</Button>
+            <Button type="button" onClick={() => setPendingAction({ kind: "session-generate", payload: generateForm })}>Onay adimina gec</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={enrollmentDialogOpen} onOpenChange={setEnrollmentDialogOpen}>
-        <DialogContent className="max-w-3xl rounded-[2rem] p-6 sm:max-w-3xl">
+        <DialogContent className="max-w-3xl rounded-xl p-6 sm:max-w-3xl">
           <DialogHeader><DialogTitle className="text-3xl font-semibold">Yeni ders kaydi</DialogTitle><DialogDescription className="text-base leading-7">Bir ogrenciyi secili derse ekleyin.</DialogDescription></DialogHeader>
           <div className="grid gap-5 lg:grid-cols-2">
-            <FormField label="Ders"><Select value={enrollmentForm.courseId} onValueChange={(value) => setEnrollmentForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.filter((course) => course.isActive).map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
-            <FormField label="Ogrenci"><Select value={enrollmentForm.studentId} onValueChange={(value) => setEnrollmentForm((current) => ({ ...current, studentId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ogrenci secin" /></SelectTrigger><SelectContent>{students.map((student) => <SelectItem key={student.id} value={student.profileId || student.id}>{student.firstName} {student.lastName}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Ders"><Select value={enrollmentForm.courseId} onValueChange={(value) => setEnrollmentForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-11 w-full bg-white"><span className="min-w-0 truncate text-left">{courseLabel(courses, enrollmentForm.courseId)}</span></SelectTrigger><SelectContent>{courses.filter((course) => course.isActive).map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
+            <FormField label="Ogrenci"><Select value={enrollmentForm.studentId} onValueChange={(value) => setEnrollmentForm((current) => ({ ...current, studentId: value || "" }))}><SelectTrigger className="h-11 w-full bg-white"><span className="min-w-0 truncate text-left">{studentLabel(students, enrollmentForm.studentId)}</span></SelectTrigger><SelectContent>{students.map((student) => <SelectItem key={student.id} value={student.profileId || student.id}>{student.firstName} {student.lastName}</SelectItem>)}</SelectContent></Select></FormField>
           </div>
           <DialogFooter className="gap-3 bg-transparent px-0 pb-0">
-            <Button type="button" size="lg" variant="outline" onClick={() => setEnrollmentDialogOpen(false)}>Vazgec</Button>
-            <Button type="button" size="lg" onClick={() => setPendingAction({ kind: "enrollment-create", payload: enrollmentForm })}>Onay adimina gec</Button>
+            <Button type="button" variant="outline" onClick={() => setEnrollmentDialogOpen(false)}>Vazgec</Button>
+            <Button type="button" onClick={() => setPendingAction({ kind: "enrollment-create", payload: enrollmentForm })}>Onay adimina gec</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={materialDialogOpen} onOpenChange={setMaterialDialogOpen}>
-        <DialogContent className="max-w-3xl rounded-[2rem] p-6 sm:max-w-3xl">
+        <DialogContent className="max-w-3xl rounded-xl p-6 sm:max-w-3xl">
           <DialogHeader><DialogTitle className="text-3xl font-semibold">Yeni materyal</DialogTitle><DialogDescription className="text-base leading-7">PDF dosyasi veya baglanti tipi materyali secili derse baglayin.</DialogDescription></DialogHeader>
           <form className="space-y-6" onSubmit={submitMaterial}>
             <div className="grid gap-5 lg:grid-cols-2">
-              <FormField label="Ders"><Select value={materialForm.courseId} onValueChange={(value) => setMaterialForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue placeholder="Ders secin" /></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
-              <FormField label="Tur"><Select value={materialForm.type} onValueChange={(value) => setMaterialForm((current) => ({ ...current, type: (value as "PDF" | "LINK" | "VIDEO") || "PDF" }))}><SelectTrigger className="h-12 w-full rounded-xl bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="PDF">PDF</SelectItem><SelectItem value="LINK">Link</SelectItem><SelectItem value="VIDEO">Video</SelectItem></SelectContent></Select></FormField>
+              <FormField label="Ders"><Select value={materialForm.courseId} onValueChange={(value) => setMaterialForm((current) => ({ ...current, courseId: value || "" }))}><SelectTrigger className="h-11 w-full bg-white"><span className="min-w-0 truncate text-left">{courseLabel(courses, materialForm.courseId)}</span></SelectTrigger><SelectContent>{courses.map((course) => <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>)}</SelectContent></Select></FormField>
+              <FormField label="Tur"><Select value={materialForm.type} onValueChange={(value) => setMaterialForm((current) => ({ ...current, type: (value as "PDF" | "LINK" | "VIDEO") || "PDF" }))}><SelectTrigger className="h-11 w-full bg-white"><span className="min-w-0 truncate text-left">{materialTypeLabels[materialForm.type]}</span></SelectTrigger><SelectContent><SelectItem value="PDF">PDF</SelectItem><SelectItem value="LINK">Link</SelectItem><SelectItem value="VIDEO">Video</SelectItem></SelectContent></Select></FormField>
             </div>
             <FormField label="Baslik"><Input value={materialForm.title} onChange={(event) => setMaterialForm((current) => ({ ...current, title: event.target.value }))} /></FormField>
             {materialForm.type === "PDF" ? <FormField label="PDF dosyasi"><Input type="file" accept="application/pdf" onChange={(event) => setMaterialForm((current) => ({ ...current, file: event.target.files?.[0] || null }))} /></FormField> : <FormField label="Baglanti adresi"><Textarea value={materialForm.url} onChange={(event) => setMaterialForm((current) => ({ ...current, url: event.target.value }))} /></FormField>}
             <DialogFooter className="gap-3 bg-transparent px-0 pb-0">
-              <Button type="button" size="lg" variant="outline" onClick={() => setMaterialDialogOpen(false)}>Vazgec</Button>
-              <Button type="submit" size="lg">Onay adimina gec</Button>
+              <Button type="button" variant="outline" onClick={() => setMaterialDialogOpen(false)}>Vazgec</Button>
+              <Button type="submit">Onay adımına geç</Button>
             </DialogFooter>
           </form>
         </DialogContent>

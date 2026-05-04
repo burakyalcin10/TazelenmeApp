@@ -12,8 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { apiRequest } from "@/lib/api";
-import { getApiBaseUrl } from "@/lib/env";
+import { apiRequest, downloadAuthenticatedFile } from "@/lib/api";
 
 interface MaterialItem {
   id: string;
@@ -99,10 +98,17 @@ export default function StudentMaterialsPage() {
     loadMaterials();
   }, []);
 
-  function handleMaterialClick(material: MaterialItem) {
+  async function handleMaterialClick(material: MaterialItem) {
     if (material.type === "PDF") {
-      const url = `${getApiBaseUrl()}${material.downloadUrl}`;
-      window.open(url, "_blank");
+      // PDF'i auth header ile indir; window.open auth taşımıyor + proxy stream'i bozuyordu
+      try {
+        await downloadAuthenticatedFile(
+          material.downloadUrl,
+          `${material.title}.pdf`
+        );
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Materyal indirilemedi.");
+      }
     } else {
       window.open(material.url, "_blank", "noopener,noreferrer");
     }

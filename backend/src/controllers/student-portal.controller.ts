@@ -1,21 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../utils/prisma';
 import { AppError } from '../middlewares/errorHandler';
-import logger from '../utils/logger';
 
-/**
- * Student Portal Controller — Öğrenci'nin kendi verileri
- * Görev 6.6: Öğrencinin kayıtlı dersleri, materyalleri ve devamsızlık özeti
- * KVKK: Sadece kendi verilerini görebilir
- */
-
-// ── Öğrencinin Dersleri & Materyalleri ──────────────────────
-
-/**
- * GET /api/v1/student/my-courses
- * Giriş yapmış öğrencinin kayıtlı dersleri + her ders için materyal listesi
- * Auth: STUDENT
- */
 export const getMyCourses = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.user || !req.user.profileId) {
@@ -23,8 +9,15 @@ export const getMyCourses = async (req: Request, res: Response, next: NextFuncti
     }
 
     const profileId = req.user.profileId;
+    const materialSelect = {
+      id: true,
+      title: true,
+      type: true,
+      url: true,
+      fileSize: true,
+      uploadedAt: true,
+    };
 
-    // Öğrencinin kayıtlı olduğu dersleri getir
     const enrollments: any[] = await prisma.enrollment.findMany({
       where: { studentId: profileId },
       include: {
@@ -32,33 +25,64 @@ export const getMyCourses = async (req: Request, res: Response, next: NextFuncti
           include: {
             materials: {
               orderBy: { uploadedAt: 'desc' },
-              select: {
-                id: true,
-                title: true,
-                type: true,
-                url: true,
-                fileSize: true,
-                uploadedAt: true,
-              },
+              select: materialSelect,
             },
           },
         },
       },
     });
 
-    const courses = enrollments.map((e) => ({
+    const enrolledCourseIds = new Set(enrollments.map((e) => e.course.id));
+    const publicMaterialCourses: any[] = await prisma.course.findMany({
+      where: {
+        isActive: true,
+        id: { notIn: Array.from(enrolledCourseIds) },
+        materials: { some: {} },
+      },
+      include: {
+        materials: {
+          orderBy: { uploadedAt: 'desc' },
+          select: materialSelect,
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const toMaterial = (m: any) => ({
+      id: m.id,
+      title: m.title,
+      type: m.type,
+      url: m.type === 'PDF' ? null : m.url,
+      fileSize: m.fileSize,
+      uploadedAt: m.uploadedAt,
+      downloadUrl: m.type === 'PDF' ? `/api/v1/materials/${m.id}/download` : m.url,
+    });
+
+    const enrolledCourses = enrollments.map((e) => ({
       courseId: e.course.id,
       courseName: e.course.name,
       term: e.course.term,
       isActive: e.course.isActive,
+      isEnrolled: true,
       enrolledAt: e.enrolledAt,
-      materials: e.course.materials.map((m: any) => ({
-        ...m,
-        // Link ve Video için doğrudan URL göster, PDF için download endpoint'i
-        downloadUrl: m.type === 'PDF' ? `/api/v1/materials/${m.id}/download` : m.url,
-      })),
+      materials: e.course.materials.map(toMaterial),
       materialCount: e.course.materials.length,
     }));
+
+    const publicCourses = publicMaterialCourses.map((course) => ({
+      courseId: course.id,
+      courseName: course.name,
+      term: course.term,
+      isActive: course.isActive,
+      isEnrolled: false,
+      enrolledAt: null,
+      materials: course.materials.map(toMaterial),
+      materialCount: course.materials.length,
+    }));
+
+    const courses = [...enrolledCourses, ...publicCourses].sort((a, b) =>
+      a.courseName.localeCompare(b.courseName, 'tr')
+    );
 
     res.json({
       success: true,
@@ -69,13 +93,6 @@ export const getMyCourses = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// ── Öğrencinin Devamsızlık Özeti ────────────────────────────
-
-/**
- * GET /api/v1/student/my-attendance
- * Giriş yapmış öğrencinin ders bazlı devamsızlık özeti
- * Auth: STUDENT
- */
 export const getMyAttendance = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.user || !req.user.profileId) {
@@ -84,7 +101,6 @@ export const getMyAttendance = async (req: Request, res: Response, next: NextFun
 
     const profileId = req.user.profileId;
 
-    // Kayıtlı dersleri getir
     const enrollments: any[] = await prisma.enrollment.findMany({
       where: { studentId: profileId },
       include: {
@@ -98,12 +114,9 @@ export const getMyAttendance = async (req: Request, res: Response, next: NextFun
       },
     });
 
-    // Her ders için yoklama istatistiklerini hesapla
     const courseAttendance = await Promise.all(
       enrollments.map(async (e) => {
         const totalSessions = e.course.sessions.length;
-
-        // Bu öğrencinin bu dersteki yoklama kayıtları
         const attendances = await prisma.attendance.findMany({
           where: {
             studentId: profileId,
