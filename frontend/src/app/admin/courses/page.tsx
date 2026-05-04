@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { Download, GraduationCap, Layers3, Plus, Trash2, Upload } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Download, GraduationCap, Layers3, Plus, Search, Trash2, Upload, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ type PendingAction =
   | { kind: "session-generate"; payload: typeof emptyGenerateForm }
   | { kind: "session-delete"; payload: { id: string; title: string } }
   | { kind: "enrollment-create"; payload: typeof emptyEnrollmentForm }
+  | { kind: "enrollment-bulk"; payload: { courseId: string; studentIds: string[] } }
   | { kind: "enrollment-delete"; payload: { id: string; title: string } }
   | { kind: "material-upload"; payload: FormData }
   | { kind: "material-delete"; payload: { id: string; title: string } };
@@ -85,6 +87,7 @@ function descriptionForAction(action: PendingAction | null) {
   if (action.kind === "material-delete") return `"${action.payload.title}" materyali silinecek. Devam etmek istiyor musunuz?`;
   if (action.kind === "session-generate") return "Secili tarih araliginda haftalik oturumlar toplu olarak olusturulacak. Devam etmek istiyor musunuz?";
   if (action.kind === "material-upload") return "Materyal secili derse yuklenecek ve kullanima acilacak. Devam etmek istiyor musunuz?";
+  if (action.kind === "enrollment-bulk") return `${action.payload.studentIds.length} ogrenci secili derse toplu olarak atanacak. Zaten kayitli olanlar atlanir. Devam etmek istiyor musunuz?`;
   return "Islem sisteme kaydedilecek. Devam etmek istiyor musunuz?";
 }
 
@@ -135,6 +138,10 @@ function studentLabel(students: StudentListItem[], studentId: string, fallback =
   return student ? `${student.firstName} ${student.lastName}` : fallback;
 }
 
+function studentProfileId(student: StudentListItem) {
+  return student.profileId || student.id;
+}
+
 const courseStatusLabels = {
   ACTIVE: "Aktif",
   PASSIVE: "Pasif",
@@ -168,6 +175,9 @@ export default function CoursesPage() {
   const [students, setStudents] = useState<StudentListItem[]>([]);
   const [reportCourseId, setReportCourseId] = useState("");
   const [reportExporting, setReportExporting] = useState(false);
+  const [bulkCourseId, setBulkCourseId] = useState("");
+  const [bulkStudentSearch, setBulkStudentSearch] = useState("");
+  const [selectedBulkStudentIds, setSelectedBulkStudentIds] = useState<string[]>([]);
   const [courseDialogOpen, setCourseDialogOpen] = useState(false);
   const [classroomDialogOpen, setClassroomDialogOpen] = useState(false);
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
@@ -199,6 +209,7 @@ export default function CoursesPage() {
       ]);
       setCourses(courseData.courses);
       setReportCourseId((current) => current || courseData.courses[0]?.id || "");
+      setBulkCourseId((current) => current || courseData.courses.find((course) => course.isActive)?.id || courseData.courses[0]?.id || "");
       setClassrooms(classroomData.classrooms);
       setSessions(sessionData.sessions);
       setEnrollments(enrollmentData.enrollments);
@@ -281,6 +292,13 @@ export default function CoursesPage() {
         });
         setEnrollmentDialogOpen(false);
         setEnrollmentForm(emptyEnrollmentForm);
+      }
+      if (pendingAction.kind === "enrollment-bulk") {
+        await apiRequest("/api/v1/enrollments/bulk", {
+          method: "POST",
+          body: JSON.stringify(pendingAction.payload),
+        });
+        setSelectedBulkStudentIds([]);
       }
       if (pendingAction.kind === "enrollment-delete") {
         await apiRequest(`/api/v1/enrollments/${pendingAction.payload.id}`, { method: "DELETE" });
@@ -395,6 +413,47 @@ export default function CoursesPage() {
     }
   }
 
+  function toggleBulkStudent(studentId: string, checked: boolean) {
+    setSelectedBulkStudentIds((current) => {
+      if (checked) {
+        return current.includes(studentId) ? current : [...current, studentId];
+      }
+
+      return current.filter((id) => id !== studentId);
+    });
+  }
+
+  function selectAllVisibleBulkStudents(studentIds: string[]) {
+    setSelectedBulkStudentIds((current) => Array.from(new Set([...current, ...studentIds])));
+  }
+
+  const selectedBulkCourse = courses.find((course) => course.id === bulkCourseId);
+  const bulkCourseEnrollments = useMemo(
+    () => enrollments.filter((enrollment) => enrollment.courseId === bulkCourseId),
+    [bulkCourseId, enrollments]
+  );
+  const enrolledBulkStudentIds = useMemo(
+    () => new Set(bulkCourseEnrollments.map((enrollment) => enrollment.studentId)),
+    [bulkCourseEnrollments]
+  );
+  const filteredBulkStudents = useMemo(() => {
+    const normalizedSearch = bulkStudentSearch.trim().toLowerCase();
+
+    return students.filter((student) => {
+      if (!normalizedSearch) {
+        return true;
+      }
+
+      return (
+        `${student.firstName} ${student.lastName}`.toLowerCase().includes(normalizedSearch) ||
+        (student.tcNo || "").includes(normalizedSearch)
+      );
+    });
+  }, [bulkStudentSearch, students]);
+  const visibleAssignableStudentIds = filteredBulkStudents
+    .map(studentProfileId)
+    .filter((studentId) => !enrolledBulkStudentIds.has(studentId));
+
   if (loading) {
     return <LoadingBlock description="Ders ve materyal ekranlari yukleniyor..." />;
   }
@@ -410,17 +469,19 @@ export default function CoursesPage() {
             ? "Toplu oturum onayi"
             : pendingAction?.kind === "enrollment-create"
               ? "Ders kaydi onayi"
-              : pendingAction?.kind === "material-upload"
-                ? "Materyal yukleme onayi"
-                : pendingAction?.kind === "material-delete"
-                  ? "Materyal silme onayi"
-                  : pendingAction?.kind === "classroom-delete"
-                    ? "Sinif silme onayi"
-                    : pendingAction?.kind === "session-delete"
-                      ? "Oturum silme onayi"
-                      : pendingAction?.kind === "enrollment-delete"
-                        ? "Kayit silme onayi"
-                        : "Ders pasif yapma onayi";
+              : pendingAction?.kind === "enrollment-bulk"
+                ? "Toplu ders kaydi onayi"
+                : pendingAction?.kind === "material-upload"
+                  ? "Materyal yukleme onayi"
+                  : pendingAction?.kind === "material-delete"
+                    ? "Materyal silme onayi"
+                    : pendingAction?.kind === "classroom-delete"
+                      ? "Sinif silme onayi"
+                      : pendingAction?.kind === "session-delete"
+                        ? "Oturum silme onayi"
+                        : pendingAction?.kind === "enrollment-delete"
+                          ? "Kayit silme onayi"
+                          : "Ders pasif yapma onayi";
 
   const destructiveKinds = ["course-delete", "classroom-delete", "session-delete", "enrollment-delete", "material-delete"];
 
@@ -577,6 +638,148 @@ export default function CoursesPage() {
         </TabsContent>
 
         <TabsContent value="enrollments" className="space-y-6">
+          <Card className="rounded-xl border border-border shadow-none">
+            <CardHeader className="gap-4">
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <CardTitle className="text-base font-semibold">Toplu ogrenci atama</CardTitle>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Bir ders secin, ogrencileri isaretleyin ve tek adimda ders kaydi olusturun.
+                  </p>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="rounded-lg bg-secondary/50 px-3 py-2">
+                    <div className="font-semibold text-foreground">{students.length}</div>
+                    <div className="text-muted-foreground">ogrenci</div>
+                  </div>
+                  <div className="rounded-lg bg-secondary/50 px-3 py-2">
+                    <div className="font-semibold text-foreground">{bulkCourseEnrollments.length}</div>
+                    <div className="text-muted-foreground">kayitli</div>
+                  </div>
+                  <div className="rounded-lg bg-secondary/50 px-3 py-2">
+                    <div className="font-semibold text-foreground">{selectedBulkStudentIds.length}</div>
+                    <div className="text-muted-foreground">secili</div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-3 xl:grid-cols-[1fr_1.1fr_auto]">
+                <Select
+                  value={bulkCourseId}
+                  onValueChange={(value) => {
+                    setBulkCourseId(value || "");
+                    setSelectedBulkStudentIds([]);
+                  }}
+                >
+                  <SelectTrigger className="h-11 w-full bg-white">
+                    <span className="min-w-0 truncate text-left">
+                      {courseLabel(courses, bulkCourseId, "Ders secin")}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses.filter((course) => course.isActive).map((course) => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.name} - {course.term}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="h-11 pl-10"
+                    placeholder="Ogrenci adi, soyadi veya TC ile ara"
+                    value={bulkStudentSearch}
+                    onChange={(event) => setBulkStudentSearch(event.target.value)}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  disabled={!bulkCourseId || selectedBulkStudentIds.length === 0}
+                  onClick={() =>
+                    setPendingAction({
+                      kind: "enrollment-bulk",
+                      payload: { courseId: bulkCourseId, studentIds: selectedBulkStudentIds },
+                    })
+                  }
+                >
+                  <UsersRound className="size-4" />
+                  Secilenleri ata
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {selectedBulkCourse
+                    ? `${selectedBulkCourse.name} dersi icin ${filteredBulkStudents.length} ogrenci gorunuyor.`
+                    : "Toplu atama yapmak icin once ders secin."}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={!visibleAssignableStudentIds.length}
+                    onClick={() => selectAllVisibleBulkStudents(visibleAssignableStudentIds)}
+                  >
+                    Gorunen uygunlari sec
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    disabled={!selectedBulkStudentIds.length}
+                    onClick={() => setSelectedBulkStudentIds([])}
+                  >
+                    Secimi temizle
+                  </Button>
+                </div>
+              </div>
+
+              {!bulkCourseId ? (
+                <EmptyState title="Ders secilmedi" description="Ogrencileri toplu atamak icin once aktif bir ders secin." />
+              ) : filteredBulkStudents.length === 0 ? (
+                <EmptyState title="Ogrenci bulunamadi" description="Arama kriterine uygun ogrenci yok." />
+              ) : (
+                <div className="max-h-[460px] overflow-y-auto rounded-xl border border-border bg-white">
+                  {filteredBulkStudents.map((student) => {
+                    const profileId = studentProfileId(student);
+                    const isEnrolled = enrolledBulkStudentIds.has(profileId);
+                    const isChecked = isEnrolled || selectedBulkStudentIds.includes(profileId);
+
+                    return (
+                      <label
+                        key={student.id}
+                        className="flex cursor-pointer items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 data-[disabled=true]:cursor-default data-[disabled=true]:bg-secondary/30"
+                        data-disabled={isEnrolled}
+                      >
+                        <Checkbox
+                          checked={isChecked}
+                          disabled={isEnrolled}
+                          onCheckedChange={(value) => toggleBulkStudent(profileId, Boolean(value))}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-semibold">
+                            {student.firstName} {student.lastName}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            TC: {student.tcNo || "-"}
+                            {student.activeCard?.uid ? ` - Kart: ${student.activeCard.uid}` : ""}
+                          </div>
+                        </div>
+                        {isEnrolled ? (
+                          <Badge variant="secondary" className="shrink-0 rounded px-2 py-0.5 text-[10px]">
+                            Kayitli
+                          </Badge>
+                        ) : null}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card className="rounded-xl border border-border shadow-none">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <CardTitle className="text-base font-semibold">Ders kayitlari</CardTitle>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ArrowLeft, CreditCard, Plus, ShieldAlert } from "lucide-react";
+import { ArrowLeft, BookOpen, CreditCard, Plus, ShieldAlert, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { apiRequest } from "@/lib/api";
 import { formatDate, formatDateTime, formatPercentage, healthConditionLabel } from "@/lib/format";
-import type { CardItem, CardStatus, StudentDetail } from "@/lib/types";
+import type { CardItem, CardStatus, CourseListItem, EnrollmentDetailItem, StudentDetail } from "@/lib/types";
 
 const cardStatusLabels: Record<CardStatus, string> = {
   ACTIVE: "Aktif",
@@ -38,9 +38,13 @@ const cardStatusLabels: Record<CardStatus, string> = {
 export default function StudentDetailPage() {
   const params = useParams<{ id: string }>();
   const [student, setStudent] = useState<StudentDetail | null>(null);
+  const [courses, setCourses] = useState<CourseListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
   const [cardUid, setCardUid] = useState("");
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [pendingEnrollmentCreate, setPendingEnrollmentCreate] = useState(false);
+  const [pendingEnrollmentDelete, setPendingEnrollmentDelete] = useState<EnrollmentDetailItem | null>(null);
   const [pendingCardCreate, setPendingCardCreate] = useState(false);
   const [pendingCardStatus, setPendingCardStatus] = useState<{ card: CardItem; status: CardStatus } | null>(null);
   const [cardStatusDraft, setCardStatusDraft] = useState<Record<string, CardStatus>>({});
@@ -56,12 +60,16 @@ export default function StudentDetailPage() {
     async function bootstrap() {
       setLoading(true);
       try {
-        const data = await apiRequest<StudentDetail>(`/api/v1/students/${params.id}`);
+        const [data, courseData] = await Promise.all([
+          apiRequest<StudentDetail>(`/api/v1/students/${params.id}`),
+          apiRequest<{ courses: CourseListItem[] }>("/api/v1/courses?limit=100&isActive=true"),
+        ]);
         if (ignore) {
           return;
         }
 
         setStudent(data);
+        setCourses(courseData.courses);
         setCardStatusDraft(Object.fromEntries(data.rfidCards.map((card) => [card.id, card.status])));
       } catch (error) {
         if (!ignore) {
@@ -95,6 +103,17 @@ export default function StudentDetailPage() {
       setLoading(false);
     }
   }
+
+  const assignedCourseIds = new Set(
+    (student?.enrollments || [])
+      .map((enrollment) => enrollment.course?.id)
+      .filter((courseId): courseId is string => Boolean(courseId))
+  );
+  const availableCourses = courses.filter((course) => course.isActive && !assignedCourseIds.has(course.id));
+  const selectedCourse = courses.find((course) => course.id === selectedCourseId);
+  const selectedCourseLabel = selectedCourse
+    ? `${selectedCourse.name} - ${selectedCourse.term}`
+    : "Ders secin";
 
   function openCardDialog() {
     setCardUid("");
@@ -141,6 +160,51 @@ export default function StudentDetailPage() {
       await loadStudent();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Kart atanamadi.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function confirmAssignCourse() {
+    if (!student?.profile || !selectedCourseId) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await apiRequest("/api/v1/enrollments", {
+        method: "POST",
+        body: JSON.stringify({
+          studentId: student.profile.id,
+          courseId: selectedCourseId,
+        }),
+      });
+      toast.success("Ders ogrenciye atandi.");
+      setSelectedCourseId("");
+      setPendingEnrollmentCreate(false);
+      await loadStudent();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Ders atamasi yapilamadi.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function confirmRemoveCourse() {
+    if (!pendingEnrollmentDelete) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await apiRequest(`/api/v1/enrollments/${pendingEnrollmentDelete.id}`, {
+        method: "DELETE",
+      });
+      toast.success("Ders kaydi kaldirildi.");
+      setPendingEnrollmentDelete(null);
+      await loadStudent();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Ders kaydi kaldirilamadi.");
     } finally {
       setSubmitting(false);
     }
@@ -335,8 +399,38 @@ export default function StudentDetailPage() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="rounded-[2rem] border-0 shadow-sm ring-1 ring-foreground/10">
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold">Ders kayitlari</CardTitle>
+          <CardHeader className="gap-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <CardTitle className="text-2xl font-semibold">Ders kayitlari</CardTitle>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Select value={selectedCourseId} onValueChange={(value) => setSelectedCourseId(value || "")}>
+                  <SelectTrigger className="h-11 w-full min-w-64 bg-white sm:w-72">
+                    <span className="min-w-0 truncate text-left">{selectedCourseLabel}</span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCourses.length === 0 ? (
+                      <SelectItem value="NO_AVAILABLE_COURSE" disabled>
+                        Atanabilir ders yok
+                      </SelectItem>
+                    ) : (
+                      availableCourses.map((course) => (
+                        <SelectItem key={course.id} value={course.id}>
+                          {course.name} - {course.term}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  onClick={() => setPendingEnrollmentCreate(true)}
+                  disabled={!student.profile || !selectedCourseId || selectedCourseId === "NO_AVAILABLE_COURSE"}
+                >
+                  <BookOpen className="size-4" />
+                  Ders ata
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {student.enrollments.length === 0 ? (
@@ -347,11 +441,25 @@ export default function StudentDetailPage() {
             ) : (
               student.enrollments.map((enrollment) => (
                 <div key={enrollment.id} className="rounded-[1.5rem] bg-secondary/55 p-4">
-                  <div className="text-lg font-semibold">
-                    {enrollment.course?.name || `${enrollment.firstName} ${enrollment.lastName}`}
-                  </div>
-                  <div className="mt-1 text-base text-muted-foreground">
-                    {enrollment.course?.term || "-"} · Kayit: {formatDate(enrollment.enrolledAt)}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <div className="truncate text-lg font-semibold">
+                        {enrollment.course?.name || `${enrollment.firstName} ${enrollment.lastName}`}
+                      </div>
+                      <div className="text-base text-muted-foreground">
+                        {enrollment.course?.term || "-"} - Kayit: {formatDate(enrollment.enrolledAt)}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="shrink-0 text-destructive hover:bg-destructive/10"
+                      onClick={() => setPendingEnrollmentDelete(enrollment)}
+                    >
+                      <Trash2 className="size-4" />
+                      Kaydi kaldir
+                    </Button>
                   </div>
                 </div>
               ))
@@ -455,6 +563,39 @@ export default function StudentDetailPage() {
         }
         confirmLabel="Durumu uygula"
         onConfirm={confirmStatusChange}
+      />
+
+      <ConfirmDialog
+        open={pendingEnrollmentCreate}
+        onOpenChange={setPendingEnrollmentCreate}
+        loading={submitting}
+        title="Ders atama onayi"
+        description={
+          selectedCourse
+            ? `${student.user.firstName} ${student.user.lastName} ogrencisi "${selectedCourse.name}" dersine atanacak. Devam etmek istiyor musunuz?`
+            : ""
+        }
+        confirmLabel="Dersi ata"
+        onConfirm={confirmAssignCourse}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingEnrollmentDelete)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingEnrollmentDelete(null);
+          }
+        }}
+        loading={submitting}
+        destructive
+        title="Ders kaydini kaldir"
+        description={
+          pendingEnrollmentDelete
+            ? `${student.user.firstName} ${student.user.lastName} ogrencisinin "${pendingEnrollmentDelete.course?.name || "secili ders"}" kaydi kaldirilacak. Devam etmek istiyor musunuz?`
+            : ""
+        }
+        confirmLabel="Kaydi kaldir"
+        onConfirm={confirmRemoveCourse}
       />
     </div>
   );
