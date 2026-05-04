@@ -1,109 +1,243 @@
 # TazelenmeApp
 
-> Tazelenme Universitesi icin ogrenci yonetimi, RFID yoklama ve mini-LMS platformu
+> Tazelenme Universitesi icin ogrenci yonetimi, RFID/NFC yoklama ve mini-LMS platformu.
 
-TazelenmeApp, 60+ yas grubunun egitim aldigi Tazelenme Universitesi icin tasarlanmis bir otomasyon sistemidir. Proje; ogrenci kayitlari, saglik notlari, RFID kart yonetimi, ders planlama, yoklama, bildirimler ve ders materyallerini tek yapida toplar.
+TazelenmeApp, 60+ yas grubunun egitim aldigi Tazelenme Universitesi icin gelistirilen bir otomasyon sistemidir. Ogrenci kayitlari, ders ve sinif planlama, RFID kart yonetimi, anlik yoklama, ders materyalleri, bildirimler ve raporlari tek yapida toplar.
 
-## Proje Durumu
+## Son Eklenenler
 
-Bu repo su anda sunuma uygun bir `Sprint 4 Complete` durumundadir.
+Bu surumde proje donanim demosuna hazir hale getirildi.
 
-Tamamlanan ana kapsam:
+- Raspberry Pi + RC522 RFID/NFC okuyucu entegrasyonu eklendi.
+- Pi uzerinde calisan `tazelenme-rfid` systemd servisi hazirlandi.
+- Kart UID'si backend'e `POST /api/v1/attendance/scan` endpoint'i ile gonderiliyor.
+- `AUTO` lokasyon modu eklendi: okuyucu belirli bir sinifa sabitlenmeden, kart sahibinin kayitli oldugu acik yoklama oturumunu otomatik buluyor.
+- Yoklama ekraninda 15 saniyelik yenileme yerine 1 saniyelik canli polling yapildi.
+- Daha once `ABSENT` veya `EXCUSED` gorunen kayitlar RFID okutulunca `PRESENT / RFID` olarak guncelleniyor.
+- Sunum icin SSH reverse tunnel araci eklendi: `tools/rfid_gateway/reverse_tunnel.py`.
+- RFID demo kurulum dokumani eklendi: `tools/rfid_gateway/README.md`.
 
-- Sprint 1: temel altyapi, Prisma, auth, Docker
-- Sprint 2: ogrenci, kart ve yoklama cekirdek backend akisleri
-- Sprint 3: classroom/course/session/material/report/notification backend kapsami
-- Sprint 4 Epic 7: admin panel frontend
-  - unified login (admin + ogrenci ayni ekrandan)
-  - dashboard
-  - ogrenci yonetimi
-  - ogrenci detay
-  - yoklama yonetimi
-  - ders ve materyal yonetimi
-  - kart yonetimi
-  - CSV import/export
-- Sprint 4 Epic 8: ogrenci PWA (8.1-8.6)
-  - PWA manifest + install destegi
-  - Ana ekran: buyuk butonlar + istatistikler
-  - Derslerim & devamsizligim sayfasi
-  - Materyal sayfasi (PDF, Video, Link)
-  - A11Y: 60+ yas grubu icin optimize (18px font, 48px touch target)
-  - Premium mobile-first tasarim
+## RFID Donanim Demo Akisi
 
-Henuz backlog'da kalan ana alan:
+Sunumda beklenen ana akisi:
 
-- 8.7: Offline materyal cache (Deferred)
-- Sprint 5: IoT firmware, test ve dagitim hardening
+1. Bilgisayarda Docker servislerini baslat.
+2. Raspberry Pi'ye guc ver.
+3. Backend tunnel'i ac.
+4. Admin panelde yoklama oturumunu baslat.
+5. NFC karti RC522 okuyucuya okut.
+6. Yoklama ekraninda ogrenci `Geldi` olur.
 
-## Admin Panelde Neler Var
+### Bilgisayarda Uygulamayi Baslat
 
-Mevcut admin panel asagidaki akislari destekler:
+PowerShell:
 
-- Unified login: admin ve ogrenci ayni ekrandan giris yapar, role-based redirect
-- Dashboard KPI kartlari, bildirimler, yaklasan oturumlar ve katilim grafigi
-- Ogrenci listeleme, olusturma, guncelleme, pasif yapma
-- Ogrenci detayinda attendance, enrollment ve kart gecmisi
-- CSV ile toplu ogrenci import
-- Ogrenci listesini CSV disa aktarma
-- Oturum bazli manuel yoklama yonetimi
-- Yoklama ekraninda canli yenileme mantigi
-- Ders, sinif, session, enrollment ve materyal yonetimi
-- Gecti-kaldi raporunu CSV olarak disa aktarma
-- Kart atama ve kart durumu guncelleme
+```powershell
+cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
+docker compose up -d
+```
 
-## Ogrenci PWA'da Neler Var
+Saglik kontrolu:
 
-Ogrenci portali 60+ yas grubu icin optimize edilmis mobile-first tasarimla:
+```powershell
+Invoke-RestMethod http://localhost:4000/api/health
+```
 
-- Ana ekran: istatistik kartlari, risk uyarisi, buyuk navigasyon butonlari
-- Derslerim & devamsizligim: ders bazli katilim orani, progress bar, risk badge
-- Materyal sayfasi: PDF indirme, video ve link acma, ders filtresi
-- Premium tasarim: gradient header, glassmorphism bottom nav, animasyonlar
-- A11Y: minimum 18px font, 48px touch target, belirgin focus ring
-
-## Kisa Mimari
+Admin panel:
 
 ```text
-Frontend (Next.js App Router + shadcn/ui)
+http://localhost:3000/login
+```
+
+### Raspberry Pi Kontrolu
+
+SSH:
+
+```powershell
+ssh burak@rfid-pi.local
+```
+
+Alternatif olarak IP ile:
+
+```powershell
+ssh burak@192.168.1.121
+```
+
+RFID servisi:
+
+```bash
+systemctl status tazelenme-rfid
+journalctl -u tazelenme-rfid -f
+```
+
+### Backend Tunnel
+
+Windows Firewall yerel agdan `4000` portunu engelleyebildigi icin Pi, demo sirasinda backend'e SSH reverse tunnel ile ulasir.
+
+Bilgisayarda ayri bir PowerShell penceresinde:
+
+```powershell
+cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
+python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+```
+
+Basarili cikti:
+
+```text
+remote 127.0.0.1:4000 -> local 127.0.0.1:4000
+```
+
+Bu pencere demo boyunca acik kalmali.
+
+`TCP forwarding request denied` hatasi gelirse tunnel zaten acik olabilir. Eski tunnel'i kapatmak icin:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "name = 'python.exe'" |
+  Where-Object { $_.CommandLine -like '*reverse_tunnel.py*' } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+```
+
+### Pi RFID Ayari
+
+Pi'deki ayar dosyasi:
+
+```bash
+cat /home/burak/tazelenme-rfid/tazelenme-rfid.env
+```
+
+Beklenen demo ayari:
+
+```env
+TAZELENME_API_URL=http://127.0.0.1:4000
+TAZELENME_IOT_API_KEY=iot_secret_change_me
+TAZELENME_DEVICE_LOCATION=AUTO
+```
+
+`AUTO` modunda Pi tarafinda sinif degistirmek gerekmez. Backend, kart sahibinin kayitli oldugu acik yoklama oturumunu bulur.
+
+Sabit lokasyon kullanmak gerekirse sinif kodlari:
+
+```text
+AMFI_1          -> Amfi 1
+AMFI_TEST       -> Amfi Test
+DIJITAL_LAB     -> Dijital Laboratuvar
+LAB_SMOKE       -> Lab Test Smoke
+SANAT_SINIFI    -> Sanat Sinifi
+SEMINER_SALONU  -> Seminer Salonu
+YASAM_ATOLYESI  -> Yasam Atolyesi
+```
+
+Ayar degistiyse:
+
+```bash
+sudo systemctl restart tazelenme-rfid
+```
+
+### Demo Sirasinda
+
+1. Admin panelde `Yoklama` sayfasina gir.
+2. Ders oturumunu sec.
+3. `Yoklamayi baslat` butonuna bas.
+4. Kart veya NFC etiketi RC522 okuyucuya yaklastir.
+5. Liste 1 saniyelik canli yenileme ile otomatik guncellenir.
+
+Basarili Pi log ornegi:
+
+```text
+{"event":"card_read","uid":"83432021"}
+{"event":"attendance_response","status_code":200}
+```
+
+Demo anlatim cumlesi:
+
+```text
+Raspberry Pi uzerindeki RC522 okuyucu kart UID'sini okuyor, backend'e gonderiyor; backend aktif yoklama oturumunu bulup ogrencinin yoklamasini RFID olarak isliyor.
+```
+
+## Proje Ozeti
+
+### Admin Panel
+
+- Unified login: admin ve ogrenci ayni ekrandan giris yapar.
+- Role-based redirect: admin paneli ve ogrenci portali ayrilir.
+- Dashboard KPI kartlari, bildirimler ve katilim grafigi.
+- Ogrenci listeleme, olusturma, guncelleme ve pasif yapma.
+- Ogrenci detayinda ders, yoklama ve kart gecmisi.
+- CSV ile toplu ogrenci import ve export.
+- Ders, sinif, oturum, kayit ve materyal yonetimi.
+- Manuel yoklama ve RFID yoklama.
+- Kart atama, kayip/iptal kart durumlari.
+- Rapor export akislari.
+
+### Ogrenci Portali
+
+- 60+ yas grubu icin mobile-first PWA.
+- Buyuk butonlar, okunabilir tipografi ve rahat dokunma alanlari.
+- Derslerim ve devamsizlik sayfasi.
+- Materyal sayfasi: PDF, video ve link icerikleri.
+- Risk uyarilari ve katilim orani.
+
+### RFID / IoT
+
+- RC522 okuyucu SPI uzerinden Raspberry Pi'ye baglanir.
+- Pi Python gateway UID okur ve backend'e gonderir.
+- Backend karti ogrenciyle eslestirir.
+- Aktif yoklama oturumu bulunur.
+- Anti-passback ile ayni oturumda tekrar kayit engellenir.
+- Var olan `ABSENT` kayit RFID ile `PRESENT` yapilabilir.
+
+## Mimari
+
+```text
+Frontend (Next.js App Router + React + Tailwind)
   -> Backend API (Express + TypeScript)
     -> PostgreSQL (Prisma)
-    -> Dosya depolama (Docker volume / uploads)
-    -> IoT cihazlari (ileriki sprint)
+    -> Upload storage (Docker volume)
+    -> RFID Gateway (Raspberry Pi + RC522)
 ```
 
 ## Teknoloji Stack
 
 | Katman | Teknoloji |
-|--------|-----------|
+| --- | --- |
 | Frontend | Next.js, React, Tailwind CSS, shadcn/ui |
-| Backend | Node.js, Express.js, TypeScript |
+| Backend | Node.js, Express, TypeScript |
 | ORM | Prisma |
 | Veritabani | PostgreSQL |
 | Auth | JWT access + refresh token |
+| IoT | Raspberry Pi, RC522, Python, systemd |
 | Otomasyon | node-cron |
 | Dosya yukleme | multer |
 | Altyapi | Docker, Docker Compose |
 
 ## Demo Bilgileri
 
-### Canli Demo (Gecici Test)
-
-- Frontend: `https://tazelenme-app.vercel.app`
-- Backend: `https://tazelenme-backend.onrender.com/api/health`
-
-> Not: Render free tier soguyan serviste ilk istek 10-30 saniye surebilir.
-
 ### Admin Girisi
 
-- TC No: `11111111111`
-- PIN: `1234`
+```text
+TC No: 11111111111
+PIN: 1234
+```
 
-### Ornek Ogrenci Girisi
+### Ogrenci Girisi
 
-- TC No: `22222222221`
-- PIN: `4921`
+Ogrenci hesaplarinda ilk PIN, TC kimlik numarasinin son 4 hanesidir.
 
-> Bu bilgiler seed/demonstrasyon amaclidir.
+Ornek:
+
+```text
+TC No: 39900000001
+PIN: 0001
+```
+
+### Canli Demo
+
+```text
+Frontend: https://tazelenme-app.vercel.app
+Backend:  https://tazelenme-backend.onrender.com/api/health
+```
+
+Not: Render free tier soguyan serviste ilk istek 10-30 saniye surebilir.
 
 ## Hizli Baslangic
 
@@ -115,32 +249,32 @@ Frontend (Next.js App Router + shadcn/ui)
 
 ### Docker ile Calistirma
 
-Tum sistemi tek komutla ayaga kaldirmak icin:
-
 ```bash
 docker compose up --build -d
 ```
 
 Servisler:
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:4000`
-- PostgreSQL: `localhost:5433`
+```text
+Frontend:   http://localhost:3000
+Backend:    http://localhost:4000
+PostgreSQL: localhost:5433
+```
 
-Container durumunu kontrol etmek icin:
+Durum kontrolu:
 
 ```bash
 docker ps
 ```
 
-Container loglarini gormek icin:
+Loglar:
 
 ```bash
 docker logs tazelenme-frontend --tail 100
 docker logs tazelenme-backend --tail 100
 ```
 
-Servisleri durdurmak icin:
+Durdurma:
 
 ```bash
 docker compose down
@@ -148,7 +282,9 @@ docker compose down
 
 ### Lokal Gelistirme
 
-Veritabani Docker ile acik kalirken frontend ve backend'i lokal calistirmak icin:
+Veritabani Docker ile acik kalirken backend ve frontend lokal calistirilabilir.
+
+DB:
 
 ```bash
 docker compose up -d db
@@ -171,205 +307,71 @@ npm install
 npm run dev
 ```
 
-## Veritabani ve Migration
+## Veritabani ve Seed
 
-Backend container acilirken migration deploy otomatik uygulanir.
+Backend container acilirken migration ve seed otomatik calisir.
 
-Docker tabanli standart akis:
-
-```bash
-docker compose up --build -d
-```
-
-Migration durumunu kontrol etmek icin:
+Migration durumu:
 
 ```bash
 docker exec -it tazelenme-backend npx prisma migrate status
 ```
 
-Gerekirse seed calistirmak icin:
+Seed:
 
 ```bash
 docker exec -it tazelenme-backend npm run prisma:seed
 ```
 
-## Sunumda Gosterebilecegin Ana Akis
+## Sunum Akisi
 
-1. `http://localhost:3000/login` uzerinden admin girisi yap
-2. Dashboard ekraninda KPI kartlari, bildirimler ve grafik alanini goster
-3. Ogrenciler ekraninda yeni ogrenci, CSV import/export ve detay akisini goster
-4. Yoklama ekraninda oturum secip manuel yoklama akisini goster
-5. Dersler ekraninda course/session/material yonetimi ve rapor export'unu goster
-6. Kartlar ekraninda kart atama ve durum degistirme akisini goster
+1. `http://localhost:3000/login` uzerinden admin girisi yap.
+2. Dashboard KPI kartlarini ve grafikleri goster.
+3. Ogrenciler ekraninda yeni ogrenci, CSV import/export ve detay akisini goster.
+4. Dersler ekraninda course/session/material yonetimini goster.
+5. Yoklama ekraninda oturum baslat.
+6. RFID karti okut ve listeyi canli yenilemeyle goster.
+7. Kartlar ekraninda kart atama ve durum degistirme akisini goster.
 
-## Sunumda RFID Donanim Demo Kurulumu
+## Dogrulama
 
-Bu akis Raspberry Pi + RC522 okuyucu ile fiziksel kart okutma demosu icindir.
-
-### 1. Bilgisayarda uygulamayi ayaga kaldir
-
-PowerShell:
-
-```powershell
-cd C:\Users\burak\OneDrive\Masaüstü\TazelenmeApp
-docker compose up -d
-```
-
-Backend saglik kontrolu:
-
-```powershell
-Invoke-RestMethod http://localhost:4000/api/health
-```
-
-Admin panel:
-
-```text
-http://localhost:3000/login
-```
-
-### 2. Raspberry Pi'ye baglan
-
-PowerShell:
-
-```powershell
-ssh burak@192.168.1.121
-```
-
-Pi uzerinde RFID servis durumunu kontrol et:
+Son dogrulanan komutlar:
 
 ```bash
-systemctl status tazelenme-rfid
+cd backend && npm run build
+cd frontend && npm run lint
+cd frontend && npm run build
 ```
 
-Loglari canli izlemek icin:
-
-```bash
-journalctl -u tazelenme-rfid -f
-```
-
-### 3. Bilgisayar ile Pi arasinda backend tunnel ac
-
-Windows Firewall yerel agdan `4000` portunu engelleyebildigi icin demo sirasinda
-Pi, backend'e SSH reverse tunnel ile ulasir. Bilgisayarda ayri bir PowerShell
-penceresi ac ve su komutu calistir:
-
-```powershell
-cd C:\Users\burak\OneDrive\Masaüstü\TazelenmeApp
-python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
-```
-
-Basariliysa su satiri gorursun:
-
-```text
-remote 127.0.0.1:4000 -> local 127.0.0.1:4000
-```
-
-Bu PowerShell penceresi demo boyunca acik kalmali.
-
-Eger `TCP forwarding request denied` hatasi gelirse tunnel zaten acik olabilir.
-Eski tunnel'i kapatmak icin:
-
-```powershell
-Get-CimInstance Win32_Process -Filter "name = 'python.exe'" |
-  Where-Object { $_.CommandLine -like '*reverse_tunnel.py*' } |
-  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
-```
-
-Sonra tunnel komutunu tekrar calistir.
-
-### 4. Pi RFID ayari
-
-Pi su anda `AUTO` lokasyon modunda calisir:
-
-```bash
-cat /home/burak/tazelenme-rfid/tazelenme-rfid.env
-```
-
-Beklenen ayar:
-
-```env
-TAZELENME_API_URL=http://127.0.0.1:4000
-TAZELENME_IOT_API_KEY=iot_secret_change_me
-TAZELENME_DEVICE_LOCATION=AUTO
-```
-
-`AUTO` modunda kart okutulunca backend, kart sahibinin kayitli oldugu acik
-yoklama oturumunu sinif fark etmeksizin bulur. Bu yuzden sunumda her ders icin
-Pi'de sinif kodu degistirmek gerekmez.
-
-Gerekirse tek bir sinifa sabitlemek icin `TAZELENME_DEVICE_LOCATION` degeri
-asagidaki kodlardan biri yapilabilir:
-
-```text
-AMFI_1          -> Amfi 1
-AMFI_TEST       -> Amfi Test
-DIJITAL_LAB     -> Dijital Laboratuvar
-LAB_SMOKE       -> Lab Test Smoke
-SANAT_SINIFI    -> Sanat Sinifi
-SEMINER_SALONU  -> Seminer Salonu
-YASAM_ATOLYESI  -> Yasam Atolyesi
-```
-
-Ayar degisirse servisi yeniden baslat:
-
-```bash
-sudo systemctl restart tazelenme-rfid
-```
-
-### 5. Yoklama demosu
-
-1. Admin panelde `Yoklama` sayfasina gir.
-2. Bir ders oturumu sec.
-3. Yoklamayi baslat.
-4. Burak Yalcin'in kartini RC522 okuyucuya yaklastir.
-5. Ekranda Burak Yalcin `Geldi` olur.
-
-Pi loglarinda basarili okuma ornegi:
-
-```text
-{"event":"card_read","uid":"83432021"}
-{"event":"attendance_response","status_code":200}
-```
-
-Demo anlatim cumlesi:
-
-```text
-Raspberry Pi uzerindeki RC522 okuyucu kart UID'sini okuyor, backend'e gonderiyor;
-backend aktif yoklama oturumunu bulup ogrencinin yoklamasini RFID olarak isliyor.
-```
-
-## Dogrulama Notlari
-
-Bu asamaya gelirken dogrulanan baslica komutlar:
-
-- `frontend`: `npm run lint`
-- `frontend`: `npm run build`
-- `backend`: `npm run build`
-- Docker uzerinde `frontend`, `backend`, `db` container'lari birlikte calistirildi
+Not: Frontend lint komutu mevcut repoda yalnizca onceki unused import uyarilari vermektedir; hata yoktur.
 
 ## Proje Yapisi
 
 ```text
 TazelenmeApp/
-|-- frontend/
-|   `-- src/
-|       |-- app/
-|       |-- components/
-|       `-- lib/
 |-- backend/
 |   |-- prisma/
-|   |   |-- schema.prisma
-|   |   `-- migrations/
 |   |-- src/
 |   |   |-- controllers/
 |   |   |-- jobs/
 |   |   |-- middlewares/
 |   |   |-- routes/
 |   |   `-- utils/
-|   `-- prisma.config.ts
+|-- frontend/
+|   `-- src/
+|       |-- app/
+|       |-- components/
+|       `-- lib/
+|-- tools/
+|   |-- generate_hw2_report.py
+|   `-- rfid_gateway/
+|       |-- rfid_gateway.py
+|       |-- reverse_tunnel.py
+|       |-- tazelenme-rfid.service
+|       `-- README.md
 |-- docker-compose.yml
-|-- kanban_board.md
 |-- Requirements.md
+|-- kanban_board.md
 `-- README.md
 ```
 
