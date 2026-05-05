@@ -27,6 +27,12 @@ interface CourseAttendanceItem {
   status: "PASSING" | "AT_RISK";
 }
 
+function getAttendanceRate(course: CourseAttendanceItem) {
+  return course.totalSessions > 0
+    ? Math.round((course.present / course.totalSessions) * 100)
+    : 0;
+}
+
 export default function StudentAttendancePage() {
   const [courses, setCourses] = useState<CourseAttendanceItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -180,7 +186,8 @@ export default function StudentAttendancePage() {
       ) : (
         <div className="space-y-4">
           {courses.map((course) => {
-            const isRisk = course.status === "AT_RISK";
+            const attendanceRate = getAttendanceRate(course);
+            const isRisk = attendanceRate < 70;
 
             return (
               <div
@@ -236,23 +243,23 @@ export default function StudentAttendancePage() {
                     </span>
                     <span
                       className={`text-2xl font-extrabold ${
-                        course.attendanceRate >= 70
+                        attendanceRate >= 70
                           ? "text-emerald-600"
                           : "text-red-500"
                       }`}
                     >
-                      %{course.attendanceRate}
+                      %{attendanceRate}
                     </span>
                   </div>
                   <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-gray-100">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ${
-                        course.attendanceRate >= 70
+                        attendanceRate >= 70
                           ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
                           : "bg-gradient-to-r from-red-400 to-orange-400"
                       }`}
                       style={{
-                        width: `${Math.min(course.attendanceRate, 100)}%`,
+                        width: `${Math.min(attendanceRate, 100)}%`,
                       }}
                     />
                   </div>

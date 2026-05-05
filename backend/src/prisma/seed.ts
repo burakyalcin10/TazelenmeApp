@@ -818,29 +818,35 @@ async function main() {
       const seedIndex = students.findIndex((student) => {
         return hashForLookup(student.tcNo) === enrollment.student.user.tcNoHash;
       });
-      const studentSeed = students[Math.max(0, seedIndex)];
-      const score = deterministicScore(Math.max(0, seedIndex), sessionIndex);
+
+      if (seedIndex === -1) {
+        continue;
+      }
+
+      const studentSeed = students[seedIndex];
+      const score = deterministicScore(seedIndex, sessionIndex);
       const presentLimit = Math.round(studentSeed.attendanceRate * 100);
       const status = score < presentLimit ? 'PRESENT' : score < presentLimit + 8 ? 'EXCUSED' : 'ABSENT';
 
-      await prisma.attendance.upsert({
+      const existingAttendance = await prisma.attendance.findUnique({
         where: {
           sessionId_studentId: {
             sessionId: session.id,
             studentId: enrollment.studentId,
           },
         },
-        update: {
-          status,
-          method: status === 'PRESENT' ? (score % 4 === 0 ? 'MANUAL' : 'RFID') : null,
-        },
-        create: {
-          sessionId: session.id,
-          studentId: enrollment.studentId,
-          status,
-          method: status === 'PRESENT' ? (score % 4 === 0 ? 'MANUAL' : 'RFID') : null,
-        },
       });
+
+      if (!existingAttendance) {
+        await prisma.attendance.create({
+          data: {
+            sessionId: session.id,
+            studentId: enrollment.studentId,
+            status,
+            method: status === 'PRESENT' ? (score % 4 === 0 ? 'MANUAL' : 'RFID') : null,
+          },
+        });
+      }
     }
   }
   logger.info('✅ Gerçekçi yoklama dağılımı hazırlandı');

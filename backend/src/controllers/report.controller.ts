@@ -92,8 +92,8 @@ export const getPassFailReport = async (req: Request, res: Response, next: NextF
         const present = attendances.filter((a) => a.status === 'PRESENT').length;
         const excused = attendances.filter((a) => a.status === 'EXCUSED').length;
         const absent = totalSessions - present - excused;
-        const attendedCount = present + excused; // İzinli de katılım sayılır
-        const attendanceRate = Math.round((attendedCount / totalSessions) * 100);
+        const attendedCount = present;
+        const attendanceRate = Math.round((present / totalSessions) * 100);
         const passed = attendanceRate >= PASS_THRESHOLD;
 
         return {

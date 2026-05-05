@@ -128,7 +128,7 @@ export const getMyAttendance = async (req: Request, res: Response, next: NextFun
         const excused = attendances.filter((a) => a.status === 'EXCUSED').length;
         const absent = totalSessions - present - excused;
         const attendanceRate = totalSessions > 0
-          ? Math.round(((present + excused) / totalSessions) * 100)
+          ? Math.round((present / totalSessions) * 100)
           : 0;
 
         return {

@@ -34,6 +34,12 @@ interface QuickStats {
   overallRate: number;
 }
 
+function getAttendanceRate(course: CourseAttendanceItem) {
+  return course.totalSessions > 0
+    ? Math.round((course.present / course.totalSessions) * 100)
+    : 0;
+}
+
 export default function StudentHomePage() {
   const [stats, setStats] = useState<QuickStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,13 +54,17 @@ export default function StudentHomePage() {
         }>("/api/v1/student/my-attendance");
         const courses = data.courseAttendance;
         const totalCourses = courses.length;
+        const normalizedCourses = courses.map((course) => ({
+          ...course,
+          attendanceRate: getAttendanceRate(course),
+        }));
         const atRiskCount = courses.filter(
-          (c) => c.status === "AT_RISK"
+          (c) => getAttendanceRate(c) < 70
         ).length;
         const overallRate =
           totalCourses > 0
             ? Math.round(
-                courses.reduce((sum, c) => sum + c.attendanceRate, 0) /
+                normalizedCourses.reduce((sum, c) => sum + c.attendanceRate, 0) /
                   totalCourses
               )
             : 0;
