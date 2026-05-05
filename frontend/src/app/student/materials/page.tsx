@@ -12,6 +12,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 import { apiRequest, downloadAuthenticatedFile } from "@/lib/api";
 
 interface MaterialItem {
@@ -118,6 +124,11 @@ export default function StudentMaterialsPage() {
     selectedCourse === "all"
       ? courses
       : courses.filter((c) => c.courseId === selectedCourse);
+  const selectedCourseLabel =
+    selectedCourse === "all"
+      ? "Tüm dersler"
+      : courses.find((course) => course.courseId === selectedCourse)
+          ?.courseName || "Ders seçin";
 
   const totalMaterials = filteredCourses.reduce(
     (sum, c) => sum + c.materialCount,
@@ -195,42 +206,46 @@ export default function StudentMaterialsPage() {
         </div>
       </div>
 
-      {/* ─── Course Filter Pills ─── */}
+      {/* Course Filter */}
       {courses.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            onClick={() => setSelectedCourse("all")}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${
-              selectedCourse === "all"
-                ? "bg-gradient-to-r from-primary to-[#008560] text-white shadow-md shadow-primary/20"
-                : "bg-white text-muted-foreground shadow-sm ring-1 ring-black/[0.03] hover:bg-gray-50"
-            }`}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Ders filtresi
+          </label>
+          <Select
+            value={selectedCourse}
+            onValueChange={(value) => setSelectedCourse(value || "all")}
           >
-            <Folder className="size-3.5" />
-            Tümü
-          </button>
-          {courses.map((c) => (
-            <button
-              key={c.courseId}
-              onClick={() => setSelectedCourse(c.courseId)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${
-                selectedCourse === c.courseId
-                  ? "bg-gradient-to-r from-primary to-[#008560] text-white shadow-md shadow-primary/20"
-                  : "bg-white text-muted-foreground shadow-sm ring-1 ring-black/[0.03] hover:bg-gray-50"
-              }`}
-            >
-              {c.courseName}
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                  selectedCourse === c.courseId
-                    ? "bg-white/20 text-white"
-                    : "bg-gray-100 text-gray-500"
-                }`}
-              >
-                {c.materialCount}
+            <SelectTrigger className="h-12 w-full max-w-full bg-white px-4">
+              <span className="flex min-w-0 items-center gap-2 text-left">
+                <Folder className="size-4 shrink-0 text-primary" />
+                <span className="min-w-0 truncate">{selectedCourseLabel}</span>
               </span>
-            </button>
-          ))}
+            </SelectTrigger>
+            <SelectContent className="max-w-[calc(100vw-2rem)]">
+              <SelectItem value="all">
+                <span className="flex min-w-0 items-center justify-between gap-3">
+                  <span className="truncate">Tüm dersler</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {courses.reduce(
+                      (sum, course) => sum + course.materialCount,
+                      0
+                    )}
+                  </span>
+                </span>
+              </SelectItem>
+              {courses.map((course) => (
+                <SelectItem key={course.courseId} value={course.courseId}>
+                  <span className="flex min-w-0 items-center justify-between gap-3">
+                    <span className="truncate">{course.courseName}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {course.materialCount}
+                    </span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
