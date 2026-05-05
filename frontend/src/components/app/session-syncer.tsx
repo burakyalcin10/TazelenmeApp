@@ -1,6 +1,5 @@
 "use client";
 
-import { setStoredSession, getStoredSession } from "@/lib/session";
 import type { StoredSession } from "@/lib/types";
 
 /**

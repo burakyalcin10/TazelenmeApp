@@ -276,6 +276,15 @@
   color: var(--amber-foreground);
 }
 
+/* ─── Scrollbar utilities ─── */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* ─── Student Portal A11Y (8.6) ─── */
 
 /* Minimum font size for elderly users */

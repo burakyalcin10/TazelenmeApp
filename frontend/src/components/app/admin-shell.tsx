@@ -9,8 +9,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Search,
-  Settings,
   Users,
   X,
 } from "lucide-react";
@@ -97,13 +95,6 @@ export function AdminShell({
 
         {/* Bottom section */}
         <div className="mt-auto border-t border-white/10 pt-4">
-          <Link
-            href="#"
-            className="flex items-center gap-3 px-6 py-3 text-sm text-white/50 transition-colors hover:text-white"
-          >
-            <Settings className="size-5" />
-            <span>Ayarlar</span>
-          </Link>
           <form action={logoutAction}>
             <button
               type="submit"
@@ -134,6 +125,7 @@ export function AdminShell({
               <button
                 onClick={() => setMobileOpen(false)}
                 className="rounded-lg p-1 text-white/60 hover:text-white"
+                aria-label="Menüyü kapat"
               >
                 <X className="size-5" />
               </button>
@@ -163,6 +155,7 @@ export function AdminShell({
             <button
               onClick={() => setMobileOpen(true)}
               className="rounded-lg p-2 text-forest hover:bg-secondary lg:hidden"
+              aria-label="Menüyü aç"
             >
               <Menu className="size-5" />
             </button>
@@ -170,27 +163,10 @@ export function AdminShell({
             <span className="hidden font-serif text-lg italic text-forest lg:inline">
               Academic Curator
             </span>
-
-            {/* Search */}
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Hızlı Arama..."
-                className="h-9 rounded-full border-none bg-secondary pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-              />
-            </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Notification bell */}
-            <button className="rounded-lg p-2 text-forest transition-colors hover:text-accent">
-              <Bell className="size-5" />
-            </button>
-
-            {/* User avatar */}
-            <UserInitials user={user} />
-          </div>
+          {/* User avatar */}
+          <UserInitials user={user} />
         </header>
 
         {/* Page Content */}
