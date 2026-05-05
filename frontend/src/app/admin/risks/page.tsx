@@ -111,6 +111,7 @@ export default function AdminRisksPage() {
   const records = useMemo(() => buildRiskRecords(riskStudents, notifications), [riskStudents, notifications]);
   const selectedRecord = records.find((record) => record.profileId === selectedProfileId) || records[0];
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+  const selectedHasActiveRisk = Boolean(selectedRecord?.isAtRisk);
 
   async function updateNotification(notificationId: string, payload: { isRead?: boolean; actionTaken?: string }) {
     setSubmittingId(notificationId);
@@ -146,14 +147,14 @@ export default function AdminRisksPage() {
           <p className="mt-1 text-xs text-muted-foreground">Aktif risk bayrağı</p>
         </div>
         <div className="surface-kpi">
-          <p className="panel-label">Toplam Bildirim</p>
-          <div className="mt-2 font-serif text-3xl tracking-tight text-forest">{notifications.length}</div>
+          <p className="panel-label">Toplam Risk Kaydı</p>
+          <div className="mt-2 font-serif text-3xl tracking-tight text-forest">{records.length}</div>
           <p className="mt-1 text-xs text-muted-foreground">İzolasyon geçmişi</p>
         </div>
         <div className="surface-kpi">
-          <p className="panel-label">Okunmamış</p>
-          <div className="mt-2 font-serif text-3xl tracking-tight text-forest">{unreadCount}</div>
-          <p className="mt-1 text-xs text-muted-foreground">Aksiyon bekleyen</p>
+          <p className="panel-label">İzolasyon Bildirimi</p>
+          <div className="mt-2 font-serif text-3xl tracking-tight text-forest">{notifications.length}</div>
+          <p className="mt-1 text-xs text-muted-foreground">{unreadCount} okunmamış</p>
         </div>
       </div>
 
@@ -192,7 +193,7 @@ export default function AdminRisksPage() {
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-foreground">{record.name}</p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {record.notifications.length} bildirim
+                          {record.isAtRisk ? "Aktif risk" : "Geçmiş bildirim"} · {record.notifications.length} bildirim
                         </p>
                       </div>
                       {recordUnread > 0 ? (
@@ -245,8 +246,21 @@ export default function AdminRisksPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-3">
+                  {selectedHasActiveRisk ? (
+                    <div className="rounded-xl border border-amber/30 bg-amber/10 p-4">
+                      <div className="flex items-start gap-3">
+                        <ShieldAlert className="mt-0.5 size-5 text-amber-600" />
+                        <div>
+                          <p className="text-sm font-semibold text-amber-foreground">Aktif risk kaydı</p>
+                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                            Bu öğrenci devamsızlık eşiğinde takip listesinde. Ayrı bir izolasyon bildirimi olmasa bile risk kaydı olarak görüntülenir.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                   {selectedRecord.notifications.length === 0 ? (
-                    <EmptyState title="Bildirim yok" description="Bu öğrenci için kayıtlı izolasyon bildirimi bulunmuyor." />
+                    <EmptyState title="Ayrı bildirim yok" description="Bu öğrenci için kayıtlı izolasyon bildirimi bulunmuyor; aktif risk kaydı üstte gösterilir." />
                   ) : (
                     selectedRecord.notifications.map((notification) => (
                       <div key={notification.id} className="rounded-xl border border-border bg-white p-4">

@@ -21,6 +21,13 @@ import type {
   StudentListItem,
 } from "@/lib/types";
 
+interface DashboardRiskItem {
+  key: string;
+  title: string;
+  description: string;
+  unread: boolean;
+}
+
 interface DashboardState {
   students: StudentListItem[];
   riskStudents: StudentListItem[];
@@ -29,6 +36,37 @@ interface DashboardState {
   courses: CourseListItem[];
   sessions: SessionListItem[];
   trend: AttendanceSummary | null;
+}
+
+function buildDashboardRiskItems(
+  students: StudentListItem[],
+  notifications: NotificationItem[]
+) {
+  const items = new Map<string, DashboardRiskItem>();
+
+  students.forEach((student) => {
+    const profileId = student.profileId || student.id;
+    items.set(profileId, {
+      key: profileId,
+      title: `${student.firstName} ${student.lastName}`,
+      description: "Devamsızlık eşiğine ulaştı",
+      unread: false,
+    });
+  });
+
+  notifications.forEach((notification) => {
+    const key = notification.studentProfileId || notification.id;
+    const existing = items.get(key);
+
+    items.set(key, {
+      key,
+      title: existing?.title || notification.studentName || notification.title,
+      description: notification.message,
+      unread: !notification.isRead,
+    });
+  });
+
+  return Array.from(items.values());
 }
 
 const initialState: DashboardState = {
@@ -55,7 +93,7 @@ export default function AdminDashboardPage() {
           await Promise.all([
             apiRequest<{ students: StudentListItem[]; pagination: { total: number } }>("/api/v1/students?limit=100"),
             apiRequest<{ students: StudentListItem[] }>("/api/v1/students?isAtRisk=true&limit=6"),
-            apiRequest<{ notifications: NotificationItem[] }>("/api/v1/notifications?limit=5"),
+            apiRequest<{ notifications: NotificationItem[] }>("/api/v1/notifications?type=ISOLATION_RISK&limit=6"),
             apiRequest<{ unreadCount: number }>("/api/v1/notifications/unread-count"),
             apiRequest<{ courses: CourseListItem[] }>("/api/v1/courses?isActive=true&limit=100"),
             apiRequest<{ sessions: SessionListItem[] }>("/api/v1/sessions?limit=12"),
@@ -98,6 +136,7 @@ export default function AdminDashboardPage() {
   const attendanceRate = state.trend?.averageAttendanceRate ?? 0;
   const latestStudents = state.students.slice(0, 3);
 
+  const riskItems = buildDashboardRiskItems(state.riskStudents, state.notifications);
   const unreadAlerts = state.notifications.filter((n) => !n.isRead).length;
 
   return (
@@ -208,24 +247,21 @@ export default function AdminDashboardPage() {
             ) : null}
           </div>
           <div className="flex-1 space-y-2">
-            {state.riskStudents.length === 0 && state.notifications.length === 0 ? (
+            {riskItems.length === 0 ? (
               <p className="text-sm text-muted-foreground">Şu an risk bildirimi yok.</p>
             ) : (
               <>
-                {state.riskStudents.slice(0, 2).map((s) => (
-                  <div key={s.id} className="rounded-lg border border-amber/20 bg-white/60 p-2.5">
-                    <p className="text-xs font-semibold text-foreground">
-                      {s.firstName} {s.lastName}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Devamsızlık eşiğine ulaştı
-                    </p>
-                  </div>
-                ))}
-                {state.notifications.slice(0, 2).map((n) => (
-                  <div key={n.id} className="rounded-lg border border-amber/20 bg-white/60 p-2.5">
-                    <p className="line-clamp-1 text-xs font-semibold text-foreground">{n.title}</p>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{n.message}</p>
+                {riskItems.slice(0, 4).map((item) => (
+                  <div key={item.key} className="rounded-lg border border-amber/20 bg-white/60 p-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="line-clamp-1 text-xs font-semibold text-foreground">{item.title}</p>
+                      {item.unread ? (
+                        <span className="rounded bg-amber/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-foreground">
+                          Yeni
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
                   </div>
                 ))}
               </>
@@ -235,7 +271,7 @@ export default function AdminDashboardPage() {
             href="/admin/risks"
             className="mt-3 inline-flex items-center text-xs font-semibold text-amber-foreground hover:underline"
           >
-            TÃ¼m riskleri gÃ¶r
+            Tüm risk bildirimlerini gör
             <ChevronRight className="ml-1 size-3.5" />
           </Link>
         </div>
