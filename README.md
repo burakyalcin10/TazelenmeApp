@@ -275,6 +275,12 @@ Windows Firewall nedeniyle Pi'nin backend'e erismesi icin sunumda reverse tunnel
 python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
 ```
 
+Mobil hotspot / iPhone aginda Pi'nin IP adresi degisebilir. Bu durumda IP yerine hostname kullan:
+
+```powershell
+python tools\rfid_gateway\reverse_tunnel.py --host rfid-pi.local --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+```
+
 Basarili cikti:
 
 ```text
@@ -345,6 +351,13 @@ sudo systemctl restart tazelenme-rfid
 ```powershell
 cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
 python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+```
+
+Mobil hotspot / iPhone aginda IP degisebilecegi icin sunumda bunu tercih et:
+
+```powershell
+cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
+python tools\rfid_gateway\reverse_tunnel.py --host rfid-pi.local --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
 ```
 
 8. Tunnel zaten aciksa kapat:
