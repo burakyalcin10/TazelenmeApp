@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  ShieldAlert,
   Users,
   X,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/admin/students", label: "Öğrenciler", icon: Users },
   { href: "/admin/attendance", label: "Yoklama", icon: Bell },
   { href: "/admin/courses", label: "Dersler", icon: BookOpen },
+  { href: "/admin/risks", label: "Riskler", icon: ShieldAlert },
   { href: "/admin/cards", label: "Kartlar", icon: CreditCard },
 ];
 

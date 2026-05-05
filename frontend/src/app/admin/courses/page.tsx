@@ -50,7 +50,11 @@ type PendingAction =
   | { kind: "material-upload"; payload: FormData }
   | { kind: "material-delete"; payload: { id: string; title: string } };
 
-const emptyCourseForm = { id: "", name: "", term: "", isActive: true };
+const TERM_FILTER_ALL = "ALL";
+const termSeasons = ["Bahar", "Yaz", "Güz"];
+const defaultTerm = `${new Date().getFullYear()}-Bahar`;
+
+const emptyCourseForm = { id: "", name: "", term: defaultTerm, isActive: true };
 const emptyClassroomForm = { id: "", name: "", code: "", capacity: "" };
 const emptySessionForm = {
   courseId: "",
@@ -142,6 +146,23 @@ function studentProfileId(student: StudentListItem) {
   return student.profileId || student.id;
 }
 
+function buildTermOptions(courses: CourseListItem[]) {
+  const currentYear = new Date().getFullYear();
+  const terms = new Set<string>();
+
+  for (let year = currentYear - 1; year <= currentYear + 2; year++) {
+    termSeasons.forEach((season) => terms.add(`${year}-${season}`));
+  }
+
+  courses.forEach((course) => {
+    if (course.term) {
+      terms.add(course.term);
+    }
+  });
+
+  return Array.from(terms).sort((a, b) => b.localeCompare(a, "tr"));
+}
+
 const courseStatusLabels = {
   ACTIVE: "Aktif",
   PASSIVE: "Pasif",
@@ -175,6 +196,7 @@ export default function CoursesPage() {
   const [students, setStudents] = useState<StudentListItem[]>([]);
   const [reportCourseId, setReportCourseId] = useState("");
   const [reportExporting, setReportExporting] = useState(false);
+  const [courseTermFilter, setCourseTermFilter] = useState(TERM_FILTER_ALL);
   const [bulkCourseId, setBulkCourseId] = useState("");
   const [bulkStudentSearch, setBulkStudentSearch] = useState("");
   const [selectedBulkStudentIds, setSelectedBulkStudentIds] = useState<string[]>([]);
@@ -453,6 +475,16 @@ export default function CoursesPage() {
   const visibleAssignableStudentIds = filteredBulkStudents
     .map(studentProfileId)
     .filter((studentId) => !enrolledBulkStudentIds.has(studentId));
+  const termOptions = useMemo(() => buildTermOptions(courses), [courses]);
+  const courseFormTermOptions = courseForm.term && !termOptions.includes(courseForm.term)
+    ? [courseForm.term, ...termOptions]
+    : termOptions;
+  const filteredCourses = useMemo(
+    () => courseTermFilter === TERM_FILTER_ALL
+      ? courses
+      : courses.filter((course) => course.term === courseTermFilter),
+    [courseTermFilter, courses]
+  );
 
   if (loading) {
     return <LoadingBlock description="Ders ve materyal ekranlari yukleniyor..." />;
@@ -543,13 +575,28 @@ export default function CoursesPage() {
           <Card className="rounded-xl border border-border shadow-none">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <CardTitle className="text-base font-semibold">Ders listesi</CardTitle>
-              <Button size="sm" onClick={() => { setCourseForm(emptyCourseForm); setCourseDialogOpen(true); }}>
-                <Plus className="size-4" />
-                Yeni ders
-              </Button>
+              <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+                <Select value={courseTermFilter} onValueChange={(value) => setCourseTermFilter(value || TERM_FILTER_ALL)}>
+                  <SelectTrigger className="h-9 w-full bg-white sm:w-52">
+                    <span className="min-w-0 truncate text-left">
+                      {courseTermFilter === TERM_FILTER_ALL ? "Tüm dönemler" : courseTermFilter}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={TERM_FILTER_ALL}>Tüm dönemler</SelectItem>
+                    {termOptions.map((term) => (
+                      <SelectItem key={term} value={term}>{term}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button size="sm" onClick={() => { setCourseForm(emptyCourseForm); setCourseDialogOpen(true); }}>
+                  <Plus className="size-4" />
+                  Yeni ders
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {courses.length === 0 ? <EmptyState title="Ders kaydi yok" description="Ilk dersi olusturarak yonetim akisini baslatabilirsiniz." /> : courses.map((course) => (
+              {filteredCourses.length === 0 ? <EmptyState title="Ders kaydi yok" description="Secili donemde ders bulunmuyor." /> : filteredCourses.map((course) => (
                 <div key={course.id} className="rounded-xl border border-border bg-white p-3.5">
                   <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
                     <div className="space-y-2">
@@ -861,7 +908,18 @@ export default function CoursesPage() {
           <DialogHeader><DialogTitle className="text-3xl font-semibold">{courseForm.id ? "Dersi duzenle" : "Yeni ders"}</DialogTitle><DialogDescription className="text-base leading-7">Ders bilgilerini kaydetmeden once ikinci onay alinacaktir.</DialogDescription></DialogHeader>
           <div className="space-y-6">
             <FormField label="Ders adi"><Input value={courseForm.name} onChange={(event) => setCourseForm((current) => ({ ...current, name: event.target.value }))} /></FormField>
-            <FormField label="Donem"><Input value={courseForm.term} onChange={(event) => setCourseForm((current) => ({ ...current, term: event.target.value }))} /></FormField>
+            <FormField label="Donem">
+              <Select value={courseForm.term} onValueChange={(value) => setCourseForm((current) => ({ ...current, term: value || defaultTerm }))}>
+                <SelectTrigger className="h-11 w-full bg-white">
+                  <span className="min-w-0 truncate text-left">{courseForm.term || "Dönem seçin"}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  {courseFormTermOptions.map((term) => (
+                    <SelectItem key={term} value={term}>{term}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
             <FormField label="Durum">
               <Select value={courseForm.isActive ? "ACTIVE" : "PASSIVE"} onValueChange={(value) => setCourseForm((current) => ({ ...current, isActive: value === "ACTIVE" }))}>
                 <SelectTrigger className="h-11 w-full bg-white">

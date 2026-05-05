@@ -194,10 +194,13 @@ export default function AdminDashboardPage() {
         {/* Risk Notifications */}
         <div className="surface-alert flex flex-col">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-amber-foreground">
+            <Link
+              href="/admin/risks"
+              className="flex items-center gap-2 text-sm font-semibold text-amber-foreground hover:underline"
+            >
               <ShieldAlert className="size-4" />
               Risk bildirimleri
-            </h3>
+            </Link>
             {unreadAlerts > 0 ? (
               <span className="rounded-md bg-amber px-1.5 py-0.5 text-[10px] font-semibold text-amber-foreground">
                 {unreadAlerts} YENİ
@@ -228,6 +231,13 @@ export default function AdminDashboardPage() {
               </>
             )}
           </div>
+          <Link
+            href="/admin/risks"
+            className="mt-3 inline-flex items-center text-xs font-semibold text-amber-foreground hover:underline"
+          >
+            TÃ¼m riskleri gÃ¶r
+            <ChevronRight className="ml-1 size-3.5" />
+          </Link>
         </div>
       </div>
 
