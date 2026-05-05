@@ -43,7 +43,7 @@ export function formatTime(value?: string | null) {
 
 export function formatPercentage(value?: number | null) {
   if (value === null || value === undefined || Number.isNaN(value)) {
-    return "%0";
+    return "—";
   }
 
   return `%${Math.round(value)}`;

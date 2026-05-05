@@ -35,7 +35,11 @@ interface DashboardState {
   unreadCount: number;
   courses: CourseListItem[];
   sessions: SessionListItem[];
-  trend: AttendanceSummary | null;
+  attendanceOverview: {
+    averageAttendanceRate: number | null;
+    courseCount: number;
+    totalSessions: number;
+  };
 }
 
 function buildDashboardRiskItems(
@@ -76,8 +80,47 @@ const initialState: DashboardState = {
   unreadCount: 0,
   courses: [],
   sessions: [],
-  trend: null,
+  attendanceOverview: {
+    averageAttendanceRate: null,
+    courseCount: 0,
+    totalSessions: 0,
+  },
 };
+
+function todayInputValue() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function buildAttendanceOverview(summaries: AttendanceSummary[]) {
+  let totalPresent = 0;
+  let totalPossible = 0;
+  let totalSessions = 0;
+  const now = new Date();
+
+  summaries.forEach((summary) => {
+    summary.weeklyTrend.forEach((week) => {
+      if (week.totalEnrolled <= 0 || new Date(week.sessionDate) > now) {
+        return;
+      }
+
+      totalPresent += week.present;
+      totalPossible += week.totalEnrolled;
+      totalSessions++;
+    });
+  });
+
+  return {
+    averageAttendanceRate: totalPossible > 0
+      ? Math.round((totalPresent / totalPossible) * 100)
+      : null,
+    courseCount: summaries.length,
+    totalSessions,
+  };
+}
 
 export default function AdminDashboardPage() {
   const [state, setState] = useState<DashboardState>(initialState);
@@ -89,6 +132,7 @@ export default function AdminDashboardPage() {
     async function loadDashboard() {
       setLoading(true);
       try {
+        const today = todayInputValue();
         const [studentsData, riskData, notificationsData, unreadData, coursesData, sessionsData] =
           await Promise.all([
             apiRequest<{ students: StudentListItem[]; pagination: { total: number } }>("/api/v1/students?limit=100"),
@@ -96,13 +140,15 @@ export default function AdminDashboardPage() {
             apiRequest<{ notifications: NotificationItem[] }>("/api/v1/notifications?type=ISOLATION_RISK&limit=6"),
             apiRequest<{ unreadCount: number }>("/api/v1/notifications/unread-count"),
             apiRequest<{ courses: CourseListItem[] }>("/api/v1/courses?isActive=true&limit=100"),
-            apiRequest<{ sessions: SessionListItem[] }>("/api/v1/sessions?limit=12"),
+            apiRequest<{ sessions: SessionListItem[] }>(`/api/v1/sessions?startDate=${today}&limit=6`),
           ]);
 
-        const firstCourseId = coursesData.courses[0]?.id || "";
-        const trend = firstCourseId
-          ? await apiRequest<AttendanceSummary>(`/api/v1/reports/attendance-summary?courseId=${firstCourseId}`)
-          : null;
+        const summaries = await Promise.all(
+          coursesData.courses.map((course) =>
+            apiRequest<AttendanceSummary>(`/api/v1/reports/attendance-summary?courseId=${course.id}`)
+          )
+        );
+        const attendanceOverview = buildAttendanceOverview(summaries);
 
         if (ignore) return;
 
@@ -113,7 +159,7 @@ export default function AdminDashboardPage() {
           unreadCount: unreadData.unreadCount,
           courses: coursesData.courses,
           sessions: sessionsData.sessions,
-          trend,
+          attendanceOverview,
         });
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Dashboard verileri yüklenemedi.");
@@ -131,9 +177,9 @@ export default function AdminDashboardPage() {
   }
 
   const totalStudents = state.students.length;
-  const todaySessions = state.sessions.slice(0, 6);
+  const upcomingSessions = state.sessions;
   const activeCourses = state.courses.filter((c) => c.isActive).length;
-  const attendanceRate = state.trend?.averageAttendanceRate ?? 0;
+  const attendanceRate = state.attendanceOverview.averageAttendanceRate;
   const latestStudents = state.students.slice(0, 3);
 
   const riskItems = buildDashboardRiskItems(state.riskStudents, state.notifications);
@@ -175,9 +221,9 @@ export default function AdminDashboardPage() {
         <div className="surface-kpi">
           <p className="panel-label">Yaklaşan Oturum</p>
           <div className="mt-2 font-serif text-3xl tracking-tight text-forest">
-            {todaySessions.length}
+            {upcomingSessions.length}
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">Sonraki 6</p>
+          <p className="mt-1 text-xs text-muted-foreground">Bugünden sonraki plan</p>
         </div>
         <div className="surface-kpi">
           <p className="panel-label">Bildirim</p>
@@ -206,16 +252,16 @@ export default function AdminDashboardPage() {
                 <span className="font-serif text-4xl tracking-tight text-primary sm:text-5xl">
                   {formatPercentage(attendanceRate)}
                 </span>
-                {state.trend ? (
+                {attendanceRate !== null ? (
                   <span className="inline-flex items-center gap-1 text-xs font-medium text-primary/80">
                     <TrendingUp className="size-3.5" />
-                    Aktif dönem
+                    Genel oran
                   </span>
                 ) : null}
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
-                {state.courses[0]?.name
-                  ? `${state.courses[0].name} dersi referans alındı`
+                {state.attendanceOverview.courseCount > 0
+                  ? `${state.attendanceOverview.courseCount} aktif ders ve ${state.attendanceOverview.totalSessions} oturum referans alındı`
                   : "Henüz aktif ders yok"}
               </p>
             </div>
