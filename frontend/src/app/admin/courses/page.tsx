@@ -51,7 +51,7 @@ type PendingAction =
   | { kind: "material-delete"; payload: { id: string; title: string } };
 
 const TERM_FILTER_ALL = "ALL";
-const termSeasons = ["Bahar", "Yaz", "Güz"];
+const termSeasons = ["Bahar", "Güz"];
 const defaultTerm = `${new Date().getFullYear()}-Bahar`;
 
 const emptyCourseForm = { id: "", name: "", term: defaultTerm, isActive: true };
