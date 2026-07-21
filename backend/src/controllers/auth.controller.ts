@@ -87,8 +87,14 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
       throw new AppError('Refresh token zorunludur.', 400);
     }
 
-    // Refresh token doğrula
-    const decoded = verifyToken(refreshToken);
+    // Refresh token doğrula. jsonwebtoken hatalarini operasyonel 401'e cevir;
+    // aksi halde suresi dolan mobil oturumlar genel 500 yaniti alir.
+    let decoded: ReturnType<typeof verifyToken>;
+    try {
+      decoded = verifyToken(refreshToken);
+    } catch {
+      throw new AppError('Gecersiz veya suresi dolmus refresh token.', 401);
+    }
 
     // Kullanıcı hâlâ aktif mi kontrol et
     const user = await prisma.user.findUnique({
