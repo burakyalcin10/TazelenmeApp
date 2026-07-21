@@ -1,28 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Playfair_Display } from "next/font/google";
+import { Inter_Tight } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
 
-const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair",
+// Akdeniz Üniversitesi design system uses Gotham (proprietary); Inter Tight
+// is the system's declared fallback and drives both body and display type.
+const interTight = Inter_Tight({
+  variable: "--font-inter-tight",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "900"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Tazelenme Üniversitesi",
+  title: "Tazelenme Üniversitesi — Akdeniz Üniversitesi",
   description:
-    "Tazelenme Üniversitesi öğrenci bilgi sistemi. Öğrenci, yoklama, ders ve materyal yönetim paneli.",
+    "Akdeniz Üniversitesi Tazelenme Üniversitesi (yaşlılar için akademi) öğrenci bilgi sistemi. Öğrenci, yoklama, ders ve materyal yönetim paneli.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -31,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#00694C",
+  themeColor: "#1D366A",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -45,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <body
-        className={`${playfairDisplay.variable} ${dmSans.variable} min-h-screen antialiased`}
+        className={`${interTight.variable} min-h-screen antialiased`}
       >
         {children}
         <Toaster richColors closeButton position="top-right" />
