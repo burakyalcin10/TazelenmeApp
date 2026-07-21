@@ -1,0 +1,26 @@
+/* =============================================================
+   Akdeniz Üniversitesi Design System — Gotham typefaces
+
+   The official brand fonts (Gotham Narrow = body/UI,
+   Gotham X Narrow = display) ship inside @akdenizcse/design-system.
+   The .otf files were copied to /public/fonts/akdeniz/ and are
+   served self-hosted here.
+
+   NOTE: Gotham is a commercial typeface (Hoefler & Co.). It is used
+   here because Akdeniz University's own design system distributes it
+   for building Akdeniz products; confirming the institutional license
+   is the customer's responsibility. Inter Tight remains the fallback.
+   ============================================================= */
+
+/* ---- Gotham Narrow — body / UI ---- */
+@font-face { font-family: "Gotham Narrow"; src: url("/fonts/akdeniz/GothamNarrow-Light.otf")  format("opentype"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Narrow"; src: url("/fonts/akdeniz/GothamNarrow-Book.otf")   format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Narrow"; src: url("/fonts/akdeniz/GothamNarrow-Medium.otf") format("opentype"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Narrow"; src: url("/fonts/akdeniz/GothamNarrow-Bold.otf")   format("opentype"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham Narrow"; src: url("/fonts/akdeniz/GothamNarrow-Black.otf")  format("opentype"); font-weight: 900; font-style: normal; font-display: swap; }
+
+/* ---- Gotham X Narrow — display / headlines ---- */
+@font-face { font-family: "Gotham X Narrow"; src: url("/fonts/akdeniz/GothamXNarrow-Book.otf")   format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham X Narrow"; src: url("/fonts/akdeniz/GothamXNarrow-Medium.otf") format("opentype"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham X Narrow"; src: url("/fonts/akdeniz/GothamXNarrow-Bold.otf")   format("opentype"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Gotham X Narrow"; src: url("/fonts/akdeniz/GothamXNarrow-Black.otf")  format("opentype"); font-weight: 900; font-style: normal; font-display: swap; }
