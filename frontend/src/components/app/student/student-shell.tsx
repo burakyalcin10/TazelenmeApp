@@ -25,7 +25,7 @@ function UserAvatar({ user }: { user: AdminUser }) {
 
   return (
     <div className="relative">
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1D9E75] to-[#00694C] text-base font-bold text-white shadow-md shadow-primary/20">
+      <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-sidebar text-base font-bold text-white shadow-md shadow-primary/20">
         {initials || "ÖĞ"}
       </div>
       {/* Online dot */}
@@ -44,36 +44,59 @@ export function StudentShell({
   const pathname = usePathname();
 
   return (
-    <div data-student-portal className="flex min-h-screen flex-col bg-[#F7F6F2]">
+    <div data-student-portal className="flex min-h-screen flex-col bg-background">
       {/* ─── Premium Top Header ─── */}
-      <header className="relative overflow-hidden bg-gradient-to-r from-[#0F3D2E] to-[#1a5240] px-5 pb-6 pt-[calc(env(safe-area-inset-top)+1rem)]">
+      <header className="relative overflow-hidden bg-gradient-to-r from-sidebar to-sidebar-accent px-5 pb-6 pt-[calc(env(safe-area-inset-top)+1rem)]">
         {/* Decorative circles */}
-        <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-[#1D9E75]/15" />
-        <div className="pointer-events-none absolute -left-6 bottom-0 size-24 rounded-full bg-[#1D9E75]/10" />
+        <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-white/10" />
+        <div className="pointer-events-none absolute -left-6 bottom-0 size-24 rounded-full bg-white/5" />
 
-        <div className="relative z-10 mx-auto flex max-w-lg items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <UserAvatar user={user} />
-            <div>
-              <p className="text-lg font-bold text-white">
-                {user.firstName} {user.lastName}
-              </p>
-              <p className="text-sm font-medium text-white/60">
-                Tazelenme Üniversitesi
-              </p>
+        <div className="relative z-10 mx-auto max-w-lg">
+          {/* Brand row — Akdeniz logo in a white chip */}
+          <div className="mb-4 flex items-center gap-2.5">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white p-1 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/akdeniz-logo.png"
+                alt="Akdeniz Üniversitesi"
+                className="size-full object-contain"
+              />
+            </span>
+            <div className="leading-tight">
+              <div className="text-sm font-extrabold tracking-tight text-white">
+                AKDENİZ ÜNİVERSİTESİ
+              </div>
+              <div className="text-[11px] font-medium text-white/60">
+                Tazelenme · Yaşlılar için Akademi
+              </div>
             </div>
           </div>
 
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/80 backdrop-blur-sm transition-all hover:bg-white/20 hover:text-white"
-              aria-label="Çıkış yap"
-            >
-              <LogOut className="size-4" />
-              <span className="hidden sm:inline">Çıkış</span>
-            </button>
-          </form>
+          {/* User row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3.5">
+              <UserAvatar user={user} />
+              <div>
+                <p className="text-lg font-bold text-white">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="text-sm font-medium text-white/60">
+                  Öğrenci
+                </p>
+              </div>
+            </div>
+
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/80 backdrop-blur-sm transition-all hover:bg-white/20 hover:text-white"
+                aria-label="Çıkış yap"
+              >
+                <LogOut className="size-4" />
+                <span className="hidden sm:inline">Çıkış</span>
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 
