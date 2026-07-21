@@ -45,6 +45,14 @@ next-env.d.ts
 *.swp
 *.swo
 
+# Android
+android/.gradle/
+android/local.properties
+android/**/build/
+android/captures/
+*.jks
+*.keystore
+
 # Docker
 docker-compose.override.yml
 

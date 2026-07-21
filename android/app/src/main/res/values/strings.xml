@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tazelenme NFC</string>
+    <string name="app_subtitle">Telefonu RFID kart okuyucu olarak kullanın.</string>
+    <string name="backend_address">Backend adresi</string>
+    <string name="backend_address_hint">https://sunucu-adresi</string>
+    <string name="coordinator_tc_no">Koordinatör TC Kimlik No</string>
+    <string name="pin">PIN</string>
+    <string name="login_and_open_reader">Giriş yap ve okuyucuyu aç</string>
+    <string name="nfc_preparing">NFC hazırlanıyor…</string>
+    <string name="scan_instruction">Kartı telefonun arka yüzündeki NFC alanına yaklaştırın. Yoklama için web panelinde bir oturum açık olmalıdır.</string>
+    <string name="no_card_scanned">Henüz kart okutulmadı</string>
+    <string name="reader_ready">Okuyucu hazır.</string>
+    <string name="open_nfc_settings">NFC ayarlarını aç</string>
+    <string name="logout">Çıkış yap</string>
+    <string name="card_uid_format">Kart UID\n%1$s</string>
+    <string name="card_sending">Kart okundu, sunucuya gönderiliyor…</string>
+    <string name="logging_in">Giriş yapılıyor…</string>
+    <string name="welcome_reader_ready">Hoş geldiniz %1$s. Okuyucu hazır.</string>
+    <string name="logged_out">Çıkış yapıldı.</string>
+    <string name="session_expired">Oturum süresi doldu. Lütfen yeniden giriş yapın.</string>
+    <string name="nfc_not_available">Bu telefonda NFC bulunamadı</string>
+    <string name="nfc_off">NFC kapalı</string>
+    <string name="nfc_reader_ready">NFC okuyucu hazır</string>
+</resources>
