@@ -1,14 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/akdeniz-tokens.css";
+@import "../styles/akdeniz-fonts.css";
+@import "../styles/akdeniz-components.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-serif: var(--font-playfair);
-  --font-sans: var(--font-dm-sans);
+  --font-serif: var(--font-display);
+  --font-sans: var(--font-text);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -54,65 +57,65 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* ─── Academic Curator — Light Only ─── */
+/* ─── Akdeniz Üniversitesi Design System — Light Only ─── */
 :root {
   /* Core surfaces */
-  --background: #FAFAF8;
-  --foreground: #1b1c18;
+  --background: var(--canvas);            /* #F7F8FC */
+  --foreground: var(--ink-900);           /* #0E1A33 */
 
   /* Cards: white with subtle border */
-  --card: #FFFFFF;
-  --card-foreground: #1b1c18;
+  --card: var(--paper);
+  --card-foreground: var(--ink-900);
 
   /* Popovers */
-  --popover: #FFFFFF;
-  --popover-foreground: #1b1c18;
+  --popover: var(--paper);
+  --popover-foreground: var(--ink-900);
 
-  /* Primary: Taze Yeşil */
-  --primary: #00694C;
+  /* Primary: Akdeniz Sea Blue */
+  --primary: var(--blue-600);             /* #0063AA */
   --primary-foreground: #FFFFFF;
 
-  /* Secondary: warm krem */
-  --secondary: #F1EFE8;
-  --secondary-foreground: #3b6756;
+  /* Secondary: cool light neutral */
+  --secondary: var(--ink-050);            /* #F2F4F8 */
+  --secondary-foreground: var(--blue-800); /* #1D366A */
 
-  /* Muted: lighter krem */
-  --muted: #F6F4EC;
-  --muted-foreground: #6d7a73;
+  /* Muted: cool light neutral */
+  --muted: var(--ink-050);
+  --muted-foreground: var(--ink-600);     /* #4B5673 */
 
-  /* Accent: bright vurgu yeşil */
-  --accent: #1D9E75;
+  /* Accent: Akdeniz Sun Orange */
+  --accent: var(--orange-600);            /* #F47524 */
   --accent-foreground: #FFFFFF;
 
   /* Destructive */
-  --destructive: #ba1a1a;
+  --destructive: var(--red-600);          /* #C9342C */
 
   /* Borders & inputs */
-  --border: #E5E5E3;
-  --input: #E5E5E3;
-  --ring: #1D9E75;
+  --border: var(--ink-100);               /* #E8EBF1 */
+  --input: var(--ink-100);
+  --ring: var(--blue-600);
 
-  /* Charts — green family */
-  --chart-1: #00694C;
-  --chart-2: #1D9E75;
-  --chart-3: #86f8c9;
-  --chart-4: #F5C75A;
-  --chart-5: #3b6756;
+  /* Charts — Akdeniz blue/orange family */
+  --chart-1: var(--blue-800);             /* #1D366A */
+  --chart-2: var(--blue-600);             /* #0063AA */
+  --chart-3: var(--blue-400);             /* #66A8DA */
+  --chart-4: var(--orange-600);           /* #F47524 */
+  --chart-5: var(--blue-500);             /* #2A86C7 */
 
-  /* Sidebar: Deep Forest */
-  --sidebar: #0F3D2E;
+  /* Sidebar: Deep Akdeniz Blue */
+  --sidebar: var(--blue-900);             /* #0F2655 */
   --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #1D9E75;
+  --sidebar-primary: var(--orange-600);   /* active accent — Sun Orange */
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1a5240;
+  --sidebar-accent: var(--blue-800);      /* hover / active bg — #1D366A */
   --sidebar-accent-foreground: #FFFFFF;
   --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #1D9E75;
+  --sidebar-ring: var(--orange-600);
 
   /* Editorial extras */
-  --forest: #3b6756;
-  --surface-warm: #F1EFE8;
-  --amber: #F5C75A;
+  --forest: var(--blue-700);              /* #004C84 */
+  --surface-warm: var(--blue-050);        /* #F2F6FB */
+  --amber: var(--amber-600);              /* #C98A12 */
   --amber-foreground: #5b4300;
 
   --radius: 0.75rem;
@@ -138,7 +141,7 @@
   }
 
   ::selection {
-    background: rgba(29, 158, 117, 0.2);
+    background: rgba(0, 99, 170, 0.18);
   }
 }
 
@@ -159,7 +162,7 @@
 
 .surface-kpi:hover {
   border-color: color-mix(in oklab, var(--primary) 30%, var(--border));
-  box-shadow: 0 4px 12px -6px rgba(15, 61, 46, 0.08);
+  box-shadow: 0 4px 12px -6px rgba(15, 38, 85, 0.12);
 }
 
 .surface-card {
@@ -178,7 +181,7 @@
 }
 
 .glass-header {
-  background: rgba(250, 250, 248, 0.85);
+  background: rgba(247, 248, 252, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -310,5 +313,5 @@
 
 /* Ensure adequate contrast for muted text in student portal */
 [data-student-portal] .text-muted-foreground {
-  color: #526b5f; /* Boosted from #6d7a73 for WCAG AA (4.5:1 ratio on #FAFAF8) */
+  color: var(--ink-700); /* #2A3654 — WCAG AA on #F7F8FC (>10:1) */
 }
