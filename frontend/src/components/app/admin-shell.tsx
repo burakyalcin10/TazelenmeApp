@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   BookOpen,
+  ClipboardCheck,
   CreditCard,
   LayoutDashboard,
   LogOut,
   Menu,
+  Search,
   ShieldAlert,
   Users,
   X,
@@ -19,54 +21,137 @@ import { logoutAction } from "@/lib/actions/auth";
 import { cn } from "@/lib/utils";
 import type { AdminUser } from "@/lib/types";
 
-const navItems = [
-  { href: "/admin", label: "Panel", icon: LayoutDashboard },
-  { href: "/admin/students", label: "Öğrenciler", icon: Users },
-  { href: "/admin/attendance", label: "Yoklama", icon: Bell },
-  { href: "/admin/courses", label: "Dersler", icon: BookOpen },
-  { href: "/admin/risks", label: "Riskler", icon: ShieldAlert },
-  { href: "/admin/cards", label: "Kartlar", icon: CreditCard },
+const navGroups = [
+  {
+    title: "Genel",
+    items: [{ href: "/admin", label: "Panel", icon: LayoutDashboard }],
+  },
+  {
+    title: "Yönetim",
+    items: [
+      { href: "/admin/students", label: "Öğrenciler", icon: Users },
+      { href: "/admin/courses", label: "Dersler", icon: BookOpen },
+      { href: "/admin/cards", label: "Kartlar", icon: CreditCard },
+    ],
+  },
+  {
+    title: "İzleme",
+    items: [
+      { href: "/admin/attendance", label: "Yoklama", icon: ClipboardCheck },
+      { href: "/admin/risks", label: "Riskler", icon: ShieldAlert },
+    ],
+  },
 ];
 
-function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+function isItemActive(pathname: string, href: string) {
+  if (href === "/admin") return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+const headerNav = [
+  { href: "/admin", label: "Panel" },
+  { href: "/admin/students", label: "Öğrenciler" },
+  { href: "/admin/attendance", label: "Yoklama" },
+  { href: "/admin/courses", label: "Dersler" },
+  { href: "/admin/risks", label: "Riskler" },
+  { href: "/admin/cards", label: "Kartlar" },
+];
+
+function HeaderNav() {
   const pathname = usePathname();
-
   return (
-    <nav className="flex-1 space-y-1">
-      {navItems.map(({ href, label, icon: Icon }) => {
-        const isExact = pathname === href;
-        const isNested = pathname.startsWith(`${href}/`);
-        const isActive = href === "/admin" ? isExact : isExact || isNested;
-
-        return (
-          <Link
-            key={href}
-            href={href}
-            onClick={onNavigate}
-            className={cn(
-              "flex items-center gap-3 px-6 py-4 text-sm font-medium transition-all duration-200",
-              isActive
-                ? "border-l-4 border-[#1D9E75] bg-[#1a5240] font-bold text-[#86f8c9]"
-                : "border-l-4 border-transparent text-white/70 hover:bg-[#1a5240] hover:text-white"
-            )}
-          >
-            <Icon className="size-5" />
-            <span>{label}</span>
-          </Link>
-        );
-      })}
+    <nav className="ph__nav hidden lg:flex">
+      {headerNav.map(({ href, label }) => (
+        <Link
+          key={href}
+          href={href}
+          className={cn("ph__navlink", isItemActive(pathname, href) && "is-active")}
+          aria-current={isItemActive(pathname, href) ? "page" : undefined}
+        >
+          {label}
+        </Link>
+      ))}
     </nav>
   );
 }
 
-function UserInitials({ user }: { user: AdminUser }) {
-  const initials = `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
+function SideNav({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
 
   return (
-    <div className="flex size-10 items-center justify-center rounded-full bg-[#1a5240] text-sm font-bold text-[#86f8c9]">
-      {initials || "AD"}
-    </div>
+    <nav className="flex-1">
+      {navGroups.map((group) => (
+        <div key={group.title} className="sn__group">
+          <div className="sn__title">{group.title}</div>
+          {group.items.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={onNavigate}
+              className={cn("sn__item", isItemActive(pathname, href) && "is-active")}
+              aria-current={isItemActive(pathname, href) ? "page" : undefined}
+            >
+              <Icon />
+              <span>{label}</span>
+            </Link>
+          ))}
+        </div>
+      ))}
+    </nav>
   );
+}
+
+function HeaderSearch() {
+  const router = useRouter();
+  return (
+    <form
+      className="ph__search hidden xl:flex"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const q = String(new FormData(e.currentTarget).get("q") || "").trim();
+        router.push(
+          q ? `/admin/students?q=${encodeURIComponent(q)}` : "/admin/students"
+        );
+      }}
+    >
+      <Search className="size-4" />
+      <input
+        name="q"
+        placeholder="Öğrenci ara — ad, soyad, TC"
+        aria-label="Öğrenci ara"
+      />
+    </form>
+  );
+}
+
+function LogoutItem() {
+  return (
+    <form action={logoutAction}>
+      <button type="submit" className="sn__item">
+        <LogOut />
+        <span>Çıkış Yap</span>
+      </button>
+    </form>
+  );
+}
+
+function BrandWordmark() {
+  return (
+    <Link href="/admin" className="ph__brand">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/akdeniz-logo.png" alt="Akdeniz Üniversitesi" className="ph__logo" />
+      <span className="ph__name">
+        <span className="ph__name-line1">AKDENİZ</span>
+        <span className="ph__name-line2">Üniversitesi · Tazelenme</span>
+      </span>
+    </Link>
+  );
+}
+
+function UserAvatar({ user }: { user: AdminUser }) {
+  const initials =
+    `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
+  return <div className="ph__avatar">{initials || "AD"}</div>;
 }
 
 export function AdminShell({
@@ -80,100 +165,74 @@ export function AdminShell({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ─── Desktop Sidebar ─── */}
-      <aside className="fixed left-0 top-0 z-50 hidden h-screen w-60 flex-col overflow-y-auto bg-[#0F3D2E] py-8 lg:flex">
-        {/* Logo */}
-        <div className="mb-10 px-6">
-          <h1 className="font-serif text-xl font-bold tracking-tight text-white">
-            Tazelenme Üni.
-          </h1>
-          <p className="mt-1 text-xs font-medium text-white/50">
-            Akademik Portal
-          </p>
+      {/* ─── Top header (Akdeniz portal chrome) ─── */}
+      <header className="ph sticky top-0 z-40">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="ph__icon lg:hidden"
+          aria-label="Menüyü aç"
+        >
+          <Menu className="size-5" />
+        </button>
+
+        <BrandWordmark />
+
+        <HeaderNav />
+
+        <div className="ph__spacer" />
+
+        <HeaderSearch />
+
+        <button className="ph__icon" title="Bildirimler" aria-label="Bildirimler">
+          <Bell className="size-5" />
+        </button>
+
+        <UserAvatar user={user} />
+
+        <form action={logoutAction}>
+          <button
+            type="submit"
+            className="ph__icon"
+            title="Çıkış Yap"
+            aria-label="Çıkış Yap"
+          >
+            <LogOut className="size-5" />
+          </button>
+        </form>
+      </header>
+
+      {/* ─── Content (full width — nav lives in the top header) ─── */}
+      <main>
+        <div className="page-container px-5 py-6 lg:px-8 lg:py-8">
+          {children}
         </div>
+      </main>
 
-        {/* Navigation */}
-        <SidebarNav />
-
-        {/* Bottom section */}
-        <div className="mt-auto border-t border-white/10 pt-4">
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-3 px-6 py-3 text-sm text-white/50 transition-colors hover:text-white"
-            >
-              <LogOut className="size-5" />
-              <span>Çıkış Yap</span>
-            </button>
-          </form>
-        </div>
-      </aside>
-
-      {/* ─── Mobile Sidebar Overlay ─── */}
+      {/* ─── Mobile drawer ─── */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-72 bg-[#0F3D2E] py-8 shadow-2xl">
-            <div className="mb-8 flex items-center justify-between px-6">
-              <div>
-                <h1 className="font-serif text-xl font-bold text-white">
-                  Tazelenme Üni.
-                </h1>
-                <p className="mt-1 text-xs text-white/50">Akademik Portal</p>
-              </div>
+          <aside className="sn absolute left-0 top-0 flex h-full w-72 flex-col overflow-y-auto shadow-2xl">
+            <div className="mb-2 flex items-center justify-between px-3 pb-3">
+              <BrandWordmark />
               <button
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg p-1 text-white/60 hover:text-white"
+                className="ph__icon"
                 aria-label="Menüyü kapat"
               >
                 <X className="size-5" />
               </button>
             </div>
-            <SidebarNav onNavigate={() => setMobileOpen(false)} />
-            <div className="mt-auto border-t border-white/10 pt-4">
-              <form action={logoutAction}>
-                <button
-                  type="submit"
-                  className="flex w-full items-center gap-3 px-6 py-3 text-sm text-white/50 hover:text-white"
-                >
-                  <LogOut className="size-5" />
-                  <span>Çıkış Yap</span>
-                </button>
-              </form>
+            <SideNav onNavigate={() => setMobileOpen(false)} />
+            <div className="mt-4 border-t border-[color:var(--border-akd)] pt-2">
+              <LogoutItem />
             </div>
           </aside>
         </div>
       )}
-
-      {/* ─── Main Content Area ─── */}
-      <div className="lg:ml-60">
-        {/* Sticky Header */}
-        <header className="glass-header sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/50 px-6 lg:px-10">
-          <div className="flex items-center gap-4">
-            {/* Mobile menu trigger */}
-            <button
-              onClick={() => setMobileOpen(true)}
-              className="rounded-lg p-2 text-forest hover:bg-secondary lg:hidden"
-              aria-label="Menüyü aç"
-            >
-              <Menu className="size-5" />
-            </button>
-
-            <span className="hidden font-serif text-lg italic text-forest lg:inline">
-              Academic Curator
-            </span>
-          </div>
-
-          {/* User avatar */}
-          <UserInitials user={user} />
-        </header>
-
-        {/* Page Content */}
-        <main className="px-6 py-8 lg:px-10">{children}</main>
-      </div>
     </div>
   );
 }
