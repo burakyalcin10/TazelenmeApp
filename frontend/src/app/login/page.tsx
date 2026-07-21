@@ -18,17 +18,17 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="grid w-full max-w-5xl gap-0 overflow-hidden rounded-2xl shadow-[0_24px_60px_-20px_rgba(15,61,46,0.18)] lg:grid-cols-[1.1fr_0.9fr]">
-        {/* Sol Panel — Deep Forest */}
-        <div className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0F3D2E] to-[#1a5240] p-10 text-white lg:p-12">
+      <div className="grid w-full max-w-5xl gap-0 overflow-hidden rounded-2xl shadow-[0_24px_60px_-20px_rgba(15,38,85,0.22)] lg:grid-cols-[1.1fr_0.9fr]">
+        {/* Sol Panel — Deep Akdeniz Blue */}
+        <div className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-sidebar to-sidebar-accent p-10 text-white lg:p-12">
           {/* Dekoratif daireler */}
-          <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-[#1D9E75]/20" />
-          <div className="pointer-events-none absolute -bottom-20 -left-20 size-64 rounded-full bg-[#1D9E75]/10" />
+          <div className="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-white/15" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 size-64 rounded-full bg-white/8" />
 
           <div className="relative z-10 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-sm">
               <GraduationCap className="size-4" />
-              Tazelenme Üniversitesi
+              Akdeniz Üniversitesi · Tazelenme
             </div>
 
             <h1 className="max-w-md font-serif text-4xl font-bold leading-tight lg:text-5xl">
@@ -36,9 +36,9 @@ export default function LoginPage() {
             </h1>
 
             <p className="max-w-md text-base leading-7 text-white/70">
-              Tazelenme Üniversitesi bilgi sistemine hoş geldiniz.
-              Koordinatörler yönetim paneline, öğrenciler ise kişisel
-              portallarına giriş yapabilir.
+              Akdeniz Üniversitesi Tazelenme (yaşlılar için akademi) bilgi
+              sistemine hoş geldiniz. Koordinatörler yönetim paneline,
+              öğrenciler ise kişisel portallarına giriş yapabilir.
             </p>
           </div>
 
@@ -60,6 +60,24 @@ export default function LoginPage() {
 
         {/* Sağ Panel — Login Formu */}
         <div className="flex flex-col justify-center bg-white p-10 lg:p-12">
+          {/* Akdeniz marka kilidi */}
+          <div className="mb-6 flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/akdeniz-logo.png"
+              alt="Akdeniz Üniversitesi"
+              className="h-12 w-auto"
+            />
+            <div className="leading-tight">
+              <div className="font-serif text-lg font-black tracking-tight text-[color:var(--blue-800)]">
+                AKDENİZ
+              </div>
+              <div className="text-[10px] font-medium uppercase tracking-[0.06em] text-primary">
+                Üniversitesi · Tazelenme
+              </div>
+            </div>
+          </div>
+
           <div className="mb-8 space-y-4">
             <div className="flex size-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <KeyRound className="size-7" />
@@ -128,7 +146,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-primary to-[#008560] font-bold text-white transition-all hover:shadow-lg hover:shadow-primary/20 disabled:opacity-60"
+              className="flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-primary to-[#004C84] font-bold text-white transition-all hover:shadow-lg hover:shadow-primary/20 disabled:opacity-60"
             >
               {isPending ? "Giriş yapılıyor..." : "Giriş yap"}
             </button>
