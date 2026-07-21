@@ -2,14 +2,14 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Tazelenme Üniversitesi",
+    name: "Tazelenme Üniversitesi — Akdeniz Üniversitesi",
     short_name: "Tazelenme",
     description:
-      "Tazelenme Üniversitesi öğrenci ve koordinatör bilgi sistemi.",
+      "Akdeniz Üniversitesi Tazelenme Üniversitesi öğrenci ve koordinatör bilgi sistemi.",
     start_url: "/",
     display: "standalone",
-    background_color: "#FAFAF8",
-    theme_color: "#00694C",
+    background_color: "#F7F8FC",
+    theme_color: "#1D366A",
     orientation: "portrait",
     icons: [
       {
