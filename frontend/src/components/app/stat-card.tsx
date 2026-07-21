@@ -34,7 +34,7 @@ export function StatCard({
           <Icon className="size-[18px]" />
         </div>
       </div>
-      <div className="mt-2 font-serif text-3xl tracking-tight text-forest">
+      <div className="mt-2 font-serif text-3xl font-bold tracking-tight text-[color:var(--blue-800)]">
         {value}
       </div>
       <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
