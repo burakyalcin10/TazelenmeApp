@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Download, Eye, Pencil, Plus, Search, ShieldAlert, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -93,9 +94,10 @@ function escapeCsvCell(value: string | number | boolean | null | undefined) {
 }
 
 export default function StudentsPage() {
+  const searchParams = useSearchParams();
   const [students, setStudents] = useState<StudentListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
   const [riskFilter, setRiskFilter] = useState("ALL");
   const [healthFilter, setHealthFilter] = useState("ALL");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -109,6 +111,12 @@ export default function StudentsPage() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<StudentImportResult | null>(null);
   const [form, setForm] = useState<StudentCreatePayload>(emptyForm);
+
+  // Header aramasından gelen ?q= parametresiyle senkronize kal
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q !== null) setSearch(q);
+  }, [searchParams]);
 
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
