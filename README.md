@@ -96,7 +96,8 @@ Frontend (Next.js App Router + React + Tailwind)
   -> Backend API (Express + TypeScript)
     -> PostgreSQL (Prisma)
     -> Upload storage
-    -> RFID Gateway (Raspberry Pi + RC522)
+    -> Android NFC Reader (primary)
+    -> RFID Gateway (Raspberry Pi + RC522, legacy fallback)
 ```
 
 ### Frontend
@@ -138,7 +139,7 @@ Temel tablolar:
 | ORM | Prisma |
 | Veritabani | PostgreSQL |
 | Auth | JWT access + refresh token |
-| IoT | Raspberry Pi, RC522, Python, systemd |
+| RFID/NFC | Android native NFC reader; Raspberry Pi + RC522 fallback |
 | Otomasyon | node-cron |
 | Dosya yukleme | multer |
 | Altyapi | Docker, Docker Compose |
@@ -242,7 +243,14 @@ Not: Render free tier soguyan serviste ilk istek 10-30 saniye surebilir.
 
 ## RFID Donanim Demosu
 
-RFID/NFC donanim demosu opsiyoneldir. Demo icin Raspberry Pi uzerinde RC522 okuyucu ve `tazelenme-rfid` servisi kullanilir.
+Yeni birincil okuyucu, `android/` altindaki yerel Android NFC uygulamasidir.
+Uygulama koordinator girisiyle kart UID'sini okuyup admin-JWT korumali
+`/api/v1/attendance/mobile-scan` rotasina gonderir. Gecis kararlari, donanim
+uyumlulugu ve fiziksel test plani icin `docs/android-nfc-migration.md` dosyasina
+bakin.
+
+Raspberry Pi demosu gecis tamamlanana kadar opsiyonel yedek olarak korunur.
+Pi uzerinde RC522 okuyucu ve `tazelenme-rfid` servisi kullanilir.
 
 Detayli dosyalar:
 
