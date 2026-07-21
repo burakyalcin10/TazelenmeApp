@@ -252,7 +252,7 @@ export default function StudentHomePage() {
       {/* ─── Footer info ─── */}
       <div className="pb-2 pt-4 text-center">
         <p className="text-xs text-muted-foreground/60">
-          Tazelenme Üniversitesi © 2026
+          Akdeniz Üniversitesi · Tazelenme © 2026
         </p>
       </div>
     </div>

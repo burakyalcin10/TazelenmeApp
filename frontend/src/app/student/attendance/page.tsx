@@ -137,13 +137,13 @@ export default function StudentAttendancePage() {
 
       {/* ─── Overall Summary Card ─── */}
       {courses.length > 0 && (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0F3D2E] to-[#1a5240] p-6 text-white">
-          <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-[#1D9E75]/15" />
-          <div className="pointer-events-none absolute -bottom-4 -left-4 size-20 rounded-full bg-[#1D9E75]/10" />
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sidebar to-sidebar-accent p-6 text-white">
+          <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-white/10" />
+          <div className="pointer-events-none absolute -bottom-4 -left-4 size-20 rounded-full bg-white/5" />
 
           <div className="relative z-10">
             <div className="flex items-center gap-2">
-              <TrendingUp className="size-5 text-[#86f8c9]" />
+              <TrendingUp className="size-5 text-[#A6CCEA]" />
               <p className="text-sm font-semibold text-white/70">
                 Genel Katılım Özeti
               </p>
@@ -159,7 +159,7 @@ export default function StudentAttendancePage() {
             {/* Progress bar */}
             <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/15">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#86f8c9] to-[#1D9E75] transition-all duration-700"
+                className="h-full rounded-full bg-gradient-to-r from-[#66A8DA] to-primary transition-all duration-700"
                 style={{ width: `${Math.min(overallRate, 100)}%` }}
               />
             </div>
