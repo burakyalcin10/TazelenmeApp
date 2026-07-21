@@ -80,10 +80,19 @@ async function findActiveSessionForLocation(deviceLocation: string, studentId?: 
  */
 export const scanCard = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { cardUid, deviceLocation } = req.body;
+    const { cardUid: rawCardUid, deviceLocation: rawDeviceLocation } = req.body;
 
-    if (!cardUid || !deviceLocation) {
+    if (typeof rawCardUid !== 'string' || typeof rawDeviceLocation !== 'string') {
       throw new AppError('cardUid ve deviceLocation zorunludur.', 400);
+    }
+
+    // Raspberry Pi ve Android ayni fiziksel UID'yi farkli harf buyuklugu veya
+    // kenar bosluklariyla gonderebilir. Veritabaninda tek kanonik bicim kullan.
+    const cardUid = rawCardUid.trim().toUpperCase();
+    const deviceLocation = rawDeviceLocation.trim().toUpperCase();
+
+    if (!cardUid || !deviceLocation || cardUid.length > 64 || deviceLocation.length > 64) {
+      throw new AppError('Gecersiz cardUid veya deviceLocation.', 400);
     }
 
     // 1. ADIM: Kartı bul

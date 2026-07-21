@@ -21,6 +21,10 @@ const router = Router();
 // Rate Limit: dakikada 300 istek (200 kişilik amfi + tolerans)
 router.post('/scan', iotLimiter, authenticateDevice, scanCard);
 
+// POST /api/v1/attendance/mobile-scan — Android NFC okuyucu uygulamasi
+// Auth: JWT + ADMIN. Global IoT anahtarinin APK icine gomulmesini onler.
+router.post('/mobile-scan', iotLimiter, authenticate, authorize('ADMIN'), scanCard);
+
 // POST /api/v1/attendance/manual — Koordinatörün elle yoklama yapması
 // Auth: JWT + ADMIN rolü
 router.post('/manual', authenticate, authorize('ADMIN'), manualAttendance);

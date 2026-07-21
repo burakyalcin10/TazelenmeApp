@@ -18,10 +18,15 @@ import logger from '../utils/logger';
  */
 export const assignCard = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { uid, studentId } = req.body;
+    const { uid: rawUid, studentId } = req.body;
 
-    if (!uid || !studentId) {
+    if (typeof rawUid !== 'string' || !studentId) {
       throw new AppError('uid ve studentId zorunludur.', 400);
+    }
+
+    const uid = rawUid.trim().toUpperCase();
+    if (!uid || uid.length > 64) {
+      throw new AppError('Gecersiz kart UID bilgisi.', 400);
     }
 
     // Kart UID zaten kullanılıyor mu?
