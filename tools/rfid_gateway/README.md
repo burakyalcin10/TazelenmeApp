@@ -26,7 +26,7 @@ Run the gateway manually:
 
 ```bash
 export TAZELENME_API_URL="http://192.168.1.109:4000"
-export TAZELENME_IOT_API_KEY="iot_device_secret_key_change_in_production"
+export TAZELENME_IOT_API_KEY="<CIHAZA_OZEL_IOT_API_ANAHTARI>"
 export TAZELENME_DEVICE_LOCATION="AUTO"
 python3 rfid_gateway.py
 ```

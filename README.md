@@ -214,23 +214,10 @@ npm run dev
 
 ## Demo Bilgileri
 
-### Admin Girisi
+### Demo Hesaplarina Erisim
 
-```text
-TC No: 11111111111
-PIN: 1234
-```
-
-### Ogrenci Girisi
-
-Ogrenci hesaplarinda ilk PIN, TC kimlik numarasinin son 4 hanesidir.
-
-Ornek:
-
-```text
-TC No: 39900000001
-PIN: 0001
-```
+Hesap kullanici bilgileri ve PIN degerleri README dosyalarinda paylasilmaz.
+Demo erisimi icin yetkili yoneticiyle guvenli bir kanaldan iletisime gecin.
 
 ### Canli Demo
 
@@ -271,7 +258,7 @@ Beklenen demo ayari:
 
 ```env
 TAZELENME_API_URL=http://127.0.0.1:4000
-TAZELENME_IOT_API_KEY=iot_secret_change_me
+TAZELENME_IOT_API_KEY=<CIHAZA_OZEL_IOT_API_ANAHTARI>
 TAZELENME_DEVICE_LOCATION=AUTO
 ```
 
@@ -280,13 +267,13 @@ TAZELENME_DEVICE_LOCATION=AUTO
 Windows Firewall nedeniyle Pi'nin backend'e erismesi icin sunumda reverse tunnel acilabilir:
 
 ```powershell
-python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+ssh -N -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -R 127.0.0.1:4000:127.0.0.1:4000 burak@192.168.1.121
 ```
 
 Mobil hotspot / iPhone aginda Pi'nin IP adresi degisebilir. Bu durumda IP yerine hostname kullan:
 
 ```powershell
-python tools\rfid_gateway\reverse_tunnel.py --host rfid-pi.local --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+ssh -N -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -R 127.0.0.1:4000:127.0.0.1:4000 burak@rfid-pi.local
 ```
 
 Basarili cikti:
@@ -358,14 +345,14 @@ sudo systemctl restart tazelenme-rfid
 
 ```powershell
 cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
-python tools\rfid_gateway\reverse_tunnel.py --host 192.168.1.121 --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+ssh -N -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -R 127.0.0.1:4000:127.0.0.1:4000 burak@192.168.1.121
 ```
 
 Mobil hotspot / iPhone aginda IP degisebilecegi icin sunumda bunu tercih et:
 
 ```powershell
 cd C:\Users\burak\OneDrive\Masaustu\TazelenmeApp
-python tools\rfid_gateway\reverse_tunnel.py --host rfid-pi.local --user burak --password burak --remote-host 127.0.0.1 --remote-port 4000 --local-host 127.0.0.1 --local-port 4000
+ssh -N -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -R 127.0.0.1:4000:127.0.0.1:4000 burak@rfid-pi.local
 ```
 
 8. Tunnel zaten aciksa kapat:
